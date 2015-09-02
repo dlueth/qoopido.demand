@@ -3,6 +3,8 @@ This is an alpha preview of the upcoming release of Qoopido.demand. It is mainly
 
 Qoopido.demand is a highly modular and flexible promise like module loader.
 
+The loader was originally part of my Qoopido.js repo (and still is) - so you will find some demo code there via [rawgit](https://rawgit.com/dlueth/qoopido.js/release/4.0.0/demo/debug.html). Just open your developer console and remember to clear your localStorage :)
+
 
 ## Compatibility
 Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills.
