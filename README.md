@@ -34,14 +34,14 @@ The loader consists of two components ```demand``` and ```provide``` just like r
 
 		target.parentNode.insertBefore(script, target);
 	}(window, document, 'script'))
-}('/src/demand.js', 'main', { base: '/demo' }));
+}('/src/demand.js', 'main', { base: '/demo', version: '1.0.0' }));
 ```
 
 You may as well use the uglified version:
 
 ```javascript
 !function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
-("/src/demand.js","main",{base:"/demo"});
+("/src/demand.js","main",{base:"/demo",version:"1.0.0"});
 ```
 
 The above snippet is very similar to the one Google Analytics provides. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
@@ -65,6 +65,7 @@ The demanded ```main``` module might look like the following example:
 				
 				// cache will be validated against lifetime, if > 0
 				// optional, defaults to "0"
+				// unit: seconds
 				lifetime: 60,
 				
 				// sets the timeout for XHR requests
@@ -72,6 +73,7 @@ The demanded ```main``` module might look like the following example:
 				// have a timeout of timeout / 5 to get
 				// resolved by their handler
 				// optional, defaults to "5000" (limited to "2000" up to "8000")
+				// unit: milliseconds (will change that to seconds)
 				timeout: 8000, 
 				
 				// base path from where your relative 
