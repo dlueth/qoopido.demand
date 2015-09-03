@@ -713,7 +713,7 @@
 			provide('/pledge', function() { return Pledge; });
 
 	// load main script
-	if(main) {
-		demand(main);
-	}
+		if(main) {
+			demand(main);
+		}
 }(this));
