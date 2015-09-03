@@ -4,7 +4,6 @@ var gulp     = require('gulp'),
 	plugins  = require('gulp-load-plugins')(),
 	sequence = require('run-sequence'),
 	del      = require('del'),
-	files    = {},
 	config   = {},
 	jshintConfig, package, config, patterns = [], key;
 
