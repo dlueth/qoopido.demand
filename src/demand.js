@@ -495,6 +495,7 @@
 				var self = this;
 
 				self.current = null;
+				self.queue   = [];
 			}
 
 			Queue.prototype = {
