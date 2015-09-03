@@ -366,7 +366,8 @@
 				constructor: Pledge,
 				state:       PLEDGE_PENDING,
 				value:       null,
-				listener:    null
+				listener:    null,
+				then:        null
 			};
 
 			Pledge.defer = function() {
@@ -434,6 +435,9 @@
 			}
 
 			Error.prototype = {
+				message: null,
+				module:  null,
+				stack:   null,
 				toString: function() {
 					var self   = this,
 						result = DEMAND_PREFIX + ' ' + self.message + ' ' + self.module;
@@ -470,6 +474,9 @@
 			}
 
 			Pattern.prototype = {
+				url:          null,
+				regexPattern: null,
+				regexUrl:     null,
 				matches: function(aPath) {
 					return this.regexPattern.test(aPath);
 				},
@@ -487,12 +494,13 @@
 			function Queue() {
 				var self = this;
 
-				self.queue   = [];
 				self.current = null;
 			}
 
 			Queue.prototype = {
-				length: 0,
+				current: null,
+				queue:   null,
+				length:  0,
 				add: function(aItem) {
 					var self  = this,
 						queue = self.queue;
@@ -585,10 +593,17 @@
 			}
 
 			Loader.prototype = {
+				handler: null,
+				path:    null,
+				url:     null,
+				defered: null,
+				pledge:  null,
+				cached:  false,
+				source:  null,
 				probe: function() {
 					var self    = this,
 						path    = self.path,
-						pledge  = self.defered.pledge,
+						pledge  = self.pledge,
 						pending = pledge.state === PLEDGE_PENDING,
 						result  = probes[path]();
 
@@ -621,9 +636,7 @@
 
 				resolve.path.call(self, aPath);
 
-				self.pledge = defered.pledge;
-
-				self.pledge.then(null, function() {
+				(self.pledge = defered.pledge).then(null, function() {
 					log(new Error('unable to resolve module', self.path, arguments));
 				});
 
@@ -639,6 +652,12 @@
 
 				return self;
 			}
+
+			Module.prototype = {
+				handler: null,
+				path:    null,
+				pledge:  null
+			};
 
 	// handler
 		// JavaScript
