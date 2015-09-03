@@ -341,6 +341,7 @@
     function Queue() {
         var self = this;
         self.current = null;
+        self.queue = [];
     }
     Queue.prototype = {
         current: null,
