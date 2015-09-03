@@ -72,9 +72,9 @@ The demanded ```main``` module might look like the following example:
 				// loaded but not yet resolved modules 
 				// have a timeout of timeout / 5 to get
 				// resolved by their handler
-				// optional, defaults to "5000" (limited to "2000" up to "8000")
-				// unit: milliseconds (will change that to seconds)
-				timeout: 8000, 
+				// optional, defaults to "5" (limited to "2" up to "10")
+				// unit: seconds
+				timeout: 8, 
 				
 				// base path from where your relative 
 				// dependencies get loaded
@@ -83,7 +83,16 @@ The demanded ```main``` module might look like the following example:
 				
 				// optional
 				pattern: {
-					'/qoopido': '[path/url to Qoopido.js]'
+					'/qoopido': '[path/url to Qoopido.js]',
+					'/jquery':  '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
+				},
+				
+				// probes allow you to write fallback tests
+				// for modules that do not natively support
+				// demand/provide
+				// optional
+				probes: {
+					'/jquery': function() { return global.jQuery; }
 				}
 			});
 	}
