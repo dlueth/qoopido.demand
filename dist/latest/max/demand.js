@@ -256,7 +256,8 @@
         constructor: Pledge,
         state: PLEDGE_PENDING,
         value: null,
-        listener: null
+        listener: null,
+        then: null
     };
     Pledge.defer = function() {
         var self = {};
@@ -295,6 +296,9 @@
         return self;
     }
     Error.prototype = {
+        message: null,
+        module: null,
+        stack: null,
         toString: function() {
             var self = this, result = DEMAND_PREFIX + " " + self.message + " " + self.module;
             if (self.stack) {
@@ -320,6 +324,9 @@
         self.regexUrl = new RegExp("^" + escape(aUrl));
     }
     Pattern.prototype = {
+        url: null,
+        regexPattern: null,
+        regexUrl: null,
         matches: function(aPath) {
             return this.regexPattern.test(aPath);
         },
@@ -333,10 +340,11 @@
     };
     function Queue() {
         var self = this;
-        self.queue = [];
         self.current = null;
     }
     Queue.prototype = {
+        current: null,
+        queue: null,
         length: 0,
         add: function(aItem) {
             var self = this, queue = self.queue;
@@ -405,8 +413,15 @@
         return self;
     }
     Loader.prototype = {
+        handler: null,
+        path: null,
+        url: null,
+        defered: null,
+        pledge: null,
+        cached: false,
+        source: null,
         probe: function() {
-            var self = this, path = self.path, pledge = self.defered.pledge, pending = pledge.state === PLEDGE_PENDING, result = probes[path]();
+            var self = this, path = self.path, pledge = self.pledge, pending = pledge.state === PLEDGE_PENDING, result = probes[path]();
             if (result && pending) {
                 provide(function() {
                     return result;
@@ -429,8 +444,7 @@
     function Module(aPath, aFactory, aDependencies) {
         var self = this, defered = Pledge.defer();
         resolve.path.call(self, aPath);
-        self.pledge = defered.pledge;
-        self.pledge.then(null, function() {
+        (self.pledge = defered.pledge).then(null, function() {
             log(new Error("unable to resolve module", self.path, arguments));
         });
         if (aDependencies.length > 0) {
@@ -444,6 +458,11 @@
         }
         return self;
     }
+    Module.prototype = {
+        handler: null,
+        path: null,
+        pledge: null
+    };
     JavascriptHandler = {
         resolve: function(aPath, aValue) {
             var script = document.createElement("script");
