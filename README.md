@@ -18,7 +18,7 @@ None, yet :)
 As Qoopido.demand is not yet released the only way to get the alpha is by either downloading or cloning from this GitHub branch.
 
 
-## Using demand
+## Including demand
 The loader consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```. Use the following code snippet in a standalone script tag before the closing body tag to include demand:
 
 ```javascript
@@ -46,7 +46,9 @@ You may as well use the uglified version:
 
 The above snippet is very similar to the one Google Analytics provides. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
 
-The demanded ```main``` module might look like the following example:
+
+## Using demand
+The demanded ```main``` module from the above script might look like the following example:
 
 ```javascript
 ;(function(global, demand, provide) {
@@ -105,6 +107,7 @@ Once demand is loaded anything that is either explicitly requested via ```demand
 
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
 
+## More about handlers
 ```demand``` comes with handlers for JavaScript and CSS. Handlers have three objectives:
 
 - provide a file extension/suffix to be added the the url
@@ -143,7 +146,7 @@ Just keep these few things in mind:
 - in case you need a ```modify``` function make sure it returns the modified ```value```
 
 
-### Controlling the cache
+## Controlling the cache
 If caching is enabled, localStorage available and its quota not exceeded chances are good you will never have to manually deal with the caching.
 
 By default demand will invalidate a modules cache under the following conditions:
@@ -173,7 +176,7 @@ demand.clear('[path of the module]')
 > Demand will also do its best to detect "quota exceeded" errors by putting a try/catch around the actual cache writes. As IE does not throw exceptions currently a workaround to use ```localStorage.remainingSpace```is implemented as well.
 
 
-### Demanding modules
+## Demanding modules
 After your project is set up accordingly you can load further modules like this
 
 ```javascript
@@ -196,7 +199,7 @@ Module paths not starting with a ```/``` will be resolved relative to the path o
 > The error callback function will be passed **all** rejected dependencies as arguments, not only the first one rejected.
 
 
-### Providing inline modules
+## Providing inline modules
 Beside demanding other modules you can as well provide your own, just like in the following example:
 
 ```javascript
@@ -206,7 +209,8 @@ function definition(appTest, qoopidoBase) {
 	}
 }
 
-provide('/app/main', definition).when('test', '/qoopido/base');
+provide('/app/main', definition)
+	.when('test', '/qoopido/base');
 ```
 
 This is an example for an inline module. The ```provide``` call, in this case, consists of two arguments:
@@ -219,7 +223,7 @@ When dynamically loading modules ```path``` will have to be omitted and gets int
 Module resolution via ```provide``` is internally defered via a setTimeout call to be able to return an object providing a ```when``` function to request dependencies. Although this might technically not be the cleanest solution it feels much better to write and understand. Beside that, it simply works great :)
 
 
-### Providing loadable modules
+## Providing loadable modules
 You just learnt how to provide inline modules which is only slightly different from building an external, loadable module. Demand will dynamically load any modules that are not already registered.
 
 In addition to inline modules you just need some boilerplate code and an anynymous ```provide``` call without the ```path``` argument like in the following example:
@@ -240,3 +244,25 @@ In addition to inline modules you just need some boilerplate code and an anynymo
 ```
 
 This example illustrates a module named ```/app/test``` which we already know as the first dependency of the prior example. As with the inline module the ```definition``` function will receive all dependencies as arguments passed so they are in scope of the actual module.
+
+
+## Loading require.js modules
+By its nature as a module loader demand shares the parameters common also to other loaders like require.js. As its function principle is quite different demand is therefore not directly able to load require.js modules.
+
+But to not let you guys down with your existing require.js modules (and, yes, I also used and loved it - honestly!) demand provides a loadable adapter to provide an abstraction between require.js modules and demand modules.
+
+The adapter can be loaded via demand and used in, e.g., your main module via:
+
+```javascript
+demand('/adapter/require')
+	.then(
+		function() {
+			require([ 'dependency1', 'dependency2' ], function(dependency1, dependency2) {
+			});
+		}
+	);
+```
+
+Require.js modules loaded via the adapter will be loaded via ```demand``` and will therefore benefit from its caching mechanisms as well.
+
+Missing from the adapter is the support for the simplified CommonJS wrapper that is part of require.js itself.
