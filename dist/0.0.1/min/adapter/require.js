@@ -1,0 +1,2 @@
+/*! Qoopido.demand 0.0.1, 2015-09-03 | https://github.com/dlueth/qoopido.demand | (c) 2015 Dirk Lueth */
+!function(n){"use strict";function r(r,e){function u(){var n=Array.isArray(arguments[0])?arguments[0]:null,e=arguments[n?1:0];r.apply(null,n||[]).then(e)}function a(){var n="string"==typeof arguments[0]?arguments[0]:null,r=Array.isArray(arguments[n?1:0])?arguments[n?1:0]:null,u=arguments[n?r?2:1:r?1:0],a=e.apply(null,n?[n,u]:[u]);r&&a.when.apply(null,r)}return a.amd=!0,n.require=u,n.define=a,{require:u,define:a}}provide(r).when("/demand","/provide")}(this);
