@@ -224,16 +224,12 @@
 						pointer = pointer[1];
 					}
 
-					console.log('1 => ', aPath);
-
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
-						console.log(aPath, aParent && aParent.path, resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).href, resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname);
-						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname;
+						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(/^([^\/])]/, '/$1');
+						console.log(aPath);
 					}
-
-					console.log('2 => ', aPath);
 
 					for(key in pattern) {
 						pattern[key].matches(aPath) && (match = pattern[key]);
@@ -242,8 +238,6 @@
 					if(isLoader || isInstanceOf(self, Module)) {
 						self.handler = pointer;
 						self.path    = aPath;
-
-						console.log('3 => ', aPath);
 
 						isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath)).href));
 					} else {
