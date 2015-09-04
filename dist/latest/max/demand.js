@@ -17,7 +17,7 @@
         lifetime: 0,
         timeout: 5,
         base: "/"
-    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, base, url, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
     function demand() {
         var self = this || {}, module = isInstanceOf(self, Module) ? self : null, dependencies = arrayPrototypeSlice.call(arguments);
         dependencies.forEach(function(dependency, index) {
@@ -80,7 +80,7 @@
             lifetime = Math.max(parseInt(pointerLifetime, 10), 0) * 1e3;
         }
         if (pointerBase) {
-            base = pattern.base = new Pattern(regexBase, resolve.url(pointerBase).href);
+            base = pattern.base = new Pattern(regexBase, resolve.url(pointerBase));
         }
         if (pointerPattern) {
             for (key in pointerPattern) {
@@ -125,7 +125,7 @@
     resolve = {
         url: function(aUrl) {
             resolver.href = aUrl;
-            return resolver;
+            return resolver.href;
         },
         path: function(aPath, aParent) {
             var self = this, pointer = aPath.match(regexMatchHandler) || "application/javascript", isLoader = isInstanceOf(self, Loader), key, match;
@@ -134,9 +134,9 @@
                 pointer = pointer[1];
             }
             if (isAbsolute(aPath)) {
-                aPath = base.remove(resolve.url(base.url + aPath).href);
+                aPath = base.remove(resolve.url(base.url + aPath));
             } else {
-                aPath = resolve.url((aParent && aParent.path + "/../" || "/") + aPath).pathname;
+                aPath = "/" + resolve.url((aParent && aParent.path && resolve.url(aParent.path + "/../") || "/") + aPath).replace(url, "");
             }
             for (key in pattern) {
                 pattern[key].matches(aPath) && (match = pattern[key]);
@@ -144,7 +144,7 @@
             if (isLoader || isInstanceOf(self, Module)) {
                 self.handler = pointer;
                 self.path = aPath;
-                isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath)).href));
+                isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath))));
             } else {
                 return {
                     handler: pointer,
@@ -323,7 +323,7 @@
     };
     function Pattern(aPattern, aUrl) {
         var self = this;
-        self.url = resolve.url(aUrl).href;
+        self.url = resolve.url(aUrl);
         self.regexPattern = isInstanceOf(aPattern, RegExp) ? aPattern : new RegExp("^" + escape(aPattern));
         self.regexUrl = new RegExp("^" + escape(aUrl));
     }
@@ -493,13 +493,14 @@
             });
         },
         modify: function(aUrl, aValue) {
-            var base = resolve.url(aUrl + "/..").href, match;
+            var base = resolve.url(aUrl + "/.."), match;
             while (match = regexMatchCssUrl.exec(aValue)) {
-                aValue = aValue.replace(match[0], "url(" + resolve.url(base + match[1]).pathname + ")");
+                aValue = aValue.replace(match[0], "url(" + resolve.url(base + match[1]) + ")");
             }
             return aValue;
         }
     };
+    url = resolve.url("/");
     queue = new Queue();
     storage.clear(true);
     addHandler("application/javascript", ".js", JavascriptHandler);
