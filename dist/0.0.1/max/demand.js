@@ -2,7 +2,7 @@
 * Qoopido.demand
 *
 * version: 0.0.1
-* date:    2015-09-03
+* date:    2015-09-04
 * author:  Dirk Lueth <info@qoopido.com>
 * website: https://github.com/dlueth/qoopido.demand
 *
@@ -12,11 +12,12 @@
     "use strict";
     var document = global.document, setTimeout = global.setTimeout, arrayPrototypeSlice = Array.prototype.slice, arrayPrototypeConcat = Array.prototype.concat, target = document.getElementsByTagName("head")[0], resolver = document.createElement("a"), DEMAND_PREFIX = "[demand]", STRING_UNDEFINED = "undefined", LOCALSTORAGE_STATE = "[state]", LOCALSTORAGE_VALUE = "[value]", PLEDGE_PENDING = "pending", PLEDGE_RESOLVED = "resolved", PLEDGE_REJECTED = "rejected", regexBase = /^/, regexIsAbsolute = /^\//i, regexMatchHandler = /^([-\w]+\/[-\w]+)!/, regexMatchSpecial = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, regexMatchCssUrl = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g, regexMatchProtocol = /^http(s?):/, regexMatchLsState = /^\[demand\]\[(.+?)\]\[state\]$/, localStorage = global.localStorage, remainingSpace = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED, defaults = {
         cache: true,
+        debug: false,
         version: "1.0.0",
         lifetime: 0,
         timeout: 5,
         base: "/"
-    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, base, cache, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
     function demand() {
         var self = this || {}, module = isInstanceOf(self, Module) ? self : null, dependencies = arrayPrototypeSlice.call(arguments);
         dependencies.forEach(function(dependency, index) {
@@ -35,7 +36,7 @@
             setTimeout(function() {
                 var resolved = resolve.path(path), pointer = modules[resolved.handler], module, pledge, defered;
                 if (!loader && pointer[resolved.path]) {
-                    throw new Error("duplicate found for module", path);
+                    log("duplicate found for module " + resolved.path);
                 } else {
                     module = new Module(path, factory, dependencies || []);
                     pledge = modules[module.handler][module.path] = module.pledge;
@@ -64,6 +65,9 @@
         var pointerTimeout = aConfig.timeout, pointerVersion = aConfig.version, pointerLifetime = aConfig.lifetime, pointerBase = aConfig.base, pointerPattern = aConfig.pattern, pointerProbes = aConfig.probes, key;
         if (typeof aConfig.cache !== STRING_UNDEFINED) {
             cache = !!aConfig.cache;
+        }
+        if (typeof aConfig.debug !== STRING_UNDEFINED) {
+            debug = !!aConfig.debug;
         }
         if (pointerTimeout) {
             timeoutXhr = Math.min(Math.max(parseInt(pointerTimeout, 10), 2), 10) * 1e3;
@@ -102,7 +106,7 @@
     }
     function log(aMessage) {
         var type = isInstanceOf(aMessage, Error) ? "error" : "warn";
-        if (typeof console !== STRING_UNDEFINED) {
+        if (typeof console !== STRING_UNDEFINED && (debug || type !== "warn")) {
             console[type](aMessage.toString());
         }
     }
@@ -422,13 +426,13 @@
         cached: false,
         source: null,
         probe: function() {
-            var self = this, path = self.path, pledge = self.pledge, pending = pledge.state === PLEDGE_PENDING, result = probes[path]();
-            if (result && pending) {
-                provide(function() {
-                    return result;
-                });
-            } else {
-                if (pending) {
+            var self = this, path = self.path, isPending = self.pledge.state === PLEDGE_PENDING, result;
+            if (isPending) {
+                if (result = probes[path]()) {
+                    provide(function() {
+                        return result;
+                    });
+                } else {
                     setTimeout(self.probe, 100);
                 }
             }
