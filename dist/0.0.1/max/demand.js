@@ -395,10 +395,11 @@
                 queue.add(self);
             } else {
                 xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
+                xhr.timeout = timeoutXhr;
                 xhr.onprogress = function() {};
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
+                xhr.onreadystatechange = xhr.onload = function() {
+                    if (typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
+                        if (typeof xhr.status === STRING_UNDEFINED || xhr.status === 200) {
                             self.source = xhr.responseText;
                             queue.add(self);
                         } else {
@@ -473,7 +474,7 @@
     JavascriptHandler = {
         resolve: function(aPath, aValue) {
             var script = document.createElement("script");
-            script.type = "text/javascript";
+            script.type = "application/javascript";
             script.defer = script.async = true;
             script.text = aValue;
             script.setAttribute("demand-path", aPath);

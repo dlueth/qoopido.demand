@@ -576,8 +576,22 @@
 					} else {
 						xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 
+						xhr.timeout            = timeoutXhr;
 						xhr.onprogress         = function() {};
-						xhr.onreadystatechange = function() {
+						xhr.onreadystatechange = xhr.onload = function() {
+							if(typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
+								if(typeof xhr.status === STRING_UNDEFINED || xhr.status === 200) {
+									self.source = xhr.responseText;
+
+									queue.add(self);
+								} else {
+									defered.reject(new Error('unable to load module', self.path));
+								}
+							}
+						};
+
+						/*
+						xhr.onreadystatechange = xhr.onload = function() {
 							if(xhr.readyState === 4) {
 								if(xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
 									self.source = xhr.responseText;
@@ -588,6 +602,7 @@
 								}
 							}
 						};
+						*/
 
 						xhr.open('GET', self.url + pointer.suffix, true);
 						xhr.send();
@@ -673,7 +688,7 @@
 				resolve: function(aPath, aValue) {
 					var script = document.createElement('script');
 
-					script.type  = 'text/javascript';
+					script.type  = 'application/javascript';
 					script.defer = script.async = true;
 					script.text  = aValue;
 
