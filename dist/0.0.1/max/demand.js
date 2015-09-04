@@ -395,11 +395,9 @@
                 queue.add(self);
             } else {
                 xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-                xhr.timeout = timeoutXhr;
-                xhr.onprogress = function() {};
-                xhr.onreadystatechange = xhr.onload = function() {
+                xhr.onreadystatechange = function() {
                     if (typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
-                        if (typeof xhr.status === STRING_UNDEFINED || xhr.status === 200) {
+                        if (typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
                             self.source = xhr.responseText;
                             queue.add(self);
                         } else {
