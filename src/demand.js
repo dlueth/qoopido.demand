@@ -228,9 +228,11 @@
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
+						var backup = aPath;
+
 						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(regexMatchAbsentSlash, '/$1');
 						var temp1 = aParent && aParent.path && resolve.url(aParent.path).href || null,
-							temp2 = resolve.url((temp1 || '/') + aPath).href;
+							temp2 = resolve.url((temp1 || '/') + backup).href;
 
 						console.log(temp1, temp2);
 						//aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).href;
