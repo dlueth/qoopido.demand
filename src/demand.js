@@ -227,7 +227,7 @@
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
-						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(/^([^\/])]/, '/$1');
+						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(/^([^\/])/, '/$1');
 						console.log(aPath);
 					}
 
