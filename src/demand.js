@@ -227,9 +227,7 @@
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
-						console.log(aPath, aParent && aParent.path);
 						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname;
-						console.log('=> ', aPath);
 					}
 
 					for(key in pattern) {
@@ -239,6 +237,8 @@
 					if(isLoader || isInstanceOf(self, Module)) {
 						self.handler = pointer;
 						self.path    = aPath;
+
+						console.log('=> ', aPath);
 
 						isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath)).href));
 					} else {
