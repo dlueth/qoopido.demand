@@ -573,8 +573,7 @@
 					if(self.cached) {
 						queue.add(self);
 					} else {
-						xhr.onprogress         = function() {};
-						xhr.onreadystatechange = function() {
+						xhr.onreadystatechange = xhr.onprogress = function() {
 							if(xhr.readyState === 4) {
 								if(xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
 									self.source = xhr.responseText;
