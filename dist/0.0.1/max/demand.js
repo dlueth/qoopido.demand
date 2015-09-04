@@ -10,7 +10,7 @@
 */
 (function(global) {
     "use strict";
-    var document = global.document, setTimeout = global.setTimeout, arrayPrototypeSlice = Array.prototype.slice, arrayPrototypeConcat = Array.prototype.concat, target = document.getElementsByTagName("head")[0], resolver = document.createElement("a"), DEMAND_PREFIX = "[demand]", STRING_UNDEFINED = "undefined", LOCALSTORAGE_STATE = "[state]", LOCALSTORAGE_VALUE = "[value]", PLEDGE_PENDING = "pending", PLEDGE_RESOLVED = "resolved", PLEDGE_REJECTED = "rejected", regexBase = /^/, regexIsAbsolute = /^\//i, regexMatchHandler = /^([-\w]+\/[-\w]+)!/, regexMatchSpecial = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, regexMatchCssUrl = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g, regexMatchProtocol = /^http(s?):/, regexMatchLsState = /^\[demand\]\[(.+?)\]\[state\]$/, localStorage = global.localStorage, remainingSpace = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED, defaults = {
+    var document = global.document, setTimeout = global.setTimeout, arrayPrototypeSlice = Array.prototype.slice, arrayPrototypeConcat = Array.prototype.concat, target = document.getElementsByTagName("head")[0], resolver = document.createElement("a"), DEMAND_PREFIX = "[demand]", STRING_UNDEFINED = "undefined", LOCALSTORAGE_STATE = "[state]", LOCALSTORAGE_VALUE = "[value]", PLEDGE_PENDING = "pending", PLEDGE_RESOLVED = "resolved", PLEDGE_REJECTED = "rejected", XHR = global.XMLHttpRequest, XDR = "XDomainRequest" in global && global.XDomainRequest || XHR, regexBase = /^/, regexIsAbsolute = /^\//i, regexMatchHandler = /^([-\w]+\/[-\w]+)!/, regexMatchSpecial = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, regexMatchCssUrl = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g, regexMatchProtocol = /^http(s?):/, regexMatchLsState = /^\[demand\]\[(.+?)\]\[state\]$/, localStorage = global.localStorage, remainingSpace = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED, defaults = {
         cache: true,
         debug: false,
         version: "1.0.0",
@@ -394,8 +394,9 @@
             if (self.cached) {
                 queue.add(self);
             } else {
-                xhr = XDomainRequest && !regexMatchUrl.test(self.url) ? new XDomainRequest() : new XMLHttpRequest();
-                xhr.onreadystatechange = xhr.onprogress = function() {
+                xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
+                xhr.onprogress = function() {};
+                xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
                             self.source = xhr.responseText;

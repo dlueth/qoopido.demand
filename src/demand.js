@@ -30,6 +30,8 @@
 		PLEDGE_PENDING        = 'pending',
 		PLEDGE_RESOLVED       = 'resolved',
 		PLEDGE_REJECTED       = 'rejected',
+		XHR                   = global.XMLHttpRequest,
+		XDR                   = 'XDomainRequest' in global && global.XDomainRequest || XHR,
 		regexBase             = /^/,
 		regexIsAbsolute       = /^\//i,
 		regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
@@ -572,9 +574,10 @@
 					if(self.cached) {
 						queue.add(self);
 					} else {
-						xhr = XDomainRequest && !regexMatchUrl.test(self.url) ? new XDomainRequest() : new XMLHttpRequest();
+						xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 
-						xhr.onreadystatechange = xhr.onprogress = function() {
+						xhr.onprogress         = function() {};
+						xhr.onreadystatechange = function() {
 							if(xhr.readyState === 4) {
 								if(xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
 									self.source = xhr.responseText;
