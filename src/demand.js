@@ -231,10 +231,9 @@
 						var backup = aPath;
 
 						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(regexMatchAbsentSlash, '/$1');
-						var temp1 = aParent && aParent.path && resolve.url(aParent.path + '/../').href || null,
-							temp2 = resolve.url((temp1 || '/') + backup).href;
+						var temp2 = resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../').href) || '/') + backup).href;
 
-						console.log(backup, temp1, temp2);
+						console.log(backup, temp2, base);
 						//aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).href;
 					}
 
