@@ -37,7 +37,7 @@
 		regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
 		regexMatchProtocol    = /^http(s?):/,
 		regexMatchLsState     = /^\[demand\]\[(.+?)\]\[state\]$/,
-		regexMatchAbsentSlash = /^([^\/])/,
+		//regexMatchAbsentSlash = /^([^\/])/,
 		localStorage          = global.localStorage,
 		remainingSpace        = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED,
 		defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
@@ -47,7 +47,7 @@
 		pattern               = {},
 		probes                = {},
 		handler               = {},
-		base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+		base, url, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
 
 	// main public methods
 		// demand
@@ -228,15 +228,8 @@
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
-						var backup  = aPath,
-							baseUrl = resolve.url('/').href;
-
-						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(regexMatchAbsentSlash, '/$1');
-
-						var temp2 = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../').href) || '/') + backup).href.replace(baseUrl, '');
-
-						console.log(backup, aPath, temp2);
-						//aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).href;
+						// aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(regexMatchAbsentSlash, '/$1');
+						aPath = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../').href) || '/') + aPath).href.replace(url, '');
 					}
 
 					for(key in pattern) {
@@ -719,6 +712,9 @@
 			};
 
 	// initialization
+		// url
+			url = resolve.url('/').href;
+
 		// create queue
 			queue = new Queue();
 
