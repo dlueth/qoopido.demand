@@ -219,22 +219,21 @@
 						isLoader = isInstanceOf(self, Loader),
 						key, match;
 
-					console.log('1 => ', aPath);
-
 					if(typeof pointer !== 'string') {
 						aPath   = aPath.replace(new RegExp('^' + escape(pointer[0])), '');
 						pointer = pointer[1];
 					}
 
-					console.log('2 => ', aPath);
+					console.log('1 => ', aPath);
 
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
+						console.log(aPath, aParent && aParent.path, resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).href, resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname);
 						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname;
 					}
 
-					console.log('3 => ', aPath);
+					console.log('2 => ', aPath);
 
 					for(key in pattern) {
 						pattern[key].matches(aPath) && (match = pattern[key]);
@@ -244,7 +243,7 @@
 						self.handler = pointer;
 						self.path    = aPath;
 
-						console.log('4 => ', aPath);
+						console.log('3 => ', aPath);
 
 						isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath)).href));
 					} else {
