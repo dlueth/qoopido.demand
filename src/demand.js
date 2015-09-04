@@ -39,14 +39,14 @@
 		regexMatchLsState    = /^\[demand\]\[(.+?)\]\[state\]$/,
 		localStorage         = global.localStorage,
 		remainingSpace       = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED,
-		defaults             = { cache: true, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+		defaults             = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
 		main                 = global.demand.main,
 		settings             = global.demand.settings,
 		modules              = {},
 		pattern              = {},
 		probes               = {},
 		handler              = {},
-		base, cache, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+		base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
 
 	// main public methods
 		// demand
@@ -87,7 +87,7 @@
 							module, pledge, defered;
 
 						if(!loader && pointer[resolved.path]) {
-							throw new Error('duplicate found for module', path);
+							log('duplicate found for module ' + resolved.path);
 						} else {
 							module = new Module(path, factory, dependencies || []);
 							pledge = modules[module.handler][module.path] = module.pledge;
@@ -130,6 +130,10 @@
 
 				if(typeof aConfig.cache !== STRING_UNDEFINED) {
 					cache = !!(aConfig.cache);
+				}
+
+				if(typeof aConfig.debug !== STRING_UNDEFINED) {
+					debug = !!(aConfig.debug);
 				}
 
 				if(pointerTimeout) {
@@ -177,7 +181,7 @@
 			function log(aMessage) {
 				var type = (isInstanceOf(aMessage, Error)) ? 'error' : 'warn';
 
-				if(typeof console !== STRING_UNDEFINED) {
+				if(typeof console !== STRING_UNDEFINED && (debug || type !== 'warn')) {
 					console[type](aMessage.toString());
 				}
 			}
@@ -602,16 +606,15 @@
 				cached:  false,
 				source:  null,
 				probe: function() {
-					var self    = this,
-						path    = self.path,
-						pledge  = self.pledge,
-						pending = pledge.state === PLEDGE_PENDING,
-						result  = probes[path]();
+					var self      = this,
+						path      = self.path,
+						isPending = self.pledge.state === PLEDGE_PENDING,
+						result;
 
-					if(result && pending) {
-						provide(function() { return result; });
-					} else {
-						if(pending) {
+					if(isPending) {
+						if(result = probes[path]()) {
+							provide(function() { return result; });
+						} else {
 							setTimeout(self.probe, 100);
 						}
 					}
