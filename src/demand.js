@@ -11,7 +11,7 @@
  *
  * @author Dirk Lueth <info@qoopido.com>
  *
- * @requires XMLHttpRequest, JSON.parse, JSON.stringify, Array.forEach
+ * @requires XMLHttpRequest, XDomainRequest, JSON.parse, JSON.stringify, Array.forEach
  */
 
 ;(function(global) {
@@ -554,8 +554,7 @@
 			function Loader(aPath, aParent) {
 				var self    = this,
 					defered = Pledge.defer(),
-					xhr     = new XMLHttpRequest(),
-					pointer;
+					xhr, pointer;
 
 				resolve.path.call(self, aPath, aParent);
 
@@ -573,6 +572,8 @@
 					if(self.cached) {
 						queue.add(self);
 					} else {
+						xhr = XDomainRequest && !regexMatchUrl.test(self.url) ? new XDomainRequest() : new XMLHttpRequest();
+
 						xhr.onreadystatechange = xhr.onprogress = function() {
 							if(xhr.readyState === 4) {
 								if(xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {

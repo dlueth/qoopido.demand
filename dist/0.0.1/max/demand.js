@@ -381,7 +381,7 @@
         }
     };
     function Loader(aPath, aParent) {
-        var self = this, defered = Pledge.defer(), xhr = new XMLHttpRequest(), pointer;
+        var self = this, defered = Pledge.defer(), xhr, pointer;
         resolve.path.call(self, aPath, aParent);
         self.defered = defered;
         self.pledge = defered.pledge;
@@ -394,6 +394,7 @@
             if (self.cached) {
                 queue.add(self);
             } else {
+                xhr = XDomainRequest && !regexMatchUrl.test(self.url) ? new XDomainRequest() : new XMLHttpRequest();
                 xhr.onreadystatechange = xhr.onprogress = function() {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
