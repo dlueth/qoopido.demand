@@ -228,7 +228,7 @@
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
 						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(/^([^\/])/, '/$1');
-						console.log(aPath);
+						console.log('1 => ', aPath);
 					}
 
 					for(key in pattern) {
