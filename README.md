@@ -61,6 +61,13 @@ The demanded ```main``` module from the above script might look like the followi
 				// optional, defaults to "true"
 				cache: true,
 				
+				// enables or disables debug output like:
+				// - attempting to re-define a module 
+				//   already resolved
+				// - localStorage quota exceeded
+				// optional, defaults to "false"
+				debug true,
+				
 				// cache will be validated against version
 				// optional, defaults to "1.0.0"
 				version: '1.0.0',
