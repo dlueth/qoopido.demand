@@ -17,35 +17,36 @@
 ;(function(global) {
 	'use strict';
 
-	var document             = global.document,
-		setTimeout           = global.setTimeout,
-		arrayPrototypeSlice  = Array.prototype.slice,
-		arrayPrototypeConcat = Array.prototype.concat,
-		target               = document.getElementsByTagName('head')[0],
-		resolver             = document.createElement('a'),
-		DEMAND_PREFIX        = '[demand]',
-		STRING_UNDEFINED     = 'undefined',
-		LOCALSTORAGE_STATE   = '[state]',
-		LOCALSTORAGE_VALUE   = '[value]',
-		PLEDGE_PENDING       = 'pending',
-		PLEDGE_RESOLVED      = 'resolved',
-		PLEDGE_REJECTED      = 'rejected',
-		regexBase            = /^/,
-		regexIsAbsolute      = /^\//i,
-		regexMatchHandler    = /^([-\w]+\/[-\w]+)!/,
-		regexMatchSpecial    = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-		regexMatchCssUrl     = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
-		regexMatchProtocol   = /^http(s?):/,
-		regexMatchLsState    = /^\[demand\]\[(.+?)\]\[state\]$/,
-		localStorage         = global.localStorage,
-		remainingSpace       = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED,
-		defaults             = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
-		main                 = global.demand.main,
-		settings             = global.demand.settings,
-		modules              = {},
-		pattern              = {},
-		probes               = {},
-		handler              = {},
+	var document              = global.document,
+		setTimeout            = global.setTimeout,
+		arrayPrototypeSlice   = Array.prototype.slice,
+		arrayPrototypeConcat  = Array.prototype.concat,
+		target                = document.getElementsByTagName('head')[0],
+		resolver              = document.createElement('a'),
+		DEMAND_PREFIX         = '[demand]',
+		STRING_UNDEFINED      = 'undefined',
+		LOCALSTORAGE_STATE    = '[state]',
+		LOCALSTORAGE_VALUE    = '[value]',
+		PLEDGE_PENDING        = 'pending',
+		PLEDGE_RESOLVED       = 'resolved',
+		PLEDGE_REJECTED       = 'rejected',
+		regexBase             = /^/,
+		regexIsAbsolute       = /^\//i,
+		regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
+		regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+		regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
+		regexMatchProtocol    = /^http(s?):/,
+		regexMatchLsState     = /^\[demand\]\[(.+?)\]\[state\]$/,
+		regexMatchAbsentSlash = /^([^\/])/,
+		localStorage          = global.localStorage,
+		remainingSpace        = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED,
+		defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+		main                  = global.demand.main,
+		settings              = global.demand.settings,
+		modules               = {},
+		pattern               = {},
+		probes                = {},
+		handler               = {},
 		base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
 
 	// main public methods
@@ -227,8 +228,7 @@
 					if(isAbsolute(aPath)) {
 						aPath = base.remove(resolve.url(base.url + aPath).href);
 					} else {
-						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(/^([^\/])/, '/$1');
-						console.log('1 => ', aPath);
+						aPath = resolve.url(((aParent && aParent.path + '/../') || '/') + aPath).pathname.replace(regexMatchAbsentSlash, '/$1');
 					}
 
 					for(key in pattern) {
