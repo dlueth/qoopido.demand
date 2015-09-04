@@ -17,7 +17,7 @@
         lifetime: 0,
         timeout: 5,
         base: "/"
-    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, base, url, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+    }, main = global.demand.main, settings = global.demand.settings, modules = {}, pattern = {}, probes = {}, handler = {}, regexMatchUrl, base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
     function demand() {
         var self = this || {}, module = isInstanceOf(self, Module) ? self : null, dependencies = arrayPrototypeSlice.call(arguments);
         dependencies.forEach(function(dependency, index) {
@@ -136,7 +136,7 @@
             if (isAbsolute(aPath)) {
                 aPath = base.remove(resolve.url(base.url + aPath));
             } else {
-                aPath = "/" + resolve.url((aParent && aParent.path && resolve.url(aParent.path + "/../") || "/") + aPath).replace(url, "");
+                aPath = "/" + resolve.url((aParent && aParent.path && resolve.url(aParent.path + "/../") || "/") + aPath).replace(regexMatchUrl, "");
             }
             for (key in pattern) {
                 pattern[key].matches(aPath) && (match = pattern[key]);
@@ -394,6 +394,7 @@
             if (self.cached) {
                 queue.add(self);
             } else {
+                xhr.onprogress = function() {};
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
@@ -500,7 +501,7 @@
             return aValue;
         }
     };
-    url = resolve.url("/");
+    regexMatchUrl = new RegExp("^" + escape(resolve.url("/")));
     queue = new Queue();
     storage.clear(true);
     addHandler("application/javascript", ".js", JavascriptHandler);
