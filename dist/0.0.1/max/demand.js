@@ -2,7 +2,7 @@
 * Qoopido.demand
 *
 * version: 0.0.1
-* date:    2015-09-04
+* date:    2015-09-05
 * author:  Dirk Lueth <info@qoopido.com>
 * website: https://github.com/dlueth/qoopido.demand
 *
@@ -395,15 +395,13 @@
                 queue.add(self);
             } else {
                 xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-                xhr.onreadystatechange = function() {
-                    if (typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
-                        if (typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || xhr.status === 0 && xhr.responseText) {
-                            self.source = xhr.responseText;
-                            queue.add(self);
-                        } else {
-                            defered.reject(new Error("unable to load module", self.path));
-                        }
-                    }
+                xhr.onprogress = function() {};
+                xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+                    defered.reject(new Error("unable to load module", self.path));
+                };
+                xhr.onload = function() {
+                    self.source = xhr.responseText;
+                    queue.add(self);
                 };
                 xhr.open("GET", self.url + pointer.suffix, true);
                 xhr.send();
