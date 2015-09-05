@@ -1,13 +1,17 @@
+> **If you would like to support this project feel free to star or fork it, or both. By doing so it will be easier to get it into CDNs like jsdelivr or CDNJS :)**
+
+> And if you like it and want to help even more, spread the word as well!
+
 # Qoopido.demand
-This is an alpha preview of the upcoming release of Qoopido.demand. It is mainly provided for testing and feedback reasons and things will most likely be subject to change.
+This is a preview of the upcoming release of Qoopido.demand. It is mainly provided for testing and feedback reasons and things might still be subject to change although it is finally nearing a mostly stable state.
 
-Qoopido.demand is a highly modular and flexible promise like module loader.
+Qoopido.demand is a highly modular and flexible promise like module loader in a tiny package - **3.9KB minimized and gzipped**.
 
-The loader was originally part of my Qoopido.js repo (and still is) - so you will find some demo code there via [rawgit](https://rawgit.com/dlueth/qoopido.js/release/4.0.0/demo/debug.html). Just open your developer console and remember to clear your localStorage :)
+The loader was originally part of my Qoopido.js repo - so you will find some demo code there via [rawgit](https://rawgit.com/dlueth/qoopido.js/release/4.0.0/demo/debug.html) and a really basic demo within this repo as well. Just open your developer console and remember to clear your localStorage :)
 
 
 ## Compatibility
-Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills.
+Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills. I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10 and 11 (which are also fully supported) I use the official Microsoft VMs in combination with VirtualBox.
 
 
 ## External dependencies
