@@ -17,38 +17,49 @@
 ;(function(global) {
 	'use strict';
 
-	var document              = global.document,
-		setTimeout            = global.setTimeout,
-		arrayPrototypeSlice   = Array.prototype.slice,
-		arrayPrototypeConcat  = Array.prototype.concat,
-		target                = document.getElementsByTagName('head')[0],
-		resolver              = document.createElement('a'),
-		DEMAND_PREFIX         = '[demand]',
-		STRING_UNDEFINED      = 'undefined',
-		LOCALSTORAGE_STATE    = '[state]',
-		LOCALSTORAGE_VALUE    = '[value]',
-		PLEDGE_PENDING        = 'pending',
-		PLEDGE_RESOLVED       = 'resolved',
-		PLEDGE_REJECTED       = 'rejected',
-		XHR                   = global.XMLHttpRequest,
-		XDR                   = 'XDomainRequest' in global && global.XDomainRequest || XHR,
-		regexBase             = /^/,
-		regexIsAbsolute       = /^\//i,
-		regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
-		regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-		regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
-		regexMatchProtocol    = /^http(s?):/,
-		regexMatchLsState     = /^\[demand\]\[(.+?)\]\[state\]$/,
-		localStorage          = global.localStorage,
-		remainingSpace        = localStorage && typeof localStorage.remainingSpace !== STRING_UNDEFINED,
-		defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
-		main                  = global.demand.main,
-		settings              = global.demand.settings,
-		modules               = {},
-		pattern               = {},
-		probes                = {},
-		handler               = {},
-		regexMatchUrl, base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime, queue, resolve, storage, JavascriptHandler, CssHandler;
+	var // shortcuts
+			document              = global.document,
+			setTimeout            = global.setTimeout,
+			arrayPrototypeSlice   = Array.prototype.slice,
+			arrayPrototypeConcat  = Array.prototype.concat,
+			target                = document.getElementsByTagName('head')[0],
+			resolver              = document.createElement('a'),
+			localStorage          = global.localStorage,
+		// constants
+			DEMAND_PREFIX         = '[demand]',
+			DEMAND_SUFFIX_STATE   = '[state]',
+			DEMAND_SUFFIX_VALUE   = '[value]',
+			STRING_UNDEFINED      = 'undefined',
+			STRING_STRING         = 'string',
+			STRING_BOOLEAN        = 'boolean',
+			PLEDGE_PENDING        = 'pending',
+			PLEDGE_RESOLVED       = 'resolved',
+			PLEDGE_REJECTED       = 'rejected',
+			XHR                   = global.XMLHttpRequest,
+			XDR                   = 'XDomainRequest' in global && global.XDomainRequest || XHR,
+		// regular expressions
+			regexBase             = /^/,
+			regexIsAbsolute       = /^\//i,
+			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
+			regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+			regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
+			regexMatchProtocol    = /^http(s?):/,
+			regexMatchUrl, regexMatchLsState,
+		// flags
+			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
+		// general storage & objects
+			defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+			main                  = global.demand.main,
+			settings              = global.demand.settings,
+			modules               = {},
+			pattern               = {},
+			probes                = {},
+			handler               = {},
+			queue, resolve, storage,
+		// handler
+			JavascriptHandler, CssHandler,
+		// configuration
+			base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime;
 
 	// main public methods
 		// demand
@@ -73,7 +84,7 @@
 
 		// provide
 			function provide() {
-				var path         = (arguments[0] && typeof arguments[0] === 'string' && arguments[0]) || null,
+				var path         = (isTypeOf(arguments[0], STRING_STRING) && arguments[0]) || null,
 					factory      = (!path && arguments[0]) || arguments[1],
 					dependencies, loader;
 
@@ -122,48 +133,42 @@
 	// additional static methods
 		// configure
 			function configure(aConfig) {
-				var pointerTimeout  = aConfig.timeout,
-					pointerVersion  = aConfig.version,
-					pointerLifetime = aConfig.lifetime,
-					pointerBase     = aConfig.base,
-					pointerPattern  = aConfig.pattern,
-					pointerProbes   = aConfig.probes,
+				var aCache    = aConfig.cache,
+					aDebug    = aConfig.debug,
+					aVersion  = aConfig.version,
+					aTimeout  = aConfig.timeout,
+					aLifetime = aConfig.lifetime,
+					aBase     = aConfig.base,
+					aPattern  = aConfig.pattern,
+					aProbes   = aConfig.probes,
 					key;
+				
+				cache   = isTypeOf(aCache, STRING_BOOLEAN)  ? aCache   : cache;
+				debug   = isTypeOf(aDebug, STRING_BOOLEAN)  ? aDebug   : debug;
+				version = isTypeOf(aVersion, STRING_STRING) ? aVersion : version;
 
-				if(typeof aConfig.cache !== STRING_UNDEFINED) {
-					cache = !!(aConfig.cache);
-				}
-
-				if(typeof aConfig.debug !== STRING_UNDEFINED) {
-					debug = !!(aConfig.debug);
-				}
-
-				if(pointerTimeout) {
-					timeoutXhr   = Math.min(Math.max(parseInt(pointerTimeout, 10), 2), 10) * 1000;
+				if(isPositiveInteger(aTimeout)) {
+					timeoutXhr   = Math.min(Math.max(aTimeout, 2), 10) * 1000;
 					timeoutQueue = Math.min(Math.max(timeoutXhr / 5, 1000), 5000);
 				}
-
-				if(pointerVersion) {
-					version = pointerVersion;
+				
+				if(isPositiveInteger(aLifetime)) {
+					lifetime = Math.max(aLifetime, 0) * 1000;
 				}
 
-				if(pointerLifetime) {
-					lifetime = Math.max(parseInt(pointerLifetime, 10), 0) * 1000;
+				if(isTypeOf(aBase, STRING_STRING)) {
+					base = pattern.base = new Pattern(regexBase, resolve.url(aBase));
 				}
 
-				if(pointerBase) {
-					base = pattern.base = new Pattern(regexBase, resolve.url(pointerBase));
-				}
-
-				if(pointerPattern) {
-					for(key in pointerPattern) {
-						key !== 'base' && (pattern[key] = new Pattern(key, pointerPattern[key]));
+				if(isObject(aPattern)) {
+					for(key in aPattern) {
+						key !== 'base' && (pattern[key] = new Pattern(key, aPattern[key]));
 					}
 				}
 
-				if(pointerProbes) {
-					for(key in pointerProbes) {
-						probes[key] = pointerProbes[key];
+				if(isObject(aProbes)) {
+					for(key in aProbes) {
+						probes[key] = aProbes[key];
 					}
 				}
 
@@ -183,9 +188,14 @@
 			function log(aMessage) {
 				var type = (isInstanceOf(aMessage, Error)) ? 'error' : 'warn';
 
-				if(typeof console !== STRING_UNDEFINED && (debug || type !== 'warn')) {
+				if(!isTypeOf(console, STRING_UNDEFINED) && (debug || type !== 'warn')) {
 					console[type](aMessage.toString());
 				}
+			}
+
+		// regex
+			function regex(expression, modifier) {
+				return new RegExp(expression, modifier);
 			}
 
 		// escape
@@ -193,19 +203,34 @@
 				return aValue.replace(regexMatchSpecial, '\\$&');
 			}
 
-		// isAbsolute
-			function isAbsolute(aPath) {
-				return regexIsAbsolute.test(aPath);
-			}
-
 		// removeProtocol
 			function removeProtocol(url) {
 				return url.replace(regexMatchProtocol, '');
 			}
 
+		// isAbsolute
+			function isAbsolute(aPath) {
+				return regexIsAbsolute.test(aPath);
+			}
+
 		// isInstanceOf
 			function isInstanceOf(instance, module) {
 				return instance instanceof module;
+			}
+			
+		// isTypeOf
+			function isTypeOf(object, type) {
+				return typeof object === type;
+			}
+
+		// isObject
+			function isObject(object) {
+				return object && isTypeOf(object, 'object');
+			}
+
+		// isPositiveInteger
+			function isPositiveInteger(value) {
+				return isTypeOf(value, 'number') && isFinite(value) && Math.floor(value) === value && value >= 0;
 			}
 
 		// resolve
@@ -221,8 +246,8 @@
 						isLoader = isInstanceOf(self, Loader),
 						key, match;
 
-					if(typeof pointer !== 'string') {
-						aPath   = aPath.replace(new RegExp('^' + escape(pointer[0])), '');
+					if(!isTypeOf(pointer, STRING_STRING)) {
+						aPath   = aPath.replace(regex('^' + escape(pointer[0])), '');
 						pointer = pointer[1];
 					}
 
@@ -254,10 +279,10 @@
 
 					if(localStorage && cache) {
 						id    = DEMAND_PREFIX + '[' + aPath + ']';
-						state = JSON.parse(localStorage.getItem(id + LOCALSTORAGE_STATE));
+						state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
 						if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > new Date().getTime())) {
-							return localStorage.getItem(id + LOCALSTORAGE_VALUE);
+							return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 						} else {
 							storage.clear(aPath);
 						}
@@ -270,10 +295,10 @@
 						id = DEMAND_PREFIX + '[' + aPath + ']';
 
 						try {
-							spaceBefore = remainingSpace ? localStorage.remainingSpace : null;
+							spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : null;
 
-							localStorage.setItem(id + LOCALSTORAGE_VALUE, aValue);
-							localStorage.setItem(id + LOCALSTORAGE_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? new Date().getTime() + lifetime : 0, url: aUrl }));
+							localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
+							localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? new Date().getTime() + lifetime : 0, url: aUrl }));
 
 							if(spaceBefore !== null && localStorage.remainingSpace === spaceBefore) {
 								throw 'QuotaExceedError';
@@ -288,19 +313,19 @@
 
 					if(localStorage && cache) {
 						switch(typeof aPath) {
-							case 'string':
+							case STRING_STRING:
 								id = DEMAND_PREFIX + '[' + aPath + ']';
 
-								localStorage.removeItem(id + LOCALSTORAGE_STATE);
-								localStorage.removeItem(id + LOCALSTORAGE_VALUE);
+								localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
+								localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
 
 								break;
-							case 'boolean':
+							case STRING_BOOLEAN:
 								for(key in localStorage) {
 									match = key.match(regexMatchLsState);
 
 									if(match) {
-										state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + LOCALSTORAGE_STATE));
+										state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
 
 										if(state && state.expires > 0 && state.expires <= new Date().getTime()) {
 											storage.clear(match[1]);
@@ -475,8 +500,8 @@
 				var self = this;
 
 				self.url          = resolve.url(aUrl);
-				self.regexPattern = (isInstanceOf(aPattern, RegExp)) ? aPattern : new RegExp('^' + escape(aPattern));
-				self.regexUrl     = new RegExp('^' + escape(aUrl));
+				self.regexPattern = (isInstanceOf(aPattern, RegExp)) ? aPattern : regex('^' + escape(aPattern));
+				self.regexUrl     = regex('^' + escape(aUrl));
 			}
 
 			Pattern.prototype = {
@@ -705,7 +730,8 @@
 
 	// initialization
 		// url
-			regexMatchUrl = new RegExp('^' + escape(resolve.url('/')));
+			regexMatchUrl     = regex('^' + escape(resolve.url('/')));
+			regexMatchLsState = regex('^' + escape(DEMAND_PREFIX + '\[(.+?)\]' + DEMAND_SUFFIX_STATE + '$'));
 
 		// create queue
 			queue = new Queue();
