@@ -584,13 +584,16 @@
 								if(typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
 									self.source = xhr.responseText;
 
-									console.log('here', self.source);
+									console.log('here 1', self.source);
 
 									queue.add(self);
 								} else {
 									defered.reject(new Error('unable to load module', self.path));
 								}
 							}
+						};
+						xhr.onload = function() {
+							console.log('here 2', xhr.responseText);
 						};
 
 						/*
