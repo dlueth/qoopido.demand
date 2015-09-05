@@ -574,47 +574,10 @@
 					if(self.cached) {
 						queue.add(self);
 					} else {
-						xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-
+						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 						xhr.onprogress = function() {};
-						xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
-							defered.reject(new Error('unable to load module', self.path));
-						};
-
-						/*
-						xhr.onreadystatechange = function() {
-							if(typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
-								if(typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
-									self.source = xhr.responseText;
-
-									console.log('here 1', self.source);
-
-									queue.add(self);
-								} else {
-									defered.reject(new Error('unable to load module', self.path));
-								}
-							}
-						};
-						*/
-						xhr.onload = function() {
-							self.source = xhr.responseText;
-
-							queue.add(self);
-						};
-
-						/*
-						xhr.onreadystatechange = xhr.onload = function() {
-							if(xhr.readyState === 4) {
-								if(xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
-									self.source = xhr.responseText;
-
-									queue.add(self);
-								} else {
-									defered.reject(new Error('unable to load module', self.path));
-								}
-							}
-						};
-						*/
+						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
+						xhr.onload     = function() { self.source = xhr.responseText; queue.add(self);};
 
 						xhr.open('GET', self.url + pointer.suffix, true);
 						xhr.send();
