@@ -576,9 +576,12 @@
 					} else {
 						xhr = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 
-						//xhr.timeout            = timeoutXhr;
-						//xhr.onprogress         = function() {};
-						xhr.onprogress = xhr.ontimeout = xhr.onerror = function() {};
+						xhr.onprogress = function() {};
+						xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+							defered.reject(new Error('unable to load module', self.path));
+						};
+
+						/*
 						xhr.onreadystatechange = function() {
 							if(typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
 								if(typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
@@ -592,8 +595,11 @@
 								}
 							}
 						};
+						*/
 						xhr.onload = function() {
-							console.log('here 2', xhr.responseText);
+							self.source = xhr.responseText;
+
+							queue.add(self);
 						};
 
 						/*
