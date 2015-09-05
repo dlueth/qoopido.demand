@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head></head>
+<body>
+<script>
+	(function(url, main, settings) {
+		(function(window, document, type, target, script){
+			target = document.getElementsByTagName(type)[0];
+			script = document.createElement(type);
+
+			window['demand'] = { main: main, settings: settings };
+
+			script.async = script.defer = 1;
+			script.src   = url;
+
+			target.parentNode.insertBefore(script, target);
+		}(window, document, 'script'))
+	}('https://rawgit.com/dlueth/qoopido.demand/feature/debug/dist/latest/min/demand.js', 'main', { base: 'https://rawgit.com/dlueth/qoopido.demand/development/demo', version: '1.0.0' }));
+</script>
+</body>
+</html>
