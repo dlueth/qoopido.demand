@@ -578,10 +578,13 @@
 
 						//xhr.timeout            = timeoutXhr;
 						//xhr.onprogress         = function() {};
+						xhr.onprogress = xhr.ontimeout = xhr.onerror = function() {};
 						xhr.onreadystatechange = function() {
 							if(typeof xhr.readyState === STRING_UNDEFINED || xhr.readyState === 4) {
 								if(typeof xhr.status === STRING_UNDEFINED || xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
 									self.source = xhr.responseText;
+
+									console.log('here', self.source);
 
 									queue.add(self);
 								} else {
