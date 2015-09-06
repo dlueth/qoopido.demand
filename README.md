@@ -7,7 +7,7 @@ This is a preview of the upcoming release of Qoopido.demand. It is mainly provid
 
 Qoopido.demand is a highly modular and flexible promise like module loader in a tiny package - **3.9KB minimized and gzipped**.
 
-The loader was originally part of my Qoopido.js repo - so you will find some demo code there via [rawgit](https://rawgit.com/dlueth/qoopido.js/release/4.0.0/demo/debug.html) and a really basic demo within this repo as well. Just open your developer console and remember to clear your localStorage :)
+You will find some demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/demo/index.html). Just open your developer console and remember to clear your localStorage :)
 
 
 ## Compatibility
