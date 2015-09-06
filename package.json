@@ -2,7 +2,7 @@
   "name": "qoopido.demand",
   "title": "Qoopido.demand",
   "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + support for custom handlers",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "homepage": "https://github.com/dlueth/qoopido.demand",
   "author": {
     "name": "Dirk Lueth",
@@ -20,9 +20,9 @@
   "autoupdate": {
     "source": "git",
     "target": "git://github.com/dlueth/qoopido.demand.git",
-    "basePath": "/dist/latest/min",
+    "basePath": "/dist",
     "files": [
-      "**/*.js"
+      "**/*"
     ]
   },
   "keywords": [
@@ -37,7 +37,11 @@
     "ajax",
     "localStorage",
     "cache",
-    "caching"
+    "caching",
+    "asset",
+    "storage",
+    "require",
+    "basket"
   ],
   "devDependencies": {
     "del": "^2.0.0",
@@ -54,33 +58,34 @@
     "gulp-less": "^3.0.0",
     "gulp-load-plugins": "^0.10.0",
     "gulp-plumber": "^1.0.0",
+    "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.0.1",
     "gulp-util": "^3.0.1",
     "jshint-stylish": "^2.0.1",
     "run-sequence": "^1.0.2"
   },
   "jshintConfig": {
-    "lookup":false,
-    "curly":true,
-    "eqeqeq":true,
-    "immed":true,
-    "latedef":true,
-    "newcap":true,
-    "noarg":true,
-    "sub":true,
-    "undef":true,
-    "boss":true,
-    "eqnull":true,
-    "browser":true,
-    "proto":true,
-    "expr":true,
-    "validthis":true,
-    "scripturl":true,
-    "-W030":true,
-    "globals":{
-      "demand":true,
-      "provide":true,
-      "console":true
+    "lookup": false,
+    "curly": true,
+    "eqeqeq": true,
+    "immed": true,
+    "latedef": true,
+    "newcap": true,
+    "noarg": true,
+    "sub": true,
+    "undef": true,
+    "boss": true,
+    "eqnull": true,
+    "browser": true,
+    "proto": true,
+    "expr": true,
+    "validthis": true,
+    "scripturl": true,
+    "-W030": true,
+    "globals": {
+      "demand": true,
+      "provide": true,
+      "console": true
     }
   }
 }

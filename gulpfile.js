@@ -106,25 +106,15 @@ module.exports = gulp;
 
 	gulp.task('dist:build', function() {
 		return gulp.src(config.tasks.dist.build || config.tasks.dist.watch)
+			.pipe(plugins.sourcemaps.init())
 			.pipe(plugins.plumber({ errorHandler: handleError}))
-			// max
-			.pipe(plugins.uglify({ compress: false, mangle: false, preserveComments: 'none', output: { beautify: true } }))
-			.pipe(plugins.header(config.strings.banner.max.join('\n')))
-			.pipe(plugins.frep(patterns))
-			.pipe(plugins.frep(getDatePatterns()))
-			.pipe(chmod(644))
-			.pipe(gulp.dest(config.tasks.dist.destination + '/' + package.version + '/max/'))
-			.pipe(chmod(644))
-			.pipe(gulp.dest(config.tasks.dist.destination + '/latest/max/'))
-			// min
 			.pipe(plugins.uglify({ preserveComments: 'none' }))
 			.pipe(plugins.header(config.strings.banner.min.join('\n')))
 			.pipe(plugins.frep(patterns))
 			.pipe(plugins.frep(getDatePatterns()))
 			.pipe(chmod(644))
-			.pipe(gulp.dest(config.tasks.dist.destination + '/' + package.version + '/min/'))
-			.pipe(chmod(644))
-			.pipe(gulp.dest(config.tasks.dist.destination + '/latest/min/'));
+			.pipe(plugins.sourcemaps.write('./'))
+			.pipe(gulp.dest(config.tasks.dist.destination));
 	});
 
 	gulp.task('dist', function(callback) {
