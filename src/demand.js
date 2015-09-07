@@ -137,7 +137,6 @@
 				if(!loader && pointer[resolved.path]) {
 					log('duplicate found for module ' + resolved.path);
 				} else {
-					console.log('here', path, definition);
 					module = new Module(path, definition, dependencies || []);
 					pledge = modules[module.handler][module.path] = module.pledge;
 
@@ -239,6 +238,15 @@
 	 */
 	function assign(id, factory) {
 		provide(id, function() { return factory; });
+	}
+
+	/**
+	 * Get the current timestamp
+	 * 
+	 * @returns {Number}
+	 */
+	function getTimestamp() {
+		return +new Date();
 	}
 
 	/**
@@ -426,7 +434,7 @@
 				id    = DEMAND_PREFIX + '[' + aPath + ']';
 				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
-				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > new Date().getTime())) {
+				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp)) {
 					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 				} else {
 					storage.clear(aPath);
@@ -450,7 +458,7 @@
 					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : null;
 
 					localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
-					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? new Date().getTime() + lifetime : 0, url: aUrl }));
+					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp + lifetime : 0, url: aUrl }));
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== null && localStorage.remainingSpace === spaceBefore) {
@@ -488,7 +496,7 @@
 								if(match) {
 									state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
 
-									if(state && state.expires > 0 && state.expires <= new Date().getTime()) {
+									if(state && state.expires > 0 && state.expires <= getTimestamp) {
 										storage.clear(match[1]);
 									}
 								}
@@ -953,7 +961,7 @@
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
 
-				xhr.open('GET', self.url + pointer.suffix, true);
+				xhr.open('GET', self.url + pointer.suffix + '?rnd=' + getTimestamp(), true);
 				xhr.send();
 
 				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
@@ -1035,7 +1043,6 @@
 					function() { defered.reject(new Error('unable to resolve dependencies for', self.path, arguments)); }
 				);
 		} else {
-			console.log('here', defered, defered.resolve);
 			defered.resolve(aDefinition());
 		}
 	}
@@ -1084,6 +1091,4 @@
 		if(main) {
 			demand(main);
 		}
-
-	window.debug = modules;
 }(this));
