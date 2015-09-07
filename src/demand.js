@@ -1034,6 +1034,7 @@
 					function() { defered.reject(new Error('unable to resolve dependencies for', self.path, arguments)); }
 				);
 		} else {
+			console.log('here', defered, defered.resolve, aDefinition, aDefinition());
 			defered.resolve(aDefinition());
 		}
 	}
