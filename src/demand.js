@@ -12,6 +12,10 @@
  * @author Dirk Lueth <info@qoopido.com>
  *
  * @requires XMLHttpRequest, XDomainRequest, JSON.parse, JSON.stringify, Array.forEach
+ *
+ * @todo switch to jsdoc
+ * @todo remove bloat comments
+ * @todo implement bundles
  */
 
 ;(function(global) {
@@ -42,6 +46,7 @@
 			regexIsAbsolute       = /^\//i,
 			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
 			regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+			regexMatchSourcemap   = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
 			regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
 			regexMatchProtocol    = /^http(s?):/,
 			regexMatchUrl, regexMatchLsState,
@@ -557,8 +562,8 @@
 					var // variable initialization
 						id, key, match, state;
 
-					// continue only if localStorage is supported and cache is enabled
-					if(localStorage && cache) {
+					// continue only if localStorage is supported
+					if(localStorage) {
 						// handle possible types of aPath
 						switch(typeof aPath) {
 							// handle if aPath is of type "string"
@@ -1093,6 +1098,16 @@
 					script.setAttribute('demand-path', aPath);
 
 					target.appendChild(script);
+				},
+				modify: function(aUrl, aValue) {
+					var match, replacement;
+					
+					while(match = regexMatchSourcemap.exec(aValue)) {
+						replacement = removeProtocol(resolve.url(aUrl + '/../' + match[1]));
+						aValue      = aValue.replace(match[0], '//# sourcemap=' + replacement + '.map');
+					}
+
+					return aValue;
 				}
 			};
 
