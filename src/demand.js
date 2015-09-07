@@ -1084,4 +1084,6 @@
 		if(main) {
 			demand(main);
 		}
+
+	window.debug = modules;
 }(this));
