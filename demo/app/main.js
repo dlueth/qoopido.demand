@@ -111,7 +111,7 @@
 					}
 				);
 
-		return true;
+		return function() {};
 	}
 
 	provide(definition);
