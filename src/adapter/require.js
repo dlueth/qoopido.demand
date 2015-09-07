@@ -15,23 +15,49 @@
 ;(function(global) {
 	'use strict';
 
+	/**
+	 * definition of the require.js adapter
+	 *
+	 * @param {Function} demand
+	 * @param {Function} provide
+	 *
+	 * @returns {{require: require, define: define}}
+	 *
+	 * @exports /adapter/require
+	 */
 	function definition(demand, provide) {
-		function require() {
+		/**
+		 * provides require.js require functionality
+		 *
+		 * @param {...String} dependency
+		 * @param {Function} callback
+		 */
+		function require(dependency, callback) {
 			var parameter    = arguments,
-				dependencies = Array.isArray(parameter[0]) ? parameter[0] : null,
-				callback     = arguments[dependencies ? 1 : 0];
+				dependencies = Array.isArray(parameter[0]) ? parameter[0] : null;
+
+			callback = arguments[dependencies ? 1 : 0];
 
 			demand
 				.apply(null, dependencies || [])
 				.then(callback);
 		}
 
-		function define() {
-			var parameter    = arguments,
-				id           = typeof parameter[0] === 'string' ? parameter[0] : null,
-				dependencies = Array.isArray(parameter[id ? 1 : 0]) ? parameter[id ? 1 : 0] : null,
-				factory      = parameter[id ? (dependencies ? 2 : 1) : (dependencies ? 1 : 0)],
-				temp         = provide.apply(null, id ? [ id, factory ] : [ factory]);
+		/**
+		 * provides require.js define functionality
+		 *
+		 * @param {String} [id]
+		 * @param {Object[]} [dependencies]
+		 * @param {Function} definition
+		 */
+		function define(id, dependencies, definition) {
+			var parameter = arguments,
+				temp;
+
+			id           = typeof parameter[0] === 'string' ? parameter[0] : null,
+			dependencies = Array.isArray(parameter[id ? 1 : 0]) ? parameter[id ? 1 : 0] : null,
+			definition   = parameter[id ? (dependencies ? 2 : 1) : (dependencies ? 1 : 0)],
+			temp         = provide.apply(null, id ? [ id, definition ] : [ definition]);
 
 			if(dependencies) {
 				temp.when.apply(null, dependencies);
