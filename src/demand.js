@@ -961,6 +961,8 @@
 				xhr.send();
 
 				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+
+				console.log('hier', self.path, self.timeout);
 			}
 		} else {
 			defered.reject(new Error('no handler "' + self.handler + '" for', self.path));
