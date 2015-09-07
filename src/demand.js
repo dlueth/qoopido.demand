@@ -116,8 +116,8 @@
 	 *
 	 * @exports /provide
 	 */
-	function provide(path, definition) {
-		var loader, dependencies;
+	function provide() { // path, definition
+		var path, definition, loader, dependencies;
 
 		console.log(path, ' : ', definition);
 
