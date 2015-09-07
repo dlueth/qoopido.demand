@@ -141,15 +141,10 @@
 					pledge = modules[module.handler][module.path] = module.pledge;
 
 					if(loader) {
-						console.log('cleared: ', path, loader.timeout);
-
 						loader.timeout = clearTimeout(loader.timeout);
+						defered        = loader.defered;
 
-						console.log(loader.timeout);
-						
 						!loader.cached && loader.store();
-
-						defered = loader.defered;
 
 						pledge.then(
 							function() {
@@ -919,8 +914,6 @@
 				current.timeout = setTimeout(function() {
 					defered.reject(new Error('timeout resolving module', path));
 				}, timeoutQueue);
-
-				console.log('here', current.timeout, current);
 			}
 		}
 	};
