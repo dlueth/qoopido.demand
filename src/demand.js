@@ -121,8 +121,8 @@
 
 		console.log(path, definition);
 
-		path         = (isTypeOf(arguments[0], STRING_STRING) && arguments[0]) || null;
-		definition   = !path ? arguments[0] : arguments[1];
+		path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : null;
+		definition = !path ? arguments[0] : arguments[1];
 
 		console.log('=>', path, definition);
 
