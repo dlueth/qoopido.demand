@@ -42,7 +42,6 @@
 			XHR                   = global.XMLHttpRequest,
 			XDR                   = 'XDomainRequest' in global && global.XDomainRequest || XHR,
 		// regular expressions
-			regexBase             = /^/,
 			regexIsAbsolute       = /^\//i,
 			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
 			regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
@@ -244,7 +243,7 @@
 				
 				// process base
 				if(isTypeOf(aBase, STRING_STRING)) {
-					base = pattern.base = new Pattern(regexBase, resolve.url(aBase));
+					base = pattern.base = new Pattern('', resolve.url(aBase));
 				}
 				
 				// process pattern
@@ -471,7 +470,7 @@
 					
 					// match the resulting path to all pattern
 					for(key in pattern) {
-						pattern[key].matches(aPath) && (match = pattern[key]);
+						pattern[key].matches(aPath) && (!match || match.specificity < pattern[key].specificity) && (match = pattern[key]);
 					}
 					
 					// set handler and path on context, if this is a "Module" or "Loader"
@@ -867,7 +866,7 @@
 			/**
 			 * abstraction for pattern matching of paths
 			 *
-			 * @param {RegExp|string} aPattern
+			 * @param {string} aPattern
 			 * @param {strin} aUrl
 			 *
 			 * @constructor
@@ -875,12 +874,14 @@
 			function Pattern(aPattern, aUrl) {
 				var self = this;
 
+				self.specificity  = aPattern.length;
 				self.url          = resolve.url(aUrl);
-				self.regexPattern = (isInstanceOf(aPattern, RegExp)) ? aPattern : regex('^' + escape(aPattern));
+				self.regexPattern = regex('^' + escape(aPattern));
 				self.regexUrl     = regex('^' + escape(aUrl));
 			}
 
 			Pattern.prototype = {
+				specificity:  0,
 				url:          null,
 				regexPattern: null,
 				regexUrl:     null,
