@@ -69,7 +69,7 @@
 
 					return function appExample1() {
 
-					}
+					};
 				}
 
 				provide('/app/example1', definition1);
@@ -80,7 +80,7 @@
 
 					return function appExample2() {
 
-					}
+					};
 				}
 
 				provide('/app/example2', definition2)
