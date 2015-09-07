@@ -2,6 +2,7 @@
 	'use strict';
 
 	function definition() {
+		/*
 		// example: configuration
 			demand
 				.configure({
@@ -110,8 +111,9 @@
 						});
 					}
 				);
+		*/
 
-		return function() {};
+		return true;
 	}
 
 	provide(definition);
