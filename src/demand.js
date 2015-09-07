@@ -137,6 +137,7 @@
 				if(!loader && pointer[resolved.path]) {
 					log('duplicate found for module ' + resolved.path);
 				} else {
+					console.log('here', path, definition);
 					module = new Module(path, definition, dependencies || []);
 					pledge = modules[module.handler][module.path] = module.pledge;
 
@@ -1034,8 +1035,7 @@
 					function() { defered.reject(new Error('unable to resolve dependencies for', self.path, arguments)); }
 				);
 		} else {
-			console.log(aPath, aDefinition);
-			console.log('here', defered, defered.resolve, aDefinition, aDefinition());
+			console.log('here', defered, defered.resolve);
 			defered.resolve(aDefinition());
 		}
 	}
