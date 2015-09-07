@@ -83,7 +83,7 @@ module.exports = gulp;
  * tasks (private)
  **************************************************/
 	gulp.task('bump', function(callback) {
-		var tasks = [ 'dist' ];
+		var tasks = [ 'demo', 'dist' ];
 
 		loadPackageFile();
 		preparePatterns();
@@ -92,6 +92,16 @@ module.exports = gulp;
 		tasks.push(callback);
 
 		return sequence.apply(null, tasks);
+	});
+
+	gulp.task('demo:lint', function() {
+		return gulp.src(config.tasks.demo.lint)
+			.pipe(plugins.jshint(jshintConfig))
+			.pipe(plugins.jshint.reporter('jshint-stylish'));
+	});
+
+	gulp.task('demo', function(callback) {
+		return sequence('demo:lint', callback);
 	});
 
 	gulp.task('dist:lint', function() {

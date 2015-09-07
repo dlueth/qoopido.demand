@@ -11,7 +11,7 @@ You will find some demo code in this repo's demo directory via [rawgit](https://
 
 
 ## Compatibility
-Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills. I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10 and 11 (which are also fully supported) I use the official Microsoft VMs in combination with VirtualBox.
+Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills. I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10, 11 as well as Edge (which are also fully supported) the official Microsoft VMs in combination with VirtualBox are being used.
 
 
 ## External dependencies
@@ -123,7 +123,7 @@ As you might have guessed already ```main``` itself is also loaded as a module a
 
 - provide a file extension/suffix to be added the the url
 - provide a function named ```resolve``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
-- provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
+- provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path and sourcemap URLs in Javascript)
 
 Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[mimetype]!```. The default handler, e.g., is ```application/javascript``` which will automatically be used when no other handler is explicitly set.
 

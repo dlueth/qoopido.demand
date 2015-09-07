@@ -4,6 +4,11 @@
       "watch": "package.json",
       "destination": ""
     },
+    "demo": {
+      "lint": [
+        "demo/**/*.js"
+      ]
+    },
     "dist": {
       "watch": [
         "src/**/*.js"
