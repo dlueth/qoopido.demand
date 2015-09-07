@@ -2,12 +2,11 @@
 	'use strict';
 
 	function definition() {
-		/*
 		// example: configuration
 			demand
 				.configure({
 					pattern: {
-						'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/hotfix/edge/src/adapter',
+						'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/hotfix/edge/dist/adapter',
 						'/qoopido/4.0.0': 'https://rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
 						'/qoopido/3.7.4': '//cdn.jsdelivr.net/qoopido.js/3.7.4',
 						'/jquery':        '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
@@ -111,7 +110,6 @@
 						});
 					}
 				);
-		*/
 
 		return true;
 	}

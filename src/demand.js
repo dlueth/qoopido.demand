@@ -78,7 +78,7 @@
 	 *
 	 * @exports /demand
 	 */
-	function demand(dependency) {
+	function demand() {
 		var self         = this || {},
 			module       = isInstanceOf(self, Module) ? self : null,
 			dependencies = arrayPrototypeSlice.call(arguments);
@@ -116,15 +116,10 @@
 	 *
 	 * @exports /provide
 	 */
-	function provide() { // path, definition
-		var path, definition, loader, dependencies;
-
-		console.log(path, ' : ', definition);
-
-		path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : null;
-		definition = !path ? arguments[0] : arguments[1];
-
-		console.log('=>', path, ' : ', definition);
+	function provide() {
+		var path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : null,
+			definition = !path ? arguments[0] : arguments[1],
+			loader, dependencies;
 
 		if(!path && queue.current) {
 			loader = queue.current;
@@ -758,8 +753,8 @@
 		var self = this;
 
 		self.message = aMessage;
-		self.module  = aModule;
 
+		aModule && (self.module  = aModule);
 		aStack && (self.stack = arrayPrototypeSlice.call(aStack));
 	}
 
