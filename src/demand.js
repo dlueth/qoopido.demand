@@ -20,6 +20,7 @@
 	var // shortcuts
 			document              = global.document,
 			setTimeout            = global.setTimeout,
+			clearTimeout          = global.clearTimeout,
 			arrayPrototypeSlice   = Array.prototype.slice,
 			arrayPrototypeConcat  = Array.prototype.concat,
 			target                = document.getElementsByTagName('head')[0],
@@ -77,7 +78,7 @@
 	 *
 	 * @exports /demand
 	 */
-	function demand(dependency) {
+	function demand() {
 		var self         = this || {},
 			module       = isInstanceOf(self, Module) ? self : null,
 			dependencies = arrayPrototypeSlice.call(arguments);
@@ -115,11 +116,10 @@
 	 *
 	 * @exports /provide
 	 */
-	function provide(path, definition) {
-		var loader, dependencies;
-
-		path         = (isTypeOf(arguments[0], STRING_STRING) && arguments[0]) || null;
-		definition   = !path ? arguments[0] : arguments[1];
+	function provide() {
+		var path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : null,
+			definition = !path ? arguments[0] : arguments[1],
+			loader, dependencies;
 
 		if(!path && queue.current) {
 			loader = queue.current;
@@ -140,9 +140,10 @@
 					pledge = modules[module.handler][module.path] = module.pledge;
 
 					if(loader) {
-						!loader.cached && loader.store();
+						loader.timeout = clearTimeout(loader.timeout);
+						defered        = loader.defered;
 
-						defered = loader.defered;
+						!loader.cached && loader.store();
 
 						pledge.then(
 							function() {
@@ -236,6 +237,15 @@
 	 */
 	function assign(id, factory) {
 		provide(id, function() { return factory; });
+	}
+
+	/**
+	 * Get the current timestamp
+	 * 
+	 * @returns {Number}
+	 */
+	function getTimestamp() {
+		return +new Date();
 	}
 
 	/**
@@ -393,7 +403,7 @@
 			}
 					
 			for(key in pattern) {
-				pattern[key].matches(aPath) && (!match || match.specificity < pattern[key].specificity) && (match = pattern[key]);
+				pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 			}
 					
 			if(isLoader || isInstanceOf(self, Module)) {
@@ -423,7 +433,7 @@
 				id    = DEMAND_PREFIX + '[' + aPath + ']';
 				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
-				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > new Date().getTime())) {
+				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp)) {
 					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 				} else {
 					storage.clear(aPath);
@@ -447,7 +457,7 @@
 					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : null;
 
 					localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
-					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? new Date().getTime() + lifetime : 0, url: aUrl }));
+					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp + lifetime : 0, url: aUrl }));
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== null && localStorage.remainingSpace === spaceBefore) {
@@ -485,7 +495,7 @@
 								if(match) {
 									state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
 
-									if(state && state.expires > 0 && state.expires <= new Date().getTime()) {
+									if(state && state.expires > 0 && state.expires <= getTimestamp) {
 										storage.clear(match[1]);
 									}
 								}
@@ -743,8 +753,8 @@
 		var self = this;
 
 		self.message = aMessage;
-		self.module  = aModule;
 
+		aModule && (self.module  = aModule);
 		aStack && (self.stack = arrayPrototypeSlice.call(aStack));
 	}
 
@@ -803,14 +813,14 @@
 	function Pattern(aPattern, aUrl) {
 		var self = this;
 
-		self.specificity  = aPattern.length;
+		self.weight       = aPattern.length;
 		self.url          = resolve.url(aUrl);
 		self.regexPattern = regex('^' + escape(aPattern));
 		self.regexUrl     = regex('^' + escape(aUrl));
 	}
 
 	Pattern.prototype = {
-		specificity:  0,
+		weight:       0,
 		url:          null,
 		regexPattern: null,
 		regexUrl:     null,
@@ -909,7 +919,7 @@
 					current.probe();
 				}
 
-				setTimeout(function() {
+				current.timeout = setTimeout(function() {
 					defered.reject(new Error('timeout resolving module', path));
 				}, timeoutQueue);
 			}
@@ -948,12 +958,12 @@
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 				xhr.onprogress = function() {};
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.source = xhr.responseText; queue.add(self);};
+				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
 
-				xhr.open('GET', self.url + pointer.suffix, true);
+				xhr.open('GET', self.url + pointer.suffix + '?rnd=' + getTimestamp(), true);
 				xhr.send();
 
-				setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
 			}
 		} else {
 			defered.reject(new Error('no handler "' + self.handler + '" for', self.path));
@@ -968,6 +978,7 @@
 		pledge:  null,
 		cached:  false,
 		source:  null,
+		timeout: null,
 		/**
 		 * probe for the loading state of an external module
 		 */
