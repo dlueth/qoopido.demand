@@ -126,7 +126,11 @@
 			loader = queue.current;
 			path   = loader.handler + '!' + loader.path;
 
+			console.log('cleared: ', path, loader.timeout);
+
 			loader.timeout = clearTimeout(loader.timeout);
+
+			console.log(loader.timeout);
 		}
 
 		if(path) {
