@@ -20,6 +20,7 @@
 	var // shortcuts
 			document              = global.document,
 			setTimeout            = global.setTimeout,
+			clearTimeout          = global.clearTimeout,
 			arrayPrototypeSlice   = Array.prototype.slice,
 			arrayPrototypeConcat  = Array.prototype.concat,
 			target                = document.getElementsByTagName('head')[0],
@@ -124,6 +125,8 @@
 		if(!path && queue.current) {
 			loader = queue.current;
 			path   = loader.handler + '!' + loader.path;
+
+			loader.timeout = clearTimeout(loader.timeout);
 		}
 
 		if(path) {
@@ -393,7 +396,7 @@
 			}
 					
 			for(key in pattern) {
-				pattern[key].matches(aPath) && (!match || match.specificity < pattern[key].specificity) && (match = pattern[key]);
+				pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 			}
 					
 			if(isLoader || isInstanceOf(self, Module)) {
@@ -803,14 +806,14 @@
 	function Pattern(aPattern, aUrl) {
 		var self = this;
 
-		self.specificity  = aPattern.length;
+		self.weight       = aPattern.length;
 		self.url          = resolve.url(aUrl);
 		self.regexPattern = regex('^' + escape(aPattern));
 		self.regexUrl     = regex('^' + escape(aUrl));
 	}
 
 	Pattern.prototype = {
-		specificity:  0,
+		weight:       0,
 		url:          null,
 		regexPattern: null,
 		regexUrl:     null,
@@ -909,7 +912,7 @@
 					current.probe();
 				}
 
-				setTimeout(function() {
+				current.timeout = setTimeout(function() {
 					defered.reject(new Error('timeout resolving module', path));
 				}, timeoutQueue);
 			}
@@ -948,12 +951,12 @@
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 				xhr.onprogress = function() {};
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.source = xhr.responseText; queue.add(self);};
+				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
 
 				xhr.open('GET', self.url + pointer.suffix, true);
 				xhr.send();
 
-				setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
 			}
 		} else {
 			defered.reject(new Error('no handler "' + self.handler + '" for', self.path));
@@ -968,6 +971,7 @@
 		pledge:  null,
 		cached:  false,
 		source:  null,
+		timeout: null,
 		/**
 		 * probe for the loading state of an external module
 		 */
