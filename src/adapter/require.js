@@ -15,6 +15,9 @@
 ;(function(global) {
 	'use strict';
 
+	var NULL         = null,
+		arrayIsArray = Array.isArray;
+
 	/**
 	 * definition of the require.js adapter
 	 *
@@ -34,11 +37,11 @@
 		 */
 		function require() {
 			var parameter    = arguments,
-				dependencies = Array.isArray(parameter[0]) ? parameter[0] : null,
+				dependencies = arrayIsArray(parameter[0]) ? parameter[0] : NULL,
 				callback     = arguments[dependencies ? 1 : 0];
 
 			demand
-				.apply(null, dependencies || [])
+				.apply(NULL, dependencies || [])
 				.then(callback);
 		}
 
@@ -51,17 +54,17 @@
 		 */
 		function define() {
 			var parameter    = arguments,
-				id           = typeof parameter[0] === 'string' ? parameter[0] : null,
-				dependencies = Array.isArray(parameter[id ? 1 : 0]) ? parameter[id ? 1 : 0] : null,
+				id           = typeof parameter[0] === 'string' ? parameter[0] : NULL,
+				dependencies = arrayIsArray(parameter[id ? 1 : 0]) ? parameter[id ? 1 : 0] : NULL,
 				definition   = parameter[id ? (dependencies ? 2 : 1) : (dependencies ? 1 : 0)],
-				temp         = provide.apply(null, id ? [ id, definition ] : [ definition]);
+				temp         = provide.apply(NULL, id ? [ id, definition ] : [ definition]);
 
 			if(dependencies) {
-				temp.when.apply(null, dependencies);
+				temp.when.apply(NULL, dependencies);
 			}
 		}
 
-		define.amd = true;
+		define.amd = 1;
 
 		global.require = require;
 		global.define  = define;
