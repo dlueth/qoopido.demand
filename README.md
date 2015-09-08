@@ -31,21 +31,21 @@ The loader consists of two components ```demand``` and ```provide``` just like r
 		target = document.getElementsByTagName(type)[0];
 		script = document.createElement(type);
 
-		window['demand'] = { main: main, settings: settings };
+		window.demand = { main: main, settings: settings };
 
 		script.async = script.defer = 1;
 		script.src   = url;
 
 		target.parentNode.insertBefore(script, target);
 	}(window, document, 'script'))
-}('/src/demand.js', 'main', { base: '/demo', version: '1.0.0' }));
+}('/src/demand.js', 'app/main', { base: '/demo', version: '1.0.0' }));
 ```
 
 You may as well use the uglified version:
 
 ```javascript
 !function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
-("/src/demand.js","main",{base:"/demo",version:"1.0.0"});
+("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
 ```
 
 The above snippet is very similar to the one Google Analytics provides. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
