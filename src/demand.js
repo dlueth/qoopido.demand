@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, setTimeout, clearTimeout, localStorage, XMLHttpRequest, configMain, configSettings) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configMain, configSettings) {
 	'use strict';
 
 	var // shortcuts
@@ -968,7 +968,7 @@
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 				xhr.onprogress = function() {};
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
+				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
 
 				xhr.open('GET', addTimestamp(self.url + pointer.suffix), true);
 				xhr.send();
@@ -1100,4 +1100,4 @@
 		if(configMain) {
 			demand(configMain);
 		}
-}(this, document, setTimeout, clearTimeout, localStorage, XMLHttpRequest, demand.main, demand.settings));
+}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.main, demand.settings));
