@@ -242,6 +242,24 @@
 	}
 
 	/**
+	 * add timestamp to a given URL
+	 *
+	 * @param {String} aUrl
+	 *
+	 * @returns {String}
+	 */
+	function addTimestamp(aUrl) {
+		resolver.href = aUrl;
+
+		var value = resolver.search,
+			param = 'demand[timestamp]=' + getTimestamp();
+
+		resolver.search += (value && value !== '?') ? '&' + param : '?' + param;
+
+		return resolver.href;
+	}
+
+	/**
 	 * log a message to the console
 	 *
 	 * @param {String|Error} aMessage
@@ -953,7 +971,7 @@
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
 
-				xhr.open('GET', self.url + pointer.suffix + '?rnd=' + getTimestamp(), true);
+				xhr.open('GET', addTimestamp(self.url + pointer.suffix), true);
 				xhr.send();
 
 				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
