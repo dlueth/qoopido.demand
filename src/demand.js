@@ -44,7 +44,7 @@
 		// flags
 			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
 		// general storage & objects
-			defaults              = { cache: 1, debug: NULL, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+			defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
 			modules               = {},
 			pattern               = {},
 			probes                = {},
