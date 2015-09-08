@@ -35,7 +35,7 @@ None!
 
 
 ## Availability
-Qoopido.demand is available on GitHub as well as jsdelivr at the moment. CDNJS as well as npm will follow in the near future.
+Qoopido.demand is available on GitHub as well as jsdelivr and npm at the moment. CDNJS will follow in the near future.
 
 
 ## Loading demand
