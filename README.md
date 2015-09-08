@@ -38,7 +38,7 @@ None!
 Qoopido.demand is available on GitHub as well as jsdelivr at the moment. CDNJS as well as npm will follow in the near future.
 
 
-## loading demand
+## Loading demand
 Use the following code snippet in a standalone script tag before the closing body tag to include demand:
 
 ```javascript
