@@ -536,7 +536,6 @@
 		resolve: function(aPath, aValue) {
 			var script = document.createElement('script');
 
-			script.type  = 'application/javascript';
 			script.defer = script.async = true;
 			script.text  = aValue;
 
