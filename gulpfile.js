@@ -123,6 +123,7 @@ module.exports = gulp;
 			.pipe(plugins.frep(patterns))
 			.pipe(plugins.frep(getDatePatterns()))
 			.pipe(chmod(644))
+			.pipe(plugins.size({ showFiles: true, gzip: true }))
 			.pipe(plugins.sourcemaps.write('./'))
 			.pipe(gulp.dest(config.tasks.dist.destination));
 	});
