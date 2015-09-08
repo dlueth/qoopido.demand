@@ -20,7 +20,7 @@
 			// loading a single module without further dependencies
 				demand('app/simple')
 					.then(
-						function(appTest) {
+						function(appSimple) {
 							console.log('demand module /app/simple loaded');
 						},
 						function() {
