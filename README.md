@@ -1,29 +1,45 @@
-> **If you would like to support this project feel free to star or fork it, or both. By doing so it will be easier to get it into CDNs like jsdelivr or CDNJS :)**
+> **If you would like to support this project feel free to star or fork it, or both. By doing so it will be easier to get it into some of the usual CDNs :)**
 
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-This is a preview of the upcoming release of Qoopido.demand. It is mainly provided for testing and feedback reasons and things might still be subject to change although it is finally nearing a mostly stable state.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.64 kB minified and gzipped**.
 
-Qoopido.demand is a highly modular and flexible promise like module loader in a tiny package - **4KB minimized and gzipped**.
+Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
 You will find some demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/master/demo/index.html). Just open your developer console and remember to clear your localStorage :)
+
+## Key features in detail
+- promise like interface (no native promise support required)
+- any loaded module will be cached in localStorage for blazingly fast performance
+- cache will be validated against global semver versioning, a modules URL and an expiration timeout
+- manual cache invalidation (if needed)
+- only state information will be stored in localStorage as JSON, value is stored as a String (so a probably huge JS will not have to be stringified/parsed every time)
+- dependencies of loaded modules are resolved relative to their parent module if their path is relative
+- support for loading JavaScript and CSS included
+- further custom types can be added easily
+- support for loading non compatible scripts via configurable "probe" functions, similar to require.js shims
+- basic support for loading require.js modules via a loadable adapter module
+- support for "patterns" which are mostly equivalent to require.js "paths"
+- success handlers get passed all resolve, error handlers receive all rejected modules
 
 
 ## Compatibility
 Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills. I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10, 11 as well as Edge (which are also fully supported) the official Microsoft VMs in combination with VirtualBox are being used.
 
+## Limitations
+Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set. Most of the usual CDNs have CORS enabled by default.
 
 ## External dependencies
-None, yet :)
+None!
 
 
-## Installation
-As Qoopido.demand is not yet released the only way to get the alpha is by either downloading or cloning from this GitHub branch.
+## Availability
+Qoopido.demand is available on GitHub as well as jsdelivr at the moment. CDNJS as well as npm will follow in the near future.
 
 
-## Including demand
-The loader consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```. Use the following code snippet in a standalone script tag before the closing body tag to include demand:
+## Loading demand
+Use the following code snippet in a standalone script tag before the closing body tag to include demand:
 
 ```javascript
 (function(url, main, settings) {
@@ -31,27 +47,27 @@ The loader consists of two components ```demand``` and ```provide``` just like r
 		target = document.getElementsByTagName(type)[0];
 		script = document.createElement(type);
 
-		window['demand'] = { main: main, settings: settings };
+		window.demand = { main: main, settings: settings };
 
 		script.async = script.defer = 1;
 		script.src   = url;
 
 		target.parentNode.insertBefore(script, target);
 	}(window, document, 'script'))
-}('/src/demand.js', 'main', { base: '/demo', version: '1.0.0' }));
+}('/src/demand.js', 'app/main', { base: '/demo', version: '1.0.0' }));
 ```
 
 You may as well use the uglified version:
 
 ```javascript
 !function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
-("/src/demand.js","main",{base:"/demo",version:"1.0.0"});
+("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
 ```
 
 The above snippet is very similar to the one Google Analytics provides. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
 
 
-## Using demand
+## Usage
 The demanded ```main``` module from the above script might look like the following example:
 
 ```javascript
@@ -113,6 +129,7 @@ The demanded ```main``` module from the above script might look like the followi
 	provide(definition);
 }(this, demand, provide));
 ```
+Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
 
 Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a handler. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the version number and the timeout both set via ```configure```, as well as the modules URL.
 
@@ -276,4 +293,4 @@ demand('/adapter/require')
 
 Require.js modules loaded via the adapter will be loaded via ```demand``` and will therefore benefit from its caching mechanisms as well.
 
-Missing from the adapter is the support for the simplified CommonJS wrapper that is part of require.js itself.
+Missing from the adapter is the support for the simplified CommonJS wrapper that is part of require.js itself. At the time of this writing require.js ```bundles```are also not supported. The latter will most likely change due to the fact that ```bundles```are planned as a feature of Qoopido.demand as well.

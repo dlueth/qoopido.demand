@@ -10,22 +10,16 @@
  *  - http://www.gnu.org/copyleft/gpl.html
  *
  * @author Dirk Lueth <info@qoopido.com>
- *
- * @requires XMLHttpRequest, XDomainRequest, JSON.parse, JSON.stringify, Array.forEach
  */
 
-;(function(global) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configMain, configSettings) {
 	'use strict';
 
 	var // shortcuts
-			document              = global.document,
-			setTimeout            = global.setTimeout,
-			clearTimeout          = global.clearTimeout,
 			arrayPrototypeSlice   = Array.prototype.slice,
 			arrayPrototypeConcat  = Array.prototype.concat,
 			target                = document.getElementsByTagName('head')[0],
 			resolver              = document.createElement('a'),
-			localStorage          = global.localStorage,
 		// constants
 			DEMAND_PREFIX         = '[demand]',
 			DEMAND_SUFFIX_STATE   = '[state]',
@@ -36,8 +30,9 @@
 			PLEDGE_PENDING        = 'pending',
 			PLEDGE_RESOLVED       = 'resolved',
 			PLEDGE_REJECTED       = 'rejected',
-			XHR                   = global.XMLHttpRequest,
-			XDR                   = 'XDomainRequest' in global && global.XDomainRequest || XHR,
+			NULL                  = null,
+			XHR                   = XMLHttpRequest,
+			XDR                   = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		// regular expressions
 			regexIsAbsolute       = /^\//i,
 			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
@@ -50,8 +45,6 @@
 			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
 		// general storage & objects
 			defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
-			main                  = global.demand.main,
-			settings              = global.demand.settings,
 			modules               = {},
 			pattern               = {},
 			probes                = {},
@@ -80,7 +73,7 @@
 	 */
 	function demand() {
 		var self         = this || {},
-			module       = isInstanceOf(self, Module) ? self : null,
+			module       = isInstanceOf(self, Module) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
 
 		dependencies.forEach(
@@ -117,7 +110,7 @@
 	 * @exports /provide
 	 */
 	function provide() {
-		var path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : null,
+		var path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 			definition = !path ? arguments[0] : arguments[1],
 			loader, dependencies;
 
@@ -147,7 +140,7 @@
 
 						pledge.then(
 							function() {
-								defered.resolve.apply(null, arguments);
+								defered.resolve.apply(NULL, arguments);
 							},
 							function() {
 								defered.reject(new Error('unable to resolve module', path, arguments));
@@ -246,6 +239,24 @@
 	 */
 	function getTimestamp() {
 		return +new Date();
+	}
+
+	/**
+	 * add timestamp to a given URL
+	 *
+	 * @param {String} aUrl
+	 *
+	 * @returns {String}
+	 */
+	function addTimestamp(aUrl) {
+		resolver.href = aUrl;
+
+		var value = resolver.search,
+			param = 'demand[timestamp]=' + getTimestamp();
+
+		resolver.search += (value && value !== '?') ? '&' + param : '?' + param;
+
+		return resolver.href;
 	}
 
 	/**
@@ -454,13 +465,13 @@
 				id = DEMAND_PREFIX + '[' + aPath + ']';
 
 				try {
-					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : null;
+					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
 
 					localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
 					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp + lifetime : 0, url: aUrl }));
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
-					if(spaceBefore !== null && localStorage.remainingSpace === spaceBefore) {
+					if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
 						throw 'QuotaExceedError';
 					}
 				} catch(error) {
@@ -525,7 +536,6 @@
 		resolve: function(aPath, aValue) {
 			var script = document.createElement('script');
 
-			script.type  = 'application/javascript';
 			script.defer = script.async = true;
 			script.text  = aValue;
 
@@ -630,7 +640,7 @@
 				self.value = aParameter;
 
 				listener[aState].forEach(function(aHandler) {
-					aHandler.apply(null, self.value);
+					aHandler.apply(NULL, self.value);
 				});
 			}
 		}
@@ -642,11 +652,11 @@
 			} else {
 				switch(self.state) {
 					case PLEDGE_RESOLVED:
-						aResolved.apply(null, self.value);
+						aResolved.apply(NULL, self.value);
 
 						break;
 					case PLEDGE_REJECTED:
-						aRejected.apply(null, self.value);
+						aRejected.apply(NULL, self.value);
 
 						break;
 				}
@@ -659,9 +669,9 @@
 	Pledge.prototype = {
 		constructor: Pledge,
 		state:       PLEDGE_PENDING,
-		value:       null,
-		listener:    null,
-		then:        null
+		value:       NULL,
+		listener:    NULL,
+		then:        NULL
 	};
 
 	/**
@@ -707,12 +717,12 @@
 
 					countResolved++;
 
-					countResolved === countTotal && defered.resolve.apply(null, arrayPrototypeConcat.apply([], resolved));
+					countResolved === countTotal && defered.resolve.apply(NULL, arrayPrototypeConcat.apply([], resolved));
 				},
 				function() {
 					rejected.push(arrayPrototypeSlice.call(arguments));
 
-					rejected.length + countResolved === countTotal && defered.reject.apply(null, arrayPrototypeConcat.apply([], rejected));
+					rejected.length + countResolved === countTotal && defered.reject.apply(NULL, arrayPrototypeConcat.apply([], rejected));
 				}
 			);
 		});
@@ -759,9 +769,9 @@
 	}
 
 	Error.prototype = {
-		message: null,
-		module:  null,
-		stack:   null,
+		message: NULL,
+		module:  NULL,
+		stack:   NULL,
 		/**
 		 * handles output to console
 		 *
@@ -821,9 +831,9 @@
 
 	Pattern.prototype = {
 		weight:       0,
-		url:          null,
-		regexPattern: null,
-		regexUrl:     null,
+		url:          NULL,
+		regexPattern: NULL,
+		regexUrl:     NULL,
 		/**
 		 * check whether a given path matches the pattern
 		 *
@@ -866,13 +876,13 @@
 	function Queue() {
 		var self = this;
 
-		self.current = null;
+		self.current = NULL;
 		self.queue   = [];
 	}
 
 	Queue.prototype = {
-		current: null,
-		queue:   null,
+		current: NULL,
+		queue:   NULL,
 		length:  0,
 		/**
 		 * add an item to the queue
@@ -899,7 +909,7 @@
 				defered, path, pointer;
 
 			if(current) {
-				self.current = null;
+				self.current = NULL;
 
 				queue.shift();
 				self.length--;
@@ -946,7 +956,7 @@
 		pointer      = handler[self.handler];
 
 		if(!aParent) {
-			self.pledge.then(null, log);
+			self.pledge.then(NULL, log);
 		}
 
 		if(pointer) {
@@ -958,9 +968,9 @@
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 				xhr.onprogress = function() {};
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self);};
+				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
 
-				xhr.open('GET', self.url + pointer.suffix + '?rnd=' + getTimestamp(), true);
+				xhr.open('GET', addTimestamp(self.url + pointer.suffix), true);
 				xhr.send();
 
 				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
@@ -971,14 +981,14 @@
 	}
 
 	Loader.prototype = {
-		handler: null,
-		path:    null,
-		url:     null,
-		defered: null,
-		pledge:  null,
-		cached:  false,
-		source:  null,
-		timeout: null,
+		handler: NULL,
+		path:    NULL,
+		url:     NULL,
+		defered: NULL,
+		pledge:  NULL,
+		cached:  NULL,
+		source:  NULL,
+		timeout: NULL,
 		/**
 		 * probe for the loading state of an external module
 		 */
@@ -1031,14 +1041,14 @@
 
 		resolve.path.call(self, aPath);
 
-		(self.pledge = defered.pledge).then(null, function() {
+		(self.pledge = defered.pledge).then(NULL, function() {
 			log(new Error('unable to resolve module', self.path, arguments));
 		});
 
 		if(aDependencies.length > 0) {
 			demand.apply(self, aDependencies)
 				.then(
-					function() { defered.resolve(aDefinition.apply(null, arguments)); },
+					function() { defered.resolve(aDefinition.apply(NULL, arguments)); },
 					function() { defered.reject(new Error('unable to resolve dependencies for', self.path, arguments)); }
 				);
 		} else {
@@ -1047,9 +1057,9 @@
 	}
 
 	Module.prototype = {
-		handler: null,
-		path:    null,
-		pledge:  null
+		handler: NULL,
+		path:    NULL,
+		pledge:  NULL
 	};
 
 	// initialization
@@ -1068,7 +1078,7 @@
 			addHandler('text/css', '.css', CssHandler);
 
 		// configure
-			configure(defaults) && settings && configure(settings);
+			configure(defaults) && configSettings && configure(configSettings);
 
 		// register in global scope
 			demand.configure  = configure;
@@ -1087,7 +1097,7 @@
 			assign('/validator/isPositiveInteger', isPositiveInteger);
 
 	// load main script
-		if(main) {
-			demand(main);
+		if(configMain) {
+			demand(configMain);
 		}
-}(this));
+}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.main, demand.settings));
