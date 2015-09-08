@@ -19,7 +19,7 @@
   "strings": {
     "banner": {
       "min": [
-        "/*! {{gulp:package.title}} {{gulp:package.version}}, {{gulp:date.year}}-{{gulp:date.month}}-{{gulp:date.day}} | {{gulp:package.homepage}} | (c) {{gulp:date.year}} {{gulp:package.author.name}} */",
+        "/*! {{gulp:package.title}} {{gulp:package.version}} | {{gulp:package.homepage}} | (c) {{gulp:date.year}} {{gulp:package.author.name}} */",
         ""
       ],
       "max": [
