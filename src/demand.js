@@ -69,6 +69,8 @@
 	 *
 	 * @param {...String} dependency
 	 *
+	 * @returns {Pledge}
+	 *
 	 * @exports /demand
 	 */
 	function demand() {
@@ -76,16 +78,7 @@
 			module       = isInstanceOf(self, Module) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
 
-		dependencies.forEach(
-			function(dependency, index) {
-				var resolved = resolve.path(dependency, module),
-					handler  = resolved.handler,
-					path     = resolved.path,
-					pointer  = modules[handler] || (modules[handler] = {});
-
-				this[index] = pointer[path] || (pointer[path] = (new Loader(dependency, module)).pledge);
-			},
-			dependencies);
+		dependencies.forEach(resolveDependency, module);
 
 		return Pledge.all(dependencies);
 	}
@@ -107,6 +100,8 @@
 	 * @param {String} [path]
 	 * @param {Function} definition
 	 *
+	 * @returns {void|{when: Function}}
+	 *
 	 * @exports /provide
 	 */
 	function provide() {
@@ -120,43 +115,38 @@
 		}
 
 		if(path) {
-			// delay execution to be able to wait for "when" call
 			setTimeout(function() {
 				var resolved = resolve.path(path),
 					pointer  = modules[resolved.handler],
 					module, pledge, defered;
 
-				if(!loader && pointer[resolved.path]) {
-					log('duplicate found for module ' + resolved.path);
-				} else {
-					module = new Module(path, definition, dependencies || []);
+				if(loader || !pointer[resolved.path]) {
+					module = new Module(path, definition, dependencies);
 					pledge = modules[module.handler][module.path] = module.pledge;
 
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
 						defered        = loader.defered;
 
-						!loader.cached && loader.store();
-
 						pledge.then(
-							function() {
-								defered.resolve.apply(NULL, arguments);
-							},
+							defered.resolve,
 							function() {
 								defered.reject(new Error('unable to resolve module', path, arguments));
 							}
 						);
 
+						!loader.cached && loader.store();
 						queue.length > 0 && queue.next();
 					}
+				} else {
+					log('duplicate found for module ' + resolved.path);
 				}
 			});
+
+			return { when: function() { dependencies = arguments; } };
 		} else {
 			throw new Error('unspecified anonymous provide');
 		}
-
-		// provide an Object with a "when" method to attach dependencies
-		return { when: function() { dependencies = arrayPrototypeSlice.call(arguments); } };
 	}
 
 	/**
@@ -205,6 +195,23 @@
 		}
 
 		return true;
+	}
+
+	/**
+	 * resolve dependency names to existing Modules or a new Loader
+	 *
+	 * @param {String} dependency
+	 * @param {Number} index
+	 * @param {Object[]} dependencies
+	 */
+	function resolveDependency(dependency, index, dependencies) {
+		var self     = this,
+			resolved = resolve.path(dependency, self),
+			handler  = resolved.handler,
+			path     = resolved.path,
+			pointer  = modules[handler] || (modules[handler] = {});
+
+		dependencies[index] = pointer[path] || (pointer[path] = (new Loader(dependency, self)).pledge);
 	}
 
 	/**
@@ -395,7 +402,7 @@
 		 * @param {String} aPath
 		 * @param {Module} [aParent]
 		 *
-		 * @returns {void|{handler: string, path: string}}
+		 * @returns {void|{handler: String, path: String}}
 		 */
 		path: function(aPath, aParent) {
 			var self     = this,
@@ -1045,7 +1052,7 @@
 			log(new Error('unable to resolve module', self.path, arguments));
 		});
 
-		if(aDependencies.length > 0) {
+		if(aDependencies && aDependencies.length > 0) {
 			demand.apply(self, aDependencies)
 				.then(
 					function() { defered.resolve(aDefinition.apply(NULL, arguments)); },
