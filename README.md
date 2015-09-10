@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.64 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.56 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -35,7 +35,7 @@ None!
 
 
 ## Availability
-Qoopido.demand is available on GitHub as well as jsdelivr at the moment. CDNJS as well as npm will follow in the near future.
+Qoopido.demand is available on GitHub as well as jsdelivr and npm at the moment. CDNJS will follow in the near future.
 
 
 ## Loading demand
@@ -47,7 +47,7 @@ Use the following code snippet in a standalone script tag before the closing bod
 		target = document.getElementsByTagName(type)[0];
 		script = document.createElement(type);
 
-		window.demand = { main: main, settings: settings };
+		window.demand = { url: url, main: main, settings: settings };
 
 		script.async = script.defer = 1;
 		script.src   = url;
@@ -60,7 +60,7 @@ Use the following code snippet in a standalone script tag before the closing bod
 You may as well use the uglified version:
 
 ```javascript
-!function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
+!function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
 ("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
 ```
 
@@ -77,9 +77,14 @@ The demanded ```main``` module from the above script might look like the followi
 	function definition() {
 		demand
 			.configure({
-				// enables or disables localStorage caching
+				// enables or disables caching in general
 				// optional, defaults to "true"
 				cache: true,
+				
+				// storage adapter for caching
+				// no other than "localstorage" yet
+				// optional, defaults to "localstorage"
+				storage: 'localstorage',
 				
 				// enables or disables debug output like:
 				// - attempting to re-define a module 
@@ -138,38 +143,21 @@ As you might have guessed already ```main``` itself is also loaded as a module a
 ## More about handlers
 ```demand``` comes with handlers for JavaScript and CSS. Handlers have three objectives:
 
-- provide a file extension/suffix to be added the the url
+- provide a function named ```prepare``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide a function named ```resolve``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
 - provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path and sourcemap URLs in Javascript)
 
-Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[mimetype]!```. The default handler, e.g., is ```application/javascript``` which will automatically be used when no other handler is explicitly set.
+Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```js``` which will automatically be used when no other handler is explicitly set.
 
-You can also create your own handlers easily:
+I mentioned earlier that demand comes with handlers for JavaScript and CSS. This is not technically correct I have to admit. As handlers are also modules the only built-in handler is for Javascript to be honest. The CSS handler is part of demand as a standalone module that will automatically get loaded from the ```handler``` subdirectory of the location you orignally loaded demand from.
 
-```javascript
-demand.addHandler(
-	'[mimetype]',
-	'[file extension]',
-	{ 
-		resolve: function(path, value) {
-			/* inject or otherwise resolve the dependency */
-			
-			provide(function definition() {
-				return true;
-			});
-		},
-		modify: function(url, value) {
-			/* modify the passed value */
-			
-			return value;
-		}
-	}
-);
-```
+Due to the fact that handlers are modules as well you are able to write your own handlers quite easily. Simply look at the module in ```/src/handler/css.js``` and adopt it accordingly.
+
+As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
 
 Just keep these few things in mind:
 
-- ```[File extension]``` has to include a leading ```.``` to be able to stay flexible
+- ```prepare``` must return the modified URL
 - ```resolve``` must make an anonymous ```provide``` call that resolves the queued loader
 - in case you need a ```modify``` function make sure it returns the modified ```value```
 
@@ -185,17 +173,17 @@ By default demand will invalidate a modules cache under the following conditions
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a cache if it gets requested and is found to be invalid for any reason.
 
-Beside this demand still offers manual control by registering a ```demand.clear``` method to the global demand function. See the following example to learn more about the details:
+Beside this demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following emthods to control the cache:
 
 ```javascript
-// without parameters it will clear all demand-related caches in localStorage
-demand.clear();
+// only clear a single module's cache
+demand.clear.path('[module path]');
 
-// called this way it will only clear caches that are expired
-demand.clear(true);
+// clear all expired caches
+demand.clear.expired();
 
-// called with a path of a module only this modules cache will be cleared
-demand.clear('[path of the module]')
+// completely clear the cache
+demand.clear.all();
 ```
 
 **Sidenote**

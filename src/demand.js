@@ -12,48 +12,52 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configMain, configSettings) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configUrl, configMain, configSettings) {
 	'use strict';
 
 	var // shortcuts
-			arrayPrototypeSlice   = Array.prototype.slice,
-			arrayPrototypeConcat  = Array.prototype.concat,
-			target                = document.getElementsByTagName('head')[0],
-			resolver              = document.createElement('a'),
+			arrayPrototypeSlice     = Array.prototype.slice,
+			arrayPrototypeConcat    = Array.prototype.concat,
+			target                  = document.getElementsByTagName('head')[0],
+			resolver                = document.createElement('a'),
 		// constants
-			DEMAND_PREFIX         = '[demand]',
-			DEMAND_SUFFIX_STATE   = '[state]',
-			DEMAND_SUFFIX_VALUE   = '[value]',
-			STRING_UNDEFINED      = 'undefined',
-			STRING_STRING         = 'string',
-			STRING_BOOLEAN        = 'boolean',
-			PLEDGE_PENDING        = 'pending',
-			PLEDGE_RESOLVED       = 'resolved',
-			PLEDGE_REJECTED       = 'rejected',
-			NULL                  = null,
-			XHR                   = XMLHttpRequest,
-			XDR                   = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
+			DEMAND_ID               = 'demand',
+			DEMAND_PREFIX           = '[' + DEMAND_ID + ']',
+			DEMAND_SUFFIX_STATE     = '[state]',
+			DEMAND_SUFFIX_VALUE     = '[value]',
+			DEMAND_PREFIX_HANDLER   = '/' + DEMAND_ID + '/handler/',
+			DEMAND_PREFIX_STORAGE   = '/' + DEMAND_ID + '/storage/',
+			DEMAND_PREFIX_VALIDATOR = '/validator/',
+			STRING_UNDEFINED        = 'undefined',
+			STRING_STRING           = 'string',
+			STRING_BOOLEAN          = 'boolean',
+			PLEDGE_PENDING          = 'pending',
+			PLEDGE_RESOLVED         = 'resolved',
+			PLEDGE_REJECTED         = 'rejected',
+			NULL                    = null,
+			XHR                     = XMLHttpRequest,
+			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		// regular expressions
-			regexIsAbsolute       = /^\//i,
-			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
-			regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-			regexMatchSourcemap   = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
-			regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
-			regexMatchProtocol    = /^http(s?):/,
+			regexIsAbsolute         = /^\//i,
+			regexMatchHandler       = /^([-\w]+\/?)+!/,
+			regexMatchSpecial       = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+			regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
+			regexMatchProtocol      = /^http(s?):/,
 			regexMatchUrl, regexMatchLsState,
 		// flags
-			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
+			hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
 		// general storage & objects
-			defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
-			modules               = {},
-			pattern               = {},
-			probes                = {},
-			handler               = {},
-			queue, resolve, storage,
+			defaults                = { cache: true, storage: 'localstorage', handler: 'js', debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+			modules                 = {},
+			pattern                 = {},
+			probes                  = {},
+			queue, resolve, storageAdapter,
 		// handler
-			JavascriptHandler, CssHandler,
+			handlerJavascript,
+		// storage
+			storageLocalstorage,
 		// configuration
-			base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime;
+			base, cache, storage, debug, timeoutXhr, timeoutQueue, version, lifetime;
 
 	/**
 	 * demand required modules
@@ -69,6 +73,8 @@
 	 *
 	 * @param {...String} dependency
 	 *
+	 * @returns {Pledge}
+	 *
 	 * @exports /demand
 	 */
 	function demand() {
@@ -76,16 +82,7 @@
 			module       = isInstanceOf(self, Module) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
 
-		dependencies.forEach(
-			function(dependency, index) {
-				var resolved = resolve.path(dependency, module),
-					handler  = resolved.handler,
-					path     = resolved.path,
-					pointer  = modules[handler] || (modules[handler] = {});
-
-				this[index] = pointer[path] || (pointer[path] = (new Loader(dependency, module)).pledge);
-			},
-			dependencies);
+		dependencies.forEach(resolveDependency, module);
 
 		return Pledge.all(dependencies);
 	}
@@ -107,6 +104,8 @@
 	 * @param {String} [path]
 	 * @param {Function} definition
 	 *
+	 * @returns {void|{when: Function}}
+	 *
 	 * @exports /provide
 	 */
 	function provide() {
@@ -116,47 +115,42 @@
 
 		if(!path && queue.current) {
 			loader = queue.current;
-			path   = loader.handler + '!' + loader.path;
+			path   = loader.type + '!' + loader.path;
 		}
 
 		if(path) {
-			// delay execution to be able to wait for "when" call
 			setTimeout(function() {
 				var resolved = resolve.path(path),
-					pointer  = modules[resolved.handler],
+					pointer  = modules[resolved.type] || (modules[resolved.type] = {}),
 					module, pledge, defered;
 
-				if(!loader && pointer[resolved.path]) {
-					log('duplicate found for module ' + resolved.path);
-				} else {
-					module = new Module(path, definition, dependencies || []);
-					pledge = modules[module.handler][module.path] = module.pledge;
+				if(loader || !pointer[resolved.path]) {
+					module = new Module(path, definition, dependencies);
+					pledge = modules[module.type][module.path] = module.pledge;
 
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
 						defered        = loader.defered;
 
-						!loader.cached && loader.store();
-
 						pledge.then(
-							function() {
-								defered.resolve.apply(NULL, arguments);
-							},
+							defered.resolve,
 							function() {
 								defered.reject(new Error('unable to resolve module', path, arguments));
 							}
 						);
 
+						!loader.cached && loader.store();
 						queue.length > 0 && queue.next();
 					}
+				} else {
+					log('duplicate found for module ' + resolved.path);
 				}
 			});
+
+			return { when: function() { dependencies = arguments; } };
 		} else {
 			throw new Error('unspecified anonymous provide');
 		}
-
-		// provide an Object with a "when" method to attach dependencies
-		return { when: function() { dependencies = arrayPrototypeSlice.call(arguments); } };
 	}
 
 	/**
@@ -166,6 +160,7 @@
 	 */
 	function configure(aConfig) {
 		var aCache    = aConfig.cache,
+			aStorage  = aConfig.storage,
 			aDebug    = aConfig.debug,
 			aVersion  = aConfig.version,
 			aTimeout  = aConfig.timeout,
@@ -174,8 +169,9 @@
 			aPattern  = aConfig.pattern,
 			aProbes   = aConfig.probes,
 			key;
-				
+
 		cache   = isTypeOf(aCache, STRING_BOOLEAN)  ? aCache   : cache;
+		storage = isTypeOf(aStorage, STRING_STRING) ? aStorage : storage;
 		debug   = isTypeOf(aDebug, STRING_BOOLEAN)  ? aDebug   : debug;
 		version = isTypeOf(aVersion, STRING_STRING) ? aVersion : version;
 
@@ -183,21 +179,21 @@
 			timeoutXhr   = Math.min(Math.max(aTimeout, 2), 10) * 1000;
 			timeoutQueue = Math.min(Math.max(timeoutXhr / 5, 1000), 5000);
 		}
-				
+
 		if(isPositiveInteger(aLifetime)) {
 			lifetime = aLifetime * 1000;
 		}
-				
+
 		if(isTypeOf(aBase, STRING_STRING)) {
 			base = pattern.base = new Pattern('', resolve.url(aBase));
 		}
-				
+
 		if(isObject(aPattern)) {
 			for(key in aPattern) {
 				key !== 'base' && (pattern[key] = new Pattern(key, aPattern[key]));
 			}
 		}
-				
+
 		if(isObject(aProbes)) {
 			for(key in aProbes) {
 				probes[key] = aProbes[key];
@@ -208,18 +204,20 @@
 	}
 
 	/**
-	 * add handler for mimetype
+	 * resolve dependency names to existing Modules or a new Loader
 	 *
-	 * @param {String} aType
-	 * @param {String} aSuffix
-	 * @param {Object} aHandler
+	 * @param {String} dependency
+	 * @param {Number} index
+	 * @param {Object[]} dependencies
 	 */
-	function addHandler(aType, aSuffix, aHandler) {
-		if(!handler[aType]) {
-			handler[aType] = { suffix: aSuffix, resolve: aHandler.resolve, modify: aHandler.modify };
+	function resolveDependency(dependency, index, dependencies) {
+		var self     = this,
+			resolved = resolve.path(dependency, self),
+			type     = resolved.type,
+			path     = resolved.path,
+			pointer  = modules[type] || (modules[type] = {});
 
-			modules[aType] = {};
-		}
+		dependencies[index] = pointer[path] || (pointer[path] = (new Loader(dependency, self)).pledge);
 	}
 
 	/**
@@ -234,7 +232,7 @@
 
 	/**
 	 * Get the current timestamp
-	 * 
+	 *
 	 * @returns {Number}
 	 */
 	function getTimestamp() {
@@ -330,7 +328,7 @@
 	function isInstanceOf(object, module) {
 		return object instanceof module;
 	}
-			
+
 	/**
 	 * check wheter a given object is of a certain type
 	 *
@@ -395,40 +393,40 @@
 		 * @param {String} aPath
 		 * @param {Module} [aParent]
 		 *
-		 * @returns {void|{handler: string, path: string}}
+		 * @returns {void|{type: String, path: String}}
 		 */
 		path: function(aPath, aParent) {
 			var self     = this,
-				pointer  = aPath.match(regexMatchHandler) || 'application/javascript',
+				pointer  = aPath.match(regexMatchHandler) || defaults.handler,
 				isLoader = isInstanceOf(self, Loader),
 				key, match;
-						
+
 			if(!isTypeOf(pointer, STRING_STRING)) {
 				aPath   = aPath.replace(regex('^' + escape(pointer[0])), '');
-						
+
 				pointer = pointer[1];
 			}
 
 			if(!isAbsolute(aPath)) {
 				aPath = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../')) || '/') + aPath).replace(regexMatchUrl, '');
 			}
-					
+
 			for(key in pattern) {
 				pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 			}
-					
+
 			if(isLoader || isInstanceOf(self, Module)) {
-				self.handler = pointer;
-				self.path    = aPath;
-						
+				self.type = pointer;
+				self.path = aPath;
+
 				isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath))));
 			} else {
-				return { handler: pointer, path: aPath };
+				return { type: pointer, path: aPath };
 			}
 		}
 	};
 
-	storage = {
+	storageLocalstorage = {
 		/**
 		 * retrieve cache for a given path and URL
 		 *
@@ -440,14 +438,14 @@
 		get: function(aPath, aUrl) {
 			var id, state;
 
-			if(localStorage && cache) {
+			if(localStorage) {
 				id    = DEMAND_PREFIX + '[' + aPath + ']';
 				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
 				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp)) {
 					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 				} else {
-					storage.clear(aPath);
+					storageLocalstorage.clear.path(aPath);
 				}
 			}
 		},
@@ -461,7 +459,7 @@
 		set: function(aPath, aValue, aUrl) {
 			var id, spaceBefore;
 
-			if(localStorage && cache) {
+			if(localStorage) {
 				id = DEMAND_PREFIX + '[' + aPath + ']';
 
 				try {
@@ -472,7 +470,7 @@
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-						throw 'QuotaExceedError';
+						throw 'QUOTA_EXCEEDED_ERR';
 					}
 				} catch(error) {
 					log('unable to cache module ' + aPath);
@@ -480,53 +478,61 @@
 			}
 		},
 		/**
-		 * clear either a given path, all cached resources or only expired resources
+		 * clear either a given path, all cached  or expired resources
 		 *
 		 * @param {String|Boolean} [aPath]
 		 */
-		clear: function(aPath) {
-			var id, key, match, state;
+		clear: {
+			path: function(aPath) {
+				var id;
 
-			if(localStorage) {
-				switch(typeof aPath) {
-					// handle if aPath is of type "string" => clear specific
-					case STRING_STRING:
-						id = DEMAND_PREFIX + '[' + aPath + ']';
+				if(localStorage) {
+					id = DEMAND_PREFIX + '[' + aPath + ']';
 
-						localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
-						localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
+					localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
+					localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
+				}
+			},
+			all: function() {
+				var key;
 
-						break;
-					// handle if aPath is of type "boolean" and is truthy => clear expired
-					case STRING_BOOLEAN:
-						if(aPath) {
-							for(key in localStorage) {
-								match = key.match(regexMatchLsState);
+				if(localStorage) {
+					for(key in localStorage) {
+						key.indexOf(DEMAND_PREFIX) === 0 && (localStorage.removeItem(key));
+					}
+				}
+			},
+			expired: function() {
+				var key, match, state;
 
-								if(match) {
-									state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
+				if(localStorage) {
+					for(key in localStorage) {
+						match = key.match(regexMatchLsState);
 
-									if(state && state.expires > 0 && state.expires <= getTimestamp) {
-										storage.clear(match[1]);
-									}
-								}
+						if(match) {
+							state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
+
+							if(state && state.expires > 0 && state.expires <= getTimestamp) {
+								storageLocalstorage.clear.path(match[1]);
 							}
 						}
-
-						break;
-					// handle if aPath is of type "undefined" => clear all
-					case STRING_UNDEFINED:
-						for(key in localStorage) {
-							key.indexOf(DEMAND_PREFIX) === 0 && (localStorage.removeItem(key));
-						}
-
-						break;
+					}
 				}
 			}
 		}
 	};
 
-	JavascriptHandler = {
+	handlerJavascript = {
+		/**
+		 * Enables modification of the URL that gets requested
+		 *
+		 * @param {String} aUrl
+		 *
+		 * @returns {String}
+		 */
+		prepare: function(aUrl) {
+			return aUrl + '.js';
+		},
 		/**
 		 * handles resolving of JavaScript modules
 		 *
@@ -559,51 +565,6 @@
 			while(match = regexMatchSourcemap.exec(aValue)) {
 				replacement = removeProtocol(resolve.url(aUrl + '/../' + match[1]));
 				aValue      = aValue.replace(match[0], '//# sourcemap=' + replacement + '.map');
-			}
-
-			return aValue;
-		}
-	};
-
-	CssHandler = {
-		/**
-		 * handles resolving of CSS modules
-		 *
-		 * @param {String} aPath
-		 * @param {String} aValue
-		 */
-		resolve: function(aPath, aValue) {
-			var style = document.createElement('style'),
-				sheet = style.styleSheet;
-
-			style.type  = 'text/css';
-			style.media = 'only x';
-			(sheet && (sheet.cssText = aValue)) || (style.innerHTML = aValue);
-
-			style.setAttribute('demand-path', aPath);
-
-			target.appendChild(style);
-
-			setTimeout(function() {
-				provide(function() { return style; });
-			});
-		},
-		/**
-		 * handles modifying of CSS module's source prior to caching
-		 *
-		 * Rewrites relative CSS URLs to an absolute URL in relation to the URL the module was loaded from
-		 *
-		 * @param {String} aUrl
-		 * @param {String} aValue
-		 *
-		 * @returns {String}
-		 */
-		modify: function(aUrl, aValue) {
-			var base = resolve.url(aUrl + '/..'),
-				match;
-
-			while((match = regexMatchCssUrl.exec(aValue))) {
-				aValue = aValue.replace(match[0], 'url(' + resolve.url(base + match[1]) + ')');
 			}
 
 			return aValue;
@@ -906,7 +867,7 @@
 			var self    = this,
 				current = self.current,
 				queue   = self.queue,
-				defered, path, pointer;
+				defered, path, handler;
 
 			if(current) {
 				self.current = NULL;
@@ -919,11 +880,11 @@
 				current = self.current = self.queue[0];
 				defered = current.defered;
 				path    = current.path;
-				pointer = handler[current.handler];
+				handler = current.handler;
 
-				!current.cached && pointer.modify && (current.source = pointer.modify(current.url, current.source));
+				!current.cached && handler.modify && (current.source = handler.modify(current.url, current.source));
 
-				pointer.resolve(path, current.source);
+				handler.resolve(path, current.source);
 
 				if(probes[path]) {
 					current.probe();
@@ -947,40 +908,44 @@
 	function Loader(aPath, aParent) {
 		var self    = this,
 			defered = Pledge.defer(),
-			xhr, pointer;
+			xhr;
 
 		resolve.path.call(self, aPath, aParent);
 
 		self.defered = defered;
 		self.pledge  = defered.pledge;
-		pointer      = handler[self.handler];
 
 		if(!aParent) {
 			self.pledge.then(NULL, log);
 		}
 
-		if(pointer) {
-			self.retrieve();
+		demand(DEMAND_PREFIX_HANDLER + self.type)
+			.then(
+				function(handler) {
+					self.retrieve();
 
-			if(self.cached) {
-				queue.add(self);
-			} else {
-				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-				xhr.onprogress = function() {};
-				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
+					self.handler = handler;
 
-				xhr.open('GET', addTimestamp(self.url + pointer.suffix), true);
-				xhr.send();
+					if(self.cached) {
+						queue.add(self);
+					} else {
+						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
+						xhr.onprogress = function() {};
+						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
+						xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
 
-				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
-			}
-		} else {
-			defered.reject(new Error('no handler "' + self.handler + '" for', self.path));
-		}
+						xhr.open('GET', addTimestamp(handler.prepare(self.url)), true);
+						xhr.send();
+
+						self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+					}
+				},
+				defered.reject
+			);
 	}
 
 	Loader.prototype = {
+		type:    NULL,
 		handler: NULL,
 		path:    NULL,
 		url:     NULL,
@@ -1012,17 +977,17 @@
 		store: function() {
 			var self = this;
 
-			storage.set(self.path, self.source, self.url);
+			cache && storageAdapter.set(self.path, self.source, self.url);
 		},
 		/**
 		 * retrieve cache for loader
 		 */
 		retrieve: function() {
 			var self   = this,
-				cache  = storage.get(self.path, self.url),
-				cached = self.cached = !!(cache);
+				source = cache && storageAdapter.get(self.path, self.url),
+				cached = self.cached = !!(source);
 
-			cached && (self.source = cache);
+			cached && (self.source = source);
 		}
 	};
 
@@ -1045,7 +1010,7 @@
 			log(new Error('unable to resolve module', self.path, arguments));
 		});
 
-		if(aDependencies.length > 0) {
+		if(aDependencies && aDependencies.length > 0) {
 			demand.apply(self, aDependencies)
 				.then(
 					function() { defered.resolve(aDefinition.apply(NULL, arguments)); },
@@ -1057,7 +1022,7 @@
 	}
 
 	Module.prototype = {
-		handler: NULL,
+		type:    NULL,
 		path:    NULL,
 		pledge:  NULL
 	};
@@ -1070,34 +1035,43 @@
 		// create queue
 			queue = new Queue();
 
-		// execute localStorage garbage collection
-			storage.clear(true);
-
-		// add default handler
-			addHandler('application/javascript', '.js', JavascriptHandler);
-			addHandler('text/css', '.css', CssHandler);
+		// add pattern for "/demand" to point to original demand URL
+			pattern['/' + DEMAND_ID] = new Pattern('/' + DEMAND_ID, resolve.url(configUrl + '/../').slice(0, -1));
 
 		// configure
 			configure(defaults) && configSettings && configure(configSettings);
 
 		// register in global scope
 			demand.configure  = configure;
-			demand.addHandler = addHandler;
-			demand.clear      = storage.clear;
 			global.demand     = demand;
 			global.provide    = provide;
 
 		// register modules
-			assign('/demand', demand);
+			assign('/' + DEMAND_ID, demand);
 			assign('/provide', provide);
 			assign('/pledge', Pledge);
-			assign('/validator/isTypeOf', isTypeOf);
-			assign('/validator/isInstanceOf', isInstanceOf);
-			assign('/validator/isObject', isObject);
-			assign('/validator/isPositiveInteger', isPositiveInteger);
+			assign('/resolve/url', resolve.url);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isObject', isObject);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+			assign(DEMAND_PREFIX_STORAGE + defaults.storage, storageLocalstorage);
+			assign(DEMAND_PREFIX_HANDLER + defaults.handler, handlerJavascript);
 
 	// load main script
-		if(configMain) {
-			demand(configMain);
-		}
-}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.main, demand.settings));
+		setTimeout(function() {
+			demand(DEMAND_PREFIX_STORAGE + storage)
+				.then(
+					function(adapter) {
+						storageAdapter = adapter;
+						demand.clear   = storageAdapter.clear;
+
+						storageAdapter.clear.expired();
+
+						if(configMain) {
+							setTimeout(function() { demand(configMain); });
+						}
+					}
+				);
+		});
+}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));

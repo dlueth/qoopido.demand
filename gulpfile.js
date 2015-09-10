@@ -5,7 +5,7 @@ var gulp     = require('gulp'),
 	sequence = require('run-sequence'),
 	del      = require('del'),
 	config   = {},
-	jshintConfig, package, config, patterns = [], key;
+	jshintConfig, package, config, patterns = [];
 
 module.exports = gulp;
 
