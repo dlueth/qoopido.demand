@@ -12,34 +12,37 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configMain, configSettings) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configUrl, configMain, configSettings) {
 	'use strict';
 
 	var // shortcuts
-			arrayPrototypeSlice   = Array.prototype.slice,
-			arrayPrototypeConcat  = Array.prototype.concat,
-			target                = document.getElementsByTagName('head')[0],
-			resolver              = document.createElement('a'),
+			arrayPrototypeSlice     = Array.prototype.slice,
+			arrayPrototypeConcat    = Array.prototype.concat,
+			target                  = document.getElementsByTagName('head')[0],
+			resolver                = document.createElement('a'),
 		// constants
-			DEMAND_PREFIX         = '[demand]',
-			DEMAND_SUFFIX_STATE   = '[state]',
-			DEMAND_SUFFIX_VALUE   = '[value]',
-			STRING_UNDEFINED      = 'undefined',
-			STRING_STRING         = 'string',
-			STRING_BOOLEAN        = 'boolean',
-			PLEDGE_PENDING        = 'pending',
-			PLEDGE_RESOLVED       = 'resolved',
-			PLEDGE_REJECTED       = 'rejected',
-			NULL                  = null,
-			XHR                   = XMLHttpRequest,
-			XDR                   = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
+			DEMAND_ID               = 'demand',
+			DEMAND_PREFIX           = '[' + DEMAND_ID + ']',
+			DEMAND_SUFFIX_STATE     = '[state]',
+			DEMAND_SUFFIX_VALUE     = '[value]',
+			DEMAND_PREFIX_HANDLER   = '/' + DEMAND_ID + '/handler/',
+			DEMAND_PREFIX_VALIDATOR = '/validator/',
+			STRING_UNDEFINED        = 'undefined',
+			STRING_STRING           = 'string',
+			STRING_BOOLEAN          = 'boolean',
+			PLEDGE_PENDING          = 'pending',
+			PLEDGE_RESOLVED         = 'resolved',
+			PLEDGE_REJECTED         = 'rejected',
+			DEFAULT_HANDLER         = 'js',
+			NULL                    = null,
+			XHR                     = XMLHttpRequest,
+			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		// regular expressions
-			regexIsAbsolute       = /^\//i,
-			regexMatchHandler     = /^([-\w]+\/[-\w]+)!/,
-			regexMatchSpecial     = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-			regexMatchSourcemap   = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
-			regexMatchCssUrl      = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g,
-			regexMatchProtocol    = /^http(s?):/,
+			regexIsAbsolute         = /^\//i,
+			regexMatchHandler       = /^([-\w]+\/?)+!/,
+			regexMatchSpecial       = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+			regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
+			regexMatchProtocol      = /^http(s?):/,
 			regexMatchUrl, regexMatchLsState,
 		// flags
 			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
@@ -48,10 +51,9 @@
 			modules               = {},
 			pattern               = {},
 			probes                = {},
-			handler               = {},
 			queue, resolve, storage,
 		// handler
-			JavascriptHandler, CssHandler,
+			handlerJavascript,
 		// configuration
 			base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime;
 
@@ -111,18 +113,18 @@
 
 		if(!path && queue.current) {
 			loader = queue.current;
-			path   = loader.handler + '!' + loader.path;
+			path   = loader.type + '!' + loader.path;
 		}
 
 		if(path) {
 			setTimeout(function() {
 				var resolved = resolve.path(path),
-					pointer  = modules[resolved.handler],
+					pointer  = modules[resolved.type] || (modules[resolved.type] = {}),
 					module, pledge, defered;
 
 				if(loader || !pointer[resolved.path]) {
 					module = new Module(path, definition, dependencies);
-					pledge = modules[module.handler][module.path] = module.pledge;
+					pledge = modules[module.type][module.path] = module.pledge;
 
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
@@ -207,26 +209,11 @@
 	function resolveDependency(dependency, index, dependencies) {
 		var self     = this,
 			resolved = resolve.path(dependency, self),
-			handler  = resolved.handler,
+			type     = resolved.type,
 			path     = resolved.path,
-			pointer  = modules[handler] || (modules[handler] = {});
+			pointer  = modules[type] || (modules[type] = {});
 
 		dependencies[index] = pointer[path] || (pointer[path] = (new Loader(dependency, self)).pledge);
-	}
-
-	/**
-	 * add handler for mimetype
-	 *
-	 * @param {String} aType
-	 * @param {String} aSuffix
-	 * @param {Object} aHandler
-	 */
-	function addHandler(aType, aSuffix, aHandler) {
-		if(!handler[aType]) {
-			handler[aType] = { suffix: aSuffix, resolve: aHandler.resolve, modify: aHandler.modify };
-
-			modules[aType] = {};
-		}
 	}
 
 	/**
@@ -402,11 +389,11 @@
 		 * @param {String} aPath
 		 * @param {Module} [aParent]
 		 *
-		 * @returns {void|{handler: String, path: String}}
+		 * @returns {void|{type: String, path: String}}
 		 */
 		path: function(aPath, aParent) {
 			var self     = this,
-				pointer  = aPath.match(regexMatchHandler) || 'application/javascript',
+				pointer  = aPath.match(regexMatchHandler) || DEFAULT_HANDLER,
 				isLoader = isInstanceOf(self, Loader),
 				key, match;
 						
@@ -425,12 +412,12 @@
 			}
 					
 			if(isLoader || isInstanceOf(self, Module)) {
-				self.handler = pointer;
-				self.path    = aPath;
+				self.type = pointer;
+				self.path = aPath;
 						
 				isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath))));
 			} else {
-				return { handler: pointer, path: aPath };
+				return { type: pointer, path: aPath };
 			}
 		}
 	};
@@ -533,7 +520,17 @@
 		}
 	};
 
-	JavascriptHandler = {
+	handlerJavascript = {
+		/**
+		 * Enables modification of the URL that gets requested
+		 *
+		 * @param {String} aUrl
+		 *
+		 * @returns {String}
+		 */
+		prepare: function(aUrl) {
+			return aUrl + '.js';
+		},
 		/**
 		 * handles resolving of JavaScript modules
 		 *
@@ -566,51 +563,6 @@
 			while(match = regexMatchSourcemap.exec(aValue)) {
 				replacement = removeProtocol(resolve.url(aUrl + '/../' + match[1]));
 				aValue      = aValue.replace(match[0], '//# sourcemap=' + replacement + '.map');
-			}
-
-			return aValue;
-		}
-	};
-
-	CssHandler = {
-		/**
-		 * handles resolving of CSS modules
-		 *
-		 * @param {String} aPath
-		 * @param {String} aValue
-		 */
-		resolve: function(aPath, aValue) {
-			var style = document.createElement('style'),
-				sheet = style.styleSheet;
-
-			style.type  = 'text/css';
-			style.media = 'only x';
-			(sheet && (sheet.cssText = aValue)) || (style.innerHTML = aValue);
-
-			style.setAttribute('demand-path', aPath);
-
-			target.appendChild(style);
-
-			setTimeout(function() {
-				provide(function() { return style; });
-			});
-		},
-		/**
-		 * handles modifying of CSS module's source prior to caching
-		 *
-		 * Rewrites relative CSS URLs to an absolute URL in relation to the URL the module was loaded from
-		 *
-		 * @param {String} aUrl
-		 * @param {String} aValue
-		 *
-		 * @returns {String}
-		 */
-		modify: function(aUrl, aValue) {
-			var base = resolve.url(aUrl + '/..'),
-				match;
-
-			while((match = regexMatchCssUrl.exec(aValue))) {
-				aValue = aValue.replace(match[0], 'url(' + resolve.url(base + match[1]) + ')');
 			}
 
 			return aValue;
@@ -913,7 +865,7 @@
 			var self    = this,
 				current = self.current,
 				queue   = self.queue,
-				defered, path, pointer;
+				defered, path, handler;
 
 			if(current) {
 				self.current = NULL;
@@ -926,11 +878,11 @@
 				current = self.current = self.queue[0];
 				defered = current.defered;
 				path    = current.path;
-				pointer = handler[current.handler];
+				handler = current.handler;
 
-				!current.cached && pointer.modify && (current.source = pointer.modify(current.url, current.source));
+				!current.cached && handler.modify && (current.source = handler.modify(current.url, current.source));
 
-				pointer.resolve(path, current.source);
+				handler.resolve(path, current.source);
 
 				if(probes[path]) {
 					current.probe();
@@ -954,40 +906,44 @@
 	function Loader(aPath, aParent) {
 		var self    = this,
 			defered = Pledge.defer(),
-			xhr, pointer;
+			xhr;
 
 		resolve.path.call(self, aPath, aParent);
 
 		self.defered = defered;
 		self.pledge  = defered.pledge;
-		pointer      = handler[self.handler];
 
 		if(!aParent) {
 			self.pledge.then(NULL, log);
 		}
 
-		if(pointer) {
-			self.retrieve();
+		demand(DEMAND_PREFIX_HANDLER + self.type)
+			.then(
+				function(handler) {
+					self.retrieve();
 
-			if(self.cached) {
-				queue.add(self);
-			} else {
-				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-				xhr.onprogress = function() {};
-				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-				xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
+					self.handler = handler;
 
-				xhr.open('GET', addTimestamp(self.url + pointer.suffix), true);
-				xhr.send();
+					if(self.cached) {
+						queue.add(self);
+					} else {
+						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
+						xhr.onprogress = function() {};
+						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
+						xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
 
-				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
-			}
-		} else {
-			defered.reject(new Error('no handler "' + self.handler + '" for', self.path));
-		}
+						xhr.open('GET', addTimestamp(handler.prepare(self.url)), true);
+						xhr.send();
+
+						self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+					}
+				},
+				defered.reject
+			);
 	}
 
 	Loader.prototype = {
+		type:    NULL,
 		handler: NULL,
 		path:    NULL,
 		url:     NULL,
@@ -1064,7 +1020,7 @@
 	}
 
 	Module.prototype = {
-		handler: NULL,
+		type:    NULL,
 		path:    NULL,
 		pledge:  NULL
 	};
@@ -1080,31 +1036,29 @@
 		// execute localStorage garbage collection
 			storage.clear(true);
 
-		// add default handler
-			addHandler('application/javascript', '.js', JavascriptHandler);
-			addHandler('text/css', '.css', CssHandler);
+		// add pattern for "/demand" to point to original demand URL
+			pattern['/' + DEMAND_ID] = new Pattern('/' + DEMAND_ID, resolve.url(configUrl + '/../').slice(0, -1));
 
 		// configure
 			configure(defaults) && configSettings && configure(configSettings);
 
 		// register in global scope
 			demand.configure  = configure;
-			demand.addHandler = addHandler;
 			demand.clear      = storage.clear;
 			global.demand     = demand;
 			global.provide    = provide;
 
 		// register modules
-			assign('/demand', demand);
+			assign('/' + DEMAND_ID, demand);
 			assign('/provide', provide);
 			assign('/pledge', Pledge);
-			assign('/validator/isTypeOf', isTypeOf);
-			assign('/validator/isInstanceOf', isInstanceOf);
-			assign('/validator/isObject', isObject);
-			assign('/validator/isPositiveInteger', isPositiveInteger);
+			assign('/resolve/url', resolve.url);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isObject', isObject);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
+			assign(DEMAND_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+			assign(DEMAND_PREFIX_HANDLER + DEFAULT_HANDLER, handlerJavascript);
 
 	// load main script
-		if(configMain) {
-			demand(configMain);
-		}
-}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.main, demand.settings));
+		if(configMain) { setTimeout(function() { demand(configMain); }); }
+}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));
