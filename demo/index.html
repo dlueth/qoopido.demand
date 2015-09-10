@@ -40,7 +40,7 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script', 'demand', localStorage, JSON))
-	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.3/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.3/demo', version: '1.0.3' }));
+	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.3/demo', version: '1.0.3' }));
 	*/
 
 	(function(url, main, settings) {
@@ -48,14 +48,14 @@
 			target = document.getElementsByTagName(type)[0];
 			script = document.createElement(type);
 
-			window.demand = { main: main, settings: settings };
+			window.demand = { url: url, main: main, settings: settings };
 
 			script.async = script.defer = 1;
 			script.src   = url;
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/demo', version: '1.0.3' }));
+	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/demo', version: '1.0.4' }));
 </script>
 </body>
 </html>

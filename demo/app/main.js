@@ -51,7 +51,7 @@
 					);
 
 			// loading CSS with demand
-				demand('text/css!app/default')
+				demand('css!app/default')
 					.then(
 						function(cssDefault) {
 							console.log('demand module /app/default (text/css) loaded');
@@ -99,7 +99,7 @@
 							});
 						});
 
-						// adapter.define is also register as "define" in global scope
+						// adapter.define is also registered as "define" in global scope
 						adapter.define('/app/example3', function() {
 							console.log('require.js module /app/example3 defined');
 						});
@@ -114,5 +114,6 @@
 		return true;
 	}
 
-	provide(definition);
+	provide(definition)
+		.when('simple');
 }(this, demand, provide));
