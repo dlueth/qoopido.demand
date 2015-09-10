@@ -26,6 +26,7 @@
 			DEMAND_SUFFIX_STATE     = '[state]',
 			DEMAND_SUFFIX_VALUE     = '[value]',
 			DEMAND_PREFIX_HANDLER   = '/' + DEMAND_ID + '/handler/',
+			DEMAND_PREFIX_STORAGE   = '/' + DEMAND_ID + '/storage/',
 			DEMAND_PREFIX_VALIDATOR = '/validator/',
 			STRING_UNDEFINED        = 'undefined',
 			STRING_STRING           = 'string',
@@ -33,7 +34,6 @@
 			PLEDGE_PENDING          = 'pending',
 			PLEDGE_RESOLVED         = 'resolved',
 			PLEDGE_REJECTED         = 'rejected',
-			DEFAULT_HANDLER         = 'js',
 			NULL                    = null,
 			XHR                     = XMLHttpRequest,
 			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
@@ -45,17 +45,19 @@
 			regexMatchProtocol      = /^http(s?):/,
 			regexMatchUrl, regexMatchLsState,
 		// flags
-			hasRemainingSpace     = localStorage && 'remainingSpace' in localStorage,
+			hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
 		// general storage & objects
-			defaults              = { cache: true, debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
-			modules               = {},
-			pattern               = {},
-			probes                = {},
-			queue, resolve, storage,
+			defaults                = { cache: true, storage: 'localstorage', handler: 'js', debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
+			modules                 = {},
+			pattern                 = {},
+			probes                  = {},
+			queue, resolve, storageAdapter,
 		// handler
 			handlerJavascript,
+		// storage
+			storageLocalstorage,
 		// configuration
-			base, cache, debug, timeoutXhr, timeoutQueue, version, lifetime;
+			base, cache, storage, debug, timeoutXhr, timeoutQueue, version, lifetime;
 
 	/**
 	 * demand required modules
@@ -158,6 +160,7 @@
 	 */
 	function configure(aConfig) {
 		var aCache    = aConfig.cache,
+			aStorage  = aConfig.storage,
 			aDebug    = aConfig.debug,
 			aVersion  = aConfig.version,
 			aTimeout  = aConfig.timeout,
@@ -166,8 +169,9 @@
 			aPattern  = aConfig.pattern,
 			aProbes   = aConfig.probes,
 			key;
-				
+
 		cache   = isTypeOf(aCache, STRING_BOOLEAN)  ? aCache   : cache;
+		storage = isTypeOf(aStorage, STRING_STRING) ? aStorage : storage;
 		debug   = isTypeOf(aDebug, STRING_BOOLEAN)  ? aDebug   : debug;
 		version = isTypeOf(aVersion, STRING_STRING) ? aVersion : version;
 
@@ -175,21 +179,21 @@
 			timeoutXhr   = Math.min(Math.max(aTimeout, 2), 10) * 1000;
 			timeoutQueue = Math.min(Math.max(timeoutXhr / 5, 1000), 5000);
 		}
-				
+
 		if(isPositiveInteger(aLifetime)) {
 			lifetime = aLifetime * 1000;
 		}
-				
+
 		if(isTypeOf(aBase, STRING_STRING)) {
 			base = pattern.base = new Pattern('', resolve.url(aBase));
 		}
-				
+
 		if(isObject(aPattern)) {
 			for(key in aPattern) {
 				key !== 'base' && (pattern[key] = new Pattern(key, aPattern[key]));
 			}
 		}
-				
+
 		if(isObject(aProbes)) {
 			for(key in aProbes) {
 				probes[key] = aProbes[key];
@@ -228,7 +232,7 @@
 
 	/**
 	 * Get the current timestamp
-	 * 
+	 *
 	 * @returns {Number}
 	 */
 	function getTimestamp() {
@@ -324,7 +328,7 @@
 	function isInstanceOf(object, module) {
 		return object instanceof module;
 	}
-			
+
 	/**
 	 * check wheter a given object is of a certain type
 	 *
@@ -393,28 +397,28 @@
 		 */
 		path: function(aPath, aParent) {
 			var self     = this,
-				pointer  = aPath.match(regexMatchHandler) || DEFAULT_HANDLER,
+				pointer  = aPath.match(regexMatchHandler) || defaults.handler,
 				isLoader = isInstanceOf(self, Loader),
 				key, match;
-						
+
 			if(!isTypeOf(pointer, STRING_STRING)) {
 				aPath   = aPath.replace(regex('^' + escape(pointer[0])), '');
-						
+
 				pointer = pointer[1];
 			}
 
 			if(!isAbsolute(aPath)) {
 				aPath = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../')) || '/') + aPath).replace(regexMatchUrl, '');
 			}
-					
+
 			for(key in pattern) {
 				pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 			}
-					
+
 			if(isLoader || isInstanceOf(self, Module)) {
 				self.type = pointer;
 				self.path = aPath;
-						
+
 				isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath))));
 			} else {
 				return { type: pointer, path: aPath };
@@ -422,7 +426,7 @@
 		}
 	};
 
-	storage = {
+	storageLocalstorage = {
 		/**
 		 * retrieve cache for a given path and URL
 		 *
@@ -441,7 +445,7 @@
 				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp)) {
 					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 				} else {
-					storage.clear(aPath);
+					storageLocalstorage.clear.path(aPath);
 				}
 			}
 		},
@@ -466,7 +470,7 @@
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-						throw 'QuotaExceedError';
+						throw 'QUOTA_EXCEEDED_ERR';
 					}
 				} catch(error) {
 					log('unable to cache module ' + aPath);
@@ -474,47 +478,45 @@
 			}
 		},
 		/**
-		 * clear either a given path, all cached resources or only expired resources
+		 * clear either a given path, all cached  or expired resources
 		 *
 		 * @param {String|Boolean} [aPath]
 		 */
-		clear: function(aPath) {
-			var id, key, match, state;
+		clear: {
+			path: function(aPath) {
+				var id;
 
-			if(localStorage) {
-				switch(typeof aPath) {
-					// handle if aPath is of type "string" => clear specific
-					case STRING_STRING:
-						id = DEMAND_PREFIX + '[' + aPath + ']';
+				if(localStorage) {
+					id = DEMAND_PREFIX + '[' + aPath + ']';
 
-						localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
-						localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
+					localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
+					localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
+				}
+			},
+			all: function() {
+				var key;
 
-						break;
-					// handle if aPath is of type "boolean" and is truthy => clear expired
-					case STRING_BOOLEAN:
-						if(aPath) {
-							for(key in localStorage) {
-								match = key.match(regexMatchLsState);
+				if(localStorage) {
+					for(key in localStorage) {
+						key.indexOf(DEMAND_PREFIX) === 0 && (localStorage.removeItem(key));
+					}
+				}
+			},
+			expired: function() {
+				var key, match, state;
 
-								if(match) {
-									state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
+				if(localStorage) {
+					for(key in localStorage) {
+						match = key.match(regexMatchLsState);
 
-									if(state && state.expires > 0 && state.expires <= getTimestamp) {
-										storage.clear(match[1]);
-									}
-								}
+						if(match) {
+							state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
+
+							if(state && state.expires > 0 && state.expires <= getTimestamp) {
+								storageLocalstorage.clear.path(match[1]);
 							}
 						}
-
-						break;
-					// handle if aPath is of type "undefined" => clear all
-					case STRING_UNDEFINED:
-						for(key in localStorage) {
-							key.indexOf(DEMAND_PREFIX) === 0 && (localStorage.removeItem(key));
-						}
-
-						break;
+					}
 				}
 			}
 		}
@@ -975,14 +977,14 @@
 		store: function() {
 			var self = this;
 
-			storage.set(self.path, self.source, self.url);
+			storageAdapter.set(self.path, self.source, self.url);
 		},
 		/**
 		 * retrieve cache for loader
 		 */
 		retrieve: function() {
 			var self   = this,
-				cache  = storage.get(self.path, self.url),
+				cache  = storageAdapter.get(self.path, self.url),
 				cached = self.cached = !!(cache);
 
 			cached && (self.source = cache);
@@ -1033,9 +1035,6 @@
 		// create queue
 			queue = new Queue();
 
-		// execute localStorage garbage collection
-			storage.clear(true);
-
 		// add pattern for "/demand" to point to original demand URL
 			pattern['/' + DEMAND_ID] = new Pattern('/' + DEMAND_ID, resolve.url(configUrl + '/../').slice(0, -1));
 
@@ -1044,7 +1043,6 @@
 
 		// register in global scope
 			demand.configure  = configure;
-			demand.clear      = storage.clear;
 			global.demand     = demand;
 			global.provide    = provide;
 
@@ -1057,8 +1055,23 @@
 			assign(DEMAND_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
 			assign(DEMAND_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
 			assign(DEMAND_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
-			assign(DEMAND_PREFIX_HANDLER + DEFAULT_HANDLER, handlerJavascript);
+			assign(DEMAND_PREFIX_STORAGE + defaults.storage, storageLocalstorage);
+			assign(DEMAND_PREFIX_HANDLER + defaults.handler, handlerJavascript);
 
 	// load main script
-		if(configMain) { setTimeout(function() { demand(configMain); }); }
+		setTimeout(function() {
+			demand(DEMAND_PREFIX_STORAGE + storage)
+				.then(
+					function(adapter) {
+						storageAdapter = adapter;
+						demand.clear   = storageAdapter.clear;
+
+						storageAdapter.clear.expired();
+
+						if(configMain) {
+							setTimeout(function() { demand(configMain); });
+						}
+					}
+				);
+		});
 }(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));
