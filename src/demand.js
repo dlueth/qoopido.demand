@@ -438,7 +438,7 @@
 		get: function(aPath, aUrl) {
 			var id, state;
 
-			if(localStorage && cache) {
+			if(localStorage) {
 				id    = DEMAND_PREFIX + '[' + aPath + ']';
 				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
@@ -459,7 +459,7 @@
 		set: function(aPath, aValue, aUrl) {
 			var id, spaceBefore;
 
-			if(localStorage && cache) {
+			if(localStorage) {
 				id = DEMAND_PREFIX + '[' + aPath + ']';
 
 				try {
@@ -977,17 +977,17 @@
 		store: function() {
 			var self = this;
 
-			storageAdapter.set(self.path, self.source, self.url);
+			cache && storageAdapter.set(self.path, self.source, self.url);
 		},
 		/**
 		 * retrieve cache for loader
 		 */
 		retrieve: function() {
 			var self   = this,
-				cache  = storageAdapter.get(self.path, self.url),
-				cached = self.cached = !!(cache);
+				source = cache && storageAdapter.get(self.path, self.url),
+				cached = self.cached = !!(source);
 
-			cached && (self.source = cache);
+			cached && (self.source = source);
 		}
 	};
 
