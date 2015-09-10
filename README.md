@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.49 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.56 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -77,9 +77,14 @@ The demanded ```main``` module from the above script might look like the followi
 	function definition() {
 		demand
 			.configure({
-				// enables or disables localStorage caching
+				// enables or disables caching in general
 				// optional, defaults to "true"
 				cache: true,
+				
+				// storage adapter for caching
+				// no other than "localstorage" yet
+				// optional, defaults to "localstorage"
+				storage: 'localstorage',
 				
 				// enables or disables debug output like:
 				// - attempting to re-define a module 
@@ -168,17 +173,17 @@ By default demand will invalidate a modules cache under the following conditions
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a cache if it gets requested and is found to be invalid for any reason.
 
-Beside this demand still offers manual control by registering a ```demand.clear``` method to the global demand function. See the following example to learn more about the details:
+Beside this demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following emthods to control the cache:
 
 ```javascript
-// without parameters it will clear all demand-related caches in localStorage
-demand.clear();
+// only clear a single module's cache
+demand.clear.path('[module path]');
 
-// called this way it will only clear caches that are expired
-demand.clear(true);
+// clear all expired caches
+demand.clear.expired();
 
-// called with a path of a module only this modules cache will be cleared
-demand.clear('[path of the module]')
+// completely clear the cache
+demand.clear.all();
 ```
 
 **Sidenote**
