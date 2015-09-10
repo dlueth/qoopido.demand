@@ -7,14 +7,14 @@
 <script>
 	/*
 	Experimental:
-	This script is an experimental implementation fo Qoopido.demand. It is approx. 2.5 times bigger than the usual script but is able to cache demand itself, but without checking for quota exceeded!
+	This script is an experimental implementation of Qoopido.demand. It is approx. 2.5 times bigger than the usual script but is able to cache demand itself, but without checking for quota exceeded!
 
 	(function(url, main, settings) {
 		(function(window, document, type, name, localStorage, JSON, target, script, version, prefix, keyState, keyValue, state, xhr){
 			target = document.getElementsByTagName(type)[0];
 			script = document.createElement(type);
 
-			window[name] = { main: main, settings: settings };
+			window[name] = { url: url, main: main, settings: settings };
 
 			if(localStorage) {
 				version  = settings.version || '1.0.0';
@@ -40,7 +40,7 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script', 'demand', localStorage, JSON))
-	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.3/demo', version: '1.0.3' }));
+	}('https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/dist/demand.js', 'app/main', { base: 'https://rawgit.com/dlueth/qoopido.demand/release/1.0.4/demo', version: '1.0.4' }));
 	*/
 
 	(function(url, main, settings) {
