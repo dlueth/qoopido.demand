@@ -79,12 +79,21 @@
 	 */
 	function demand() {
 		var self         = this || {},
+			defered      = Pledge.defer(),
 			module       = isInstanceOf(self, Module) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
+			
+		setTimeout(function() {
+			dependencies.forEach(resolveDependency, module);
+			
+			Pledge.all(dependencies)
+				.then(
+					defered.resolve,
+					defered.reject
+				);
+		});
 
-		dependencies.forEach(resolveDependency, module);
-
-		return Pledge.all(dependencies);
+		return defered.pledge;
 	}
 
 	/**
@@ -601,7 +610,7 @@
 				self.value = aParameter;
 
 				listener[aState].forEach(function(aHandler) {
-					aHandler.apply(NULL, self.value);
+					aHandler.apply(NULL, aParameter);
 				});
 			}
 		}
@@ -918,7 +927,7 @@
 		if(!aParent) {
 			self.pledge.then(NULL, log);
 		}
-
+		
 		demand(DEMAND_PREFIX_HANDLER + self.type)
 			.then(
 				function(handler) {
@@ -1059,19 +1068,17 @@
 			assign(DEMAND_PREFIX_HANDLER + defaults.handler, handlerJavascript);
 
 	// load main script
-		setTimeout(function() {
-			demand(DEMAND_PREFIX_STORAGE + storage)
-				.then(
-					function(adapter) {
-						storageAdapter = adapter;
-						demand.clear   = storageAdapter.clear;
+		demand(DEMAND_PREFIX_STORAGE + storage)
+			.then(
+				function(adapter) {
+					storageAdapter = adapter;
+					demand.clear   = storageAdapter.clear;
 
-						storageAdapter.clear.expired();
+					storageAdapter.clear.expired();
 
-						if(configMain) {
-							setTimeout(function() { demand(configMain); });
-						}
+					if(configMain) {
+						demand(configMain);
 					}
-				);
-		});
-}(this, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));
+				}
+			);
+}(this, document, (function() { try { return 'localStorage' in window && localStorage; } catch(exception) { return false; } }()), JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));
