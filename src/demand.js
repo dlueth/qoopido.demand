@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, configUrl, configMain, configSettings) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, config) {
 	'use strict';
 
 	var // shortcuts
@@ -43,6 +43,7 @@
 			regexMatchSpecial       = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 			regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
 			regexMatchProtocol      = /^http(s?):/,
+			regexMatchFull          = /^(http(s?):|)\/\//,
 			regexMatchUrl, regexMatchLsState,
 		// flags
 			hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
@@ -416,19 +417,21 @@
 				pointer = pointer[1];
 			}
 
-			if(!isAbsolute(aPath)) {
-				aPath = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../')) || '/') + aPath).replace(regexMatchUrl, '');
-			}
+			if(!regexMatchFull.test(aPath)) {
+				if(!isAbsolute(aPath)) {
+						aPath = '/' + resolve.url(((aParent && aParent.path && resolve.url(aParent.path + '/../')) || '/') + aPath).replace(regexMatchUrl, '');
+				}
 
-			for(key in pattern) {
-				pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
+				for(key in pattern) {
+					pattern[key].matches(aPath) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
+				}
 			}
 
 			if(isLoader || isInstanceOf(self, Module)) {
 				self.type = pointer;
 				self.path = aPath;
 
-				isLoader && (self.url = removeProtocol(resolve.url(match.process(aPath))));
+				isLoader && (self.url = match ? removeProtocol(resolve.url(match.process(aPath))) : aPath);
 			} else {
 				return { type: pointer, path: aPath };
 			}
@@ -540,7 +543,7 @@
 		 * @returns {String}
 		 */
 		prepare: function(aUrl) {
-			return aUrl + '.js';
+			return aUrl.slice(-3) !== '.js' ? aUrl + '.js' : aUrl;
 		},
 		/**
 		 * handles resolving of JavaScript modules
@@ -976,7 +979,7 @@
 				if(result = probes[path]()) {
 					provide(function() { return result; });
 				} else {
-					setTimeout(self.probe, 100);
+					setTimeout(self.probe.bind(self), 10);
 				}
 			}
 		},
@@ -1045,10 +1048,10 @@
 			queue = new Queue();
 
 		// add pattern for "/demand" to point to original demand URL
-			pattern['/' + DEMAND_ID] = new Pattern('/' + DEMAND_ID, resolve.url(configUrl + '/../').slice(0, -1));
+			pattern['/' + DEMAND_ID] = new Pattern('/' + DEMAND_ID, resolve.url(((config && config.url) || location.href) + '/../').slice(0, -1));
 
 		// configure
-			configure(defaults) && configSettings && configure(configSettings);
+			configure(defaults) && config && config.settings && configure(config.settings);
 
 		// register in global scope
 			demand.configure  = configure;
@@ -1076,9 +1079,9 @@
 
 					storageAdapter.clear.expired();
 
-					if(configMain) {
-						demand(configMain);
+					if(config && config.main) {
+						demand(config.main);
 					}
 				}
 			);
-}(this, document, (function() { try { return 'localStorage' in window && localStorage; } catch(exception) { return false; } }()), JSON, XMLHttpRequest, setTimeout, clearTimeout, demand.url, demand.main, demand.settings));
+}(this, document, (function() { try { return 'localStorage' in this && localStorage; } catch(exception) { return false; } }()), JSON, XMLHttpRequest, setTimeout, clearTimeout, 'demand' in this && demand));

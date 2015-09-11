@@ -26,7 +26,7 @@
 			 * @returns {String}
 			 */
 			prepare: function(aUrl) {
-				return aUrl + '.css';
+				return aUrl.slice(-4) !== '.css' ? aUrl + '.css' : aUrl;
 			},
 			/**
 			 * handles resolving of CSS modules
