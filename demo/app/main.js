@@ -7,8 +7,8 @@
 				.configure({
 					pattern: {
 						//'/adapter':       '/src/adapter',
-						'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/release/1.0.6/dist/adapter',
-						//'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/master/dist/adapter',
+						//'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/release/1.0.6/dist/adapter',
+						'/adapter':       'https://rawgit.com/dlueth/qoopido.demand/master/dist/adapter',
 						'/qoopido/4.0.0': 'https://rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
 						'/qoopido/3.7.4': '//cdn.jsdelivr.net/qoopido.js/3.7.4',
 						'/jquery':        '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
