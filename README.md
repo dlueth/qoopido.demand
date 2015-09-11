@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.56 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.59 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -21,7 +21,7 @@ You will find some demo code in this repo's demo directory via [rawgit](https://
 - support for loading non compatible scripts via configurable "probe" functions, similar to require.js shims
 - basic support for loading require.js modules via a loadable adapter module
 - support for "patterns" which are mostly equivalent to require.js "paths"
-- success handlers get passed all resolve, error handlers receive all rejected modules
+- success handlers get passed all resolved, error handlers receive all rejected modules
 
 
 ## Compatibility
@@ -66,6 +66,52 @@ You may as well use the uglified version:
 
 The above snippet is very similar to the one Google Analytics provides. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
 
+## Configuration options
+The last parameter of the above code snippet is a configuration object. Tt just shows the properties you will most frequently set. There are some more options, less frequently used, that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
+
+```javascript
+{
+	// enables or disables caching in general
+	// optional, defaults to "true"
+	cache: true,
+				
+	// cache will be validated against version
+	// optional, defaults to "1.0.0"
+	version: '1.0.0',
+				
+	// cache will be validated against lifetime, if > 0
+	// optional, defaults to "0"
+	// unit: seconds
+	lifetime: 60,
+				
+	// sets the timeout for XHR requests
+	// loaded but not yet resolved modules 
+	// have a timeout of timeout / 5 to get
+	// resolved by their handler
+	// optional, defaults to "5" (limited to "2" up to "10")
+	// unit: seconds
+	timeout: 8, 
+				
+	// base path from where your relative 
+	// dependencies get loaded
+	// optional, defaults to "/"
+	base: '[path/url to your scripts]',
+				
+	// optional
+	pattern: {
+		'/qoopido': '[path/url to Qoopido.js]',
+		'/jquery':  '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
+	},
+				
+	// probes allow you to write fallback tests
+	// for modules that do not natively support
+	// demand/provide
+	// optional
+	probes: {
+		'/jquery': function() { return global.jQuery; }
+		}
+	}
+```
 
 ## Usage
 The demanded ```main``` module from the above script might look like the following example:
@@ -77,58 +123,15 @@ The demanded ```main``` module from the above script might look like the followi
 	function definition() {
 		demand
 			.configure({
-				// enables or disables caching in general
-				// optional, defaults to "true"
-				cache: true,
-				
-				// storage adapter for caching
-				// no other than "localstorage" yet
-				// optional, defaults to "localstorage"
-				storage: 'localstorage',
-				
-				// enables or disables debug output like:
-				// - attempting to re-define a module 
-				//   already resolved
-				// - localStorage quota exceeded
-				// optional, defaults to "false"
-				debug true,
-				
-				// cache will be validated against version
-				// optional, defaults to "1.0.0"
-				version: '1.0.0',
-				
-				// cache will be validated against lifetime, if > 0
-				// optional, defaults to "0"
-				// unit: seconds
-				lifetime: 60,
-				
-				// sets the timeout for XHR requests
-				// loaded but not yet resolved modules 
-				// have a timeout of timeout / 5 to get
-				// resolved by their handler
-				// optional, defaults to "5" (limited to "2" up to "10")
-				// unit: seconds
-				timeout: 8, 
-				
-				// base path from where your relative 
-				// dependencies get loaded
-				// optional, defaults to "/"
-				base: '[path/url to your scripts]',
-				
-				// optional
+				// any option from the previous section
+				// most likely something like:
 				pattern: {
-					'/qoopido': '[path/url to Qoopido.js]',
-					'/jquery':  '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
 				},
-				
-				// probes allow you to write fallback tests
-				// for modules that do not natively support
-				// demand/provide
-				// optional
 				probes: {
-					'/jquery': function() { return global.jQuery; }
 				}
 			});
+			
+		return true; // just return true if there really is nothing to return
 	}
 	
 	provide(definition);
@@ -236,7 +239,7 @@ This is an example for an inline module. The ```provide``` call, in this case, c
 
 When dynamically loading modules ```path``` will have to be omitted and gets internally resolved via loading queue handling instead.
 
-Module resolution via ```provide``` is internally defered via a setTimeout call to be able to return an object providing a ```when``` function to request dependencies. Although this might technically not be the cleanest solution it feels much better to write and understand. Beside that, it simply works great :)
+Module resolution via ```provide``` is internally defered to be able to return an object providing a ```when``` function to request dependencies.
 
 
 ## Providing loadable modules
