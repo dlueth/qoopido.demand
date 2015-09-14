@@ -35,12 +35,16 @@
 			 * @param {String} aValue
 			 */
 			resolve: function(aPath, aValue) {
-				var style = document.createElement('style'),
-					sheet = style.styleSheet;
+				var style = document.createElement('style');
 
 				style.type  = 'text/css';
 				style.media = 'only x';
-				(sheet && (sheet.cssText = aValue)) || (style.innerHTML = aValue);
+
+				if(style.styleSheet) {
+					style.styleSheet.cssText = aValue;
+				} else {
+					style.innerHTML = aValue;
+				}
 
 				style.setAttribute('demand-path', aPath);
 

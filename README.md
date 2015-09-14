@@ -18,24 +18,30 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - dependencies of loaded modules are resolved relative to their parent module if their path is relative
 - support for loading JavaScript and CSS included
 - further custom types can be added easily
-- support for loading non compatible scripts via configurable "probe" functions, similar to require.js shims
+- support for loading non compatible scripts via configurable "probe" functions, similar to, but more flexible than require.js shims
 - basic support for loading require.js modules via a loadable adapter module
 - support for "patterns" which are mostly equivalent to require.js "paths"
 - success handlers get passed all resolved, error handlers receive all rejected modules
+- JavaScript handler converts the relative URL of sourcemaps to correct absolute ones
+- CSS handler converts all relative paths to absolute ones
 
 
 ## Compatibility
-Qoopido.demand does not officially support older legacy Internet Explorers (< IE9) but might still work with some polyfills. I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10, 11 as well as Edge (which are also fully supported) the official Microsoft VMs in combination with VirtualBox are being used.
+Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE9+. By request and due to the minor amount of required changes and polyfills there is a legacy addon included from 1.0.7 onwards.
+
+The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind```, ```Array.prototype.forEach``` as well as ```Array.isArray```.
+
+I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10, 11 as well as Edge (which are also fully supported) the official Microsoft VMs in combination with VirtualBox are being used.
 
 ## Limitations
-Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set. Most of the usual CDNs have CORS enabled by default.
+Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set and you should not request modules via a different protocol. Most of the usual CDNs have CORS enabled by default.
 
 ## External dependencies
 None!
 
 
 ## Availability
-Qoopido.demand is available on GitHub as well as jsdelivr and npm at the moment. CDNJS will follow in the near future.
+Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the moment. CDNJS will follow in the near future.
 
 
 ## Loading demand
@@ -49,7 +55,7 @@ Use the following code snippet in a standalone script tag before the closing bod
 
 		window.demand = { url: url, main: main, settings: settings };
 
-		script.async = script.defer = 1;
+		script.async = 1;
 		script.src   = url;
 
 		target.parentNode.insertBefore(script, target);
@@ -60,7 +66,7 @@ Use the following code snippet in a standalone script tag before the closing bod
 You may as well use the uglified version:
 
 ```javascript
-!function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=h.defer=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
+!function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
 ("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
 ```
 
