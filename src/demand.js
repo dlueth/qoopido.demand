@@ -554,7 +554,7 @@
 		resolve: function(aPath, aValue) {
 			var script = document.createElement('script');
 
-			script.defer = script.async = true;
+			script.async = true;
 			script.text  = aValue;
 
 			script.setAttribute('demand-path', aPath);
