@@ -598,12 +598,8 @@
 				scopedDemand.configure = demand.configure;
 				scopedDemand.clear     = demand.clear;
 
-				var func = new Function('demand', 'provide', source);
-
-				console.log('here ', func);
-
 				/* jshint evil: true */
-				func.call(NULL, scopedDemand, provide.bind(aLoader));
+				(new Function('demand', 'provide', source)).call(NULL, scopedDemand, provide.bind(aLoader));
 				/* jshint evil: false */
 			}
 		},
