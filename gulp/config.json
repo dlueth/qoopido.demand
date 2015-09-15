@@ -6,7 +6,7 @@
     },
     "demo": {
       "lint": [
-        "demo/**/*.js"
+        "demo/app/**/*.js"
       ]
     },
     "dist": {
