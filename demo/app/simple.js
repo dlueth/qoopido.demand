@@ -2,9 +2,7 @@
 	'use strict';
 
 	function definition() {
-
 		function appSimple() {
-
 		}
 
 		return appSimple;

@@ -1,4 +1,4 @@
-;(function(global, demand, provide) {
+;(function(global) {
 	'use strict';
 
 	function definition() {
@@ -7,7 +7,7 @@
 				.configure({
 					pattern: {
 						//'/adapter':       '/src/adapter',
-						//'/adapter':       '//rawgit.com/dlueth/qoopido.demand/release/1.0.7/dist/adapter',
+						//'/adapter':       '//rawgit.com/dlueth/qoopido.demand/release/1.0.8/src/adapter',
 						'/adapter':       '//rawgit.com/dlueth/qoopido.demand/master/dist/adapter',
 						'/qoopido/4.0.0': '//rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
 						'/qoopido/3.7.4': '//cdn.jsdelivr.net/qoopido.js/3.7.4',
@@ -20,7 +20,7 @@
 
 		// example: demand usage
 			// loading a single module without further dependencies
-				demand('app/simple')
+				demand('simple')
 					.then(
 						function(appSimple) {
 							console.log('demand module /app/simple loaded');
@@ -57,7 +57,7 @@
 				*/
 
 			// loading CSS with demand
-				demand('css!app/default')
+				demand('css!default')
 					.then(
 						function(cssDefault) {
 							console.log('demand module /app/default (text/css) loaded');
@@ -78,7 +78,7 @@
 					};
 				}
 
-				provide('/app/example1', definition1);
+				provide('example1', definition1);
 
 			// providing an inline module with dependencies
 				function definition2(appExample1, jQuery) {
@@ -89,7 +89,7 @@
 					};
 				}
 
-				provide('/app/example2', definition2)
+				provide('example2', definition2)
 					.when('/app/example1', '/jquery');
 
 		// example: load & use require.js adapter
@@ -122,4 +122,4 @@
 
 	provide(definition)
 		.when('simple');
-}(this, demand, provide));
+}(this));
