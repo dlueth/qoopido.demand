@@ -993,7 +993,7 @@
 						xhr.onload     = function() {
 							self.timeout = clearTimeout(self.timeout);
 
-							if(xhr.status === 200) {
+							if(!('status' in xhr) || xhr.status === 200) {
 								self.source = xhr.responseText;
 
 								queue.add(self);
