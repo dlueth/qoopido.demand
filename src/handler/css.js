@@ -16,7 +16,7 @@
 	var target           = document.getElementsByTagName('head')[0],
 		regexMatchCssUrl = /url\(\s*(?:"|'|)(?!data:|http:|https:|\/)(.+?)(?:"|'|)\)/g;
 
-	function definition(provide, resolveUrl) {
+	function definition(resolveUrl) {
 		return {
 			/**
 			 * Enables modification of the URL that gets requested
@@ -34,19 +34,20 @@
 			 * @param {String} aPath
 			 * @param {String} aValue
 			 */
-			resolve: function(aPath, aValue) {
-				var style = document.createElement('style');
+			resolve: function(aLoader) {
+				var style  = document.createElement('style'),
+					source = aLoader.source;
 
 				style.type  = 'text/css';
 				style.media = 'only x';
 
 				if(style.styleSheet) {
-					style.styleSheet.cssText = aValue;
+					style.styleSheet.cssText = source;
 				} else {
-					style.innerHTML = aValue;
+					style.innerHTML = source;
 				}
 
-				style.setAttribute('demand-path', aPath);
+				style.setAttribute('demand-path', aLoader.path);
 
 				target.appendChild(style);
 
@@ -78,5 +79,5 @@
 	}
 
 	provide(definition)
-		.when('/provide', '/resolve/url');
+		.when('/resolve/url');
 }(document, setTimeout));
