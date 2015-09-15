@@ -79,13 +79,13 @@
 	 * @exports /demand
 	 */
 	function demand() {
-		var self         = this || {},
+		var self         = this,
 			defered      = Pledge.defer(),
-			module       = isInstanceOf(self, Module) ? self : NULL,
+			context      = isInstanceOf(self, Module) || isInstanceOf(self, Loader) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
-			
+
 		setTimeout(function() {
-			dependencies.forEach(resolveDependency, module);
+			dependencies.forEach(resolveDependency, context);
 			
 			Pledge.all(dependencies)
 				.then(
@@ -119,7 +119,9 @@
 	 * @exports /provide
 	 */
 	function provide() {
-		var path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
+		var self       = this,
+			context    = isInstanceOf(self, Module) || isInstanceOf(self, Loader) ? self : NULL,
+			path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 			definition = !path ? arguments[0] : arguments[1],
 			loader, dependencies;
 
@@ -130,12 +132,12 @@
 
 		if(path) {
 			setTimeout(function() {
-				var resolved = resolve.path(path),
+				var resolved = resolve.path(path, context),
 					pointer  = modules[resolved.type] || (modules[resolved.type] = {}),
 					module, pledge, defered;
 
 				if(loader || !pointer[resolved.path]) {
-					module = new Module(path, definition, dependencies);
+					module = new Module(resolved.path, definition, dependencies);
 					pledge = modules[module.type][module.path] = module.pledge;
 
 					if(loader) {
@@ -401,7 +403,7 @@
 		 * additional property "url" will be set as well.
 		 *
 		 * @param {String} aPath
-		 * @param {Module} [aParent]
+		 * @param {Module|Loader} [aParent]
 		 *
 		 * @returns {void|{type: String, path: String}}
 		 */
@@ -534,6 +536,34 @@
 		}
 	};
 
+	function scopify(scope, aDefinition, aArguments) {
+		var constructorArgs = [ 'demand', 'provide' ],
+			definition      = aDefinition.toString(),
+			defined         = definition.toString().match(/^function\s*[^\(]*\(\s*([^\)]*)\)/im)[1].replace(' ', ''),
+			scopedDemand, scopedProvide;
+
+		scopedDemand           = demand.bind(scope);
+		scopedDemand.configure = demand.configure;
+		scopedDemand.clear     = demand.clear;
+		scopedProvide          = provide.bind(scope);
+
+		if(defined) {
+			constructorArgs = constructorArgs.concat(defined.split(','));
+		}
+
+		constructorArgs.push(definition.substring(definition.indexOf('{') + 1, definition.lastIndexOf('}')));
+
+
+		//return Function.apply(NULL, constructorArgs).apply(NULL, [ scopedDemand, scopedProvide ].concat(arrayPrototypeSlice.call(aArguments)));
+
+
+		/*
+		 return (function(demand, provide) {
+		 return aDefinition.apply(NULL, aArguments);
+		 }(scopedDemand, scopedProvide));
+		 */
+	}
+
 	handlerJavascript = {
 		/**
 		 * Enables modification of the URL that gets requested
@@ -548,18 +578,30 @@
 		/**
 		 * handles resolving of JavaScript modules
 		 *
-		 * @param {String} aPath
-		 * @param {String} aValue
+		 * @param {Loader} aLoader
 		 */
-		resolve: function(aPath, aValue) {
-			var script = document.createElement('script');
+		resolve: function(aLoader) {
+			var path   = aLoader.path,
+				source = aLoader.source,
+				scopedDemand, script;
 
-			script.async = true;
-			script.text  = aValue;
+			if(probes[path]) {
+				script       = document.createElement('script');
+				script.async = true;
+				script.text  = source;
 
-			script.setAttribute('demand-path', aPath);
+				script.setAttribute('demand-path', path);
 
-			target.appendChild(script);
+				target.appendChild(script);
+			} else {
+				scopedDemand           = demand.bind(aLoader);
+				scopedDemand.configure = demand.configure;
+				scopedDemand.clear     = demand.clear;
+
+				/* jshint evil: true */
+				(new Function('demand', 'provide', source)).call(NULL, scopedDemand, provide.bind(aLoader));
+				/* jshint evil: false */
+			}
 		},
 		/**
 		 * handles modifying of JavaScript module's source prior to caching
@@ -896,7 +938,7 @@
 
 				!current.cached && handler.modify && (current.source = handler.modify(current.url, current.source));
 
-				handler.resolve(path, current.source);
+				handler.resolve(current);
 
 				if(probes[path]) {
 					current.probe();
@@ -944,7 +986,17 @@
 						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 						xhr.onprogress = function() {};
 						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-						xhr.onload     = function() { self.timeout = clearTimeout(self.timeout); self.source = xhr.responseText; queue.add(self); };
+						xhr.onload     = function() {
+							self.timeout = clearTimeout(self.timeout);
+
+							if(xhr.status === 200) {
+								self.source = xhr.responseText;
+
+								queue.add(self);
+							} else {
+								defered.reject(new Error('unable to load module', self.path));
+							}
+						};
 
 						xhr.open('GET', addTimestamp(handler.prepare(self.url)), true);
 						xhr.send();
@@ -957,12 +1009,9 @@
 	}
 
 	Loader.prototype = {
-		type:    NULL,
 		handler: NULL,
-		path:    NULL,
 		url:     NULL,
 		defered: NULL,
-		pledge:  NULL,
 		cached:  NULL,
 		source:  NULL,
 		timeout: NULL,
