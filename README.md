@@ -22,7 +22,6 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - basic support for loading require.js modules via a loadable adapter module
 - support for "patterns" which are mostly equivalent to require.js "paths"
 - success handlers get passed all resolved, error handlers receive all rejected modules
-- JavaScript handler converts the relative URL of sourcemaps to correct absolute ones
 - CSS handler converts all relative paths to absolute ones
 
 
@@ -154,7 +153,7 @@ As you might have guessed already ```main``` itself is also loaded as a module a
 
 - provide a function named ```prepare``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide a function named ```resolve``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
-- provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path and sourcemap URLs in Javascript)
+- provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
 
 Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```js``` which will automatically be used when no other handler is explicitly set.
 
