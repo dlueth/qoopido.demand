@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.72 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.75 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -151,9 +151,9 @@ As you might have guessed already ```main``` itself is also loaded as a module a
 ## More about handlers
 ```demand``` comes with handlers for JavaScript and CSS. Handlers have three objectives:
 
-- provide a function named ```prepare``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
-- provide a function named ```resolve``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
-- provide an optional function named ```modify``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
+- provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
+- provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
+- provide a function named ```process``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
 
 Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```js``` which will automatically be used when no other handler is explicitly set.
 
@@ -163,11 +163,7 @@ Due to the fact that handlers are modules as well you are able to write your own
 
 As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
 
-Just keep these few things in mind:
-
-- ```prepare``` must return the modified URL
-- ```resolve``` must make an anonymous ```provide``` call that resolves the queued loader
-- in case you need a ```modify``` function make sure it returns the modified ```value```
+All handler methods are called with their context set to the module's instance of ```Loader```.
 
 
 ## Controlling the cache
