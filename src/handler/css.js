@@ -21,22 +21,42 @@
 			/**
 			 * Enables modification of the URL that gets requested
 			 *
-			 * @param {String} aUrl
-			 *
-			 * @returns {String}
+			 * @this Loader
 			 */
-			prepare: function(aUrl) {
-				return aUrl.slice(-4) !== '.css' ? aUrl + '.css' : aUrl;
+			onPreRequest: function() {
+				var self = this,
+					url  = self.url;
+
+				self.url = url.slice(-4) !== '.css' ? url + '.css' : url;
 			},
 			/**
-			 * handles resolving of CSS modules
+			 * handles modifying of CSS module's source prior to caching
 			 *
-			 * @param {String} aPath
-			 * @param {String} aValue
+			 * Rewrites relative CSS URLs to an absolute URL in relation to the URL the module was loaded from
+			 *
+			 * @this Loader
 			 */
-			resolve: function(aLoader) {
-				var style  = document.createElement('style'),
-					source = aLoader.source;
+			onPostRequest: function() {
+				var self   = this,
+					base   = resolveUrl(self.url + '/..'),
+					source = self.source,
+					match;
+
+				while((match = regexMatchCssUrl.exec(source))) {
+					source = source.replace(match[0], 'url(' + resolveUrl(base + match[1]) + ')');
+				}
+
+				self.source = source;
+			},
+			/**
+			 * handles processing of loaded CSS modules
+			 *
+			 * @this Loader
+			 */
+			process: function() {
+				var self   = this,
+					style  = document.createElement('style'),
+					source = self.source;
 
 				style.type  = 'text/css';
 				style.media = 'only x';
@@ -47,33 +67,13 @@
 					style.innerHTML = source;
 				}
 
-				style.setAttribute('demand-path', aLoader.path);
+				style.setAttribute('demand-path', self.path);
 
 				target.appendChild(style);
 
 				setTimeout(function() {
 					provide(function() { return style; });
 				});
-			},
-			/**
-			 * handles modifying of CSS module's source prior to caching
-			 *
-			 * Rewrites relative CSS URLs to an absolute URL in relation to the URL the module was loaded from
-			 *
-			 * @param {String} aUrl
-			 * @param {String} aValue
-			 *
-			 * @returns {String}
-			 */
-			modify: function(aUrl, aValue) {
-				var base = resolveUrl(aUrl + '/..'),
-					match;
-
-				while((match = regexMatchCssUrl.exec(aValue))) {
-					aValue = aValue.replace(match[0], 'url(' + resolveUrl(base + match[1]) + ')');
-				}
-
-				return aValue;
 			}
 		};
 	}
