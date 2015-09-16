@@ -458,7 +458,7 @@
 				id    = DEMAND_PREFIX + '[' + aPath + ']';
 				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
 
-				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp)) {
+				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp())) {
 					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
 				} else {
 					storageLocalstorage.clear.path(aPath);
@@ -482,7 +482,7 @@
 					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
 
 					localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
-					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp + lifetime : 0, url: aUrl }));
+					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp() + lifetime : 0, url: aUrl }));
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
@@ -528,7 +528,7 @@
 						if(match) {
 							state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
 
-							if(state && state.expires > 0 && state.expires <= getTimestamp) {
+							if(state && state.expires > 0 && state.expires <= getTimestamp()) {
 								storageLocalstorage.clear.path(match[1]);
 							}
 						}
@@ -661,7 +661,6 @@
 	}
 
 	Pledge.prototype = {
-		constructor: Pledge,
 		state:       PLEDGE_PENDING,
 		value:       NULL,
 		listener:    NULL,
@@ -968,6 +967,7 @@
 		demand(DEMAND_PREFIX_HANDLER + self.type)
 			.then(
 				function(handler) {
+					handler.onPreRequest && handler.onPreRequest.call(self);
 					self.retrieve();
 
 					self.handler = handler;
@@ -976,8 +976,6 @@
 					if(self.cached) {
 						queue.add(self);
 					} else {
-						handler.onPreRequest && handler.onPreRequest.call(self);
-
 						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 						xhr.onprogress = function() {};
 						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
