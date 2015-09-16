@@ -221,6 +221,8 @@
 	 * @param {String} dependency
 	 * @param {Number} index
 	 * @param {Object[]} dependencies
+	 *
+	 * @this Module|Loader
 	 */
 	function resolveDependency(dependency, index, dependencies) {
 		var self     = this,
@@ -536,92 +538,69 @@
 		}
 	};
 
-	function scopify(scope, aDefinition, aArguments) {
-		var constructorArgs = [ 'demand', 'provide' ],
-			definition      = aDefinition.toString(),
-			defined         = definition.toString().match(/^function\s*[^\(]*\(\s*([^\)]*)\)/im)[1].replace(' ', ''),
-			scopedDemand, scopedProvide;
-
-		scopedDemand           = demand.bind(scope);
-		scopedDemand.configure = demand.configure;
-		scopedDemand.clear     = demand.clear;
-		scopedProvide          = provide.bind(scope);
-
-		if(defined) {
-			constructorArgs = constructorArgs.concat(defined.split(','));
-		}
-
-		constructorArgs.push(definition.substring(definition.indexOf('{') + 1, definition.lastIndexOf('}')));
-
-
-		//return Function.apply(NULL, constructorArgs).apply(NULL, [ scopedDemand, scopedProvide ].concat(arrayPrototypeSlice.call(aArguments)));
-
-
-		/*
-		 return (function(demand, provide) {
-		 return aDefinition.apply(NULL, aArguments);
-		 }(scopedDemand, scopedProvide));
-		 */
-	}
-
 	handlerJavascript = {
 		/**
 		 * Enables modification of the URL that gets requested
 		 *
-		 * @param {String} aUrl
-		 *
-		 * @returns {String}
+		 * @this Loader
 		 */
-		prepare: function(aUrl) {
-			return aUrl.slice(-3) !== '.js' ? aUrl + '.js' : aUrl;
-		},
-		/**
-		 * handles resolving of JavaScript modules
-		 *
-		 * @param {Loader} aLoader
-		 */
-		resolve: function(aLoader) {
-			var path   = aLoader.path,
-				source = aLoader.source,
-				scopedDemand, script;
+		onPreRequest: function() {
+			var self = this,
+				url  = self.url;
 
-			if(probes[path]) {
-				script       = document.createElement('script');
-				script.async = true;
-				script.text  = source;
-
-				script.setAttribute('demand-path', path);
-
-				target.appendChild(script);
-			} else {
-				scopedDemand           = demand.bind(aLoader);
-				scopedDemand.configure = demand.configure;
-				scopedDemand.clear     = demand.clear;
-
-				/* jshint evil: true */
-				(new Function('demand', 'provide', source)).call(global, scopedDemand, provide.bind(aLoader));
-				/* jshint evil: false */
-			}
+			self.url = url.slice(-3) !== '.js' ? url + '.js' : url;
 		},
 		/**
 		 * handles modifying of JavaScript module's source prior to caching
 		 *
 		 * Rewrites sourcemap URL to an absolute URL in relation to the URL the module was loaded from
 		 *
-		 * @param {String} aUrl
-		 * @param {String} aValue
-		 *
-		 * @returns {String}
+		 * @this Loader
 		 */
-		modify: function(aUrl, aValue) {
-			var match, replacement;
+		onPostRequest: function() {
+			var self   = this,
+				url    = self.url,
+				source = self.source,
+				match, replacement;
 
-			while(match = regexMatchSourcemap.exec(aValue)) {
-				replacement = removeProtocol(resolve.url(aUrl + '/../' + match[1]));
-				aValue      = aValue.replace(match[0], '//# sourcemap=' + replacement + '.map');
+			if(self.probe) {
+				while(match = regexMatchSourcemap.exec(source)) {
+					replacement = removeProtocol(resolve.url(url + '/../' + match[1]));
+					source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
+				}
+			} else {
+				source = source.replace(regexMatchSourcemap, '');
 			}
 
-			return aValue;
+			self.source = source;
+		},
+		/**
+		 * handles resolving of JavaScript modules
+		 *
+		 * @this Loader
+		 */
+		process: function() {
+			var self   = this,
+				source = self.source,
+				scopedDemand, script;
+
+			if(self.probe) {
+				script       = document.createElement('script');
+				script.async = true;
+				script.text  = source;
+
+				script.setAttribute('demand-path', self.path);
+
+				target.appendChild(script);
+			} else {
+				scopedDemand           = demand.bind(self);
+				scopedDemand.configure = demand.configure;
+				scopedDemand.clear     = demand.clear;
+
+				/* jshint evil: true */
+				(new Function('demand', 'provide', source)).call(global, scopedDemand, provide.bind(self));
+				/* jshint evil: false */
+			}
 		}
 	};
 
@@ -936,17 +915,30 @@
 				path    = current.path;
 				handler = current.handler;
 
-				!current.cached && handler.modify && (current.source = handler.modify(current.url, current.source));
+				!current.cached && handler.onPostRequest && handler.onPostRequest.call(current);
 
-				handler.resolve(current);
-
-				if(probes[path]) {
-					current.probe();
-				}
+				handler.process.call(current);
+				current.probe && self.check();
 
 				current.timeout = setTimeout(function() {
 					defered.reject(new Error('timeout resolving module', path));
 				}, timeoutQueue);
+			}
+		},
+		/**
+		 * check probe state for current module
+		 */
+		check: function() {
+			var self    = this,
+				current = self.current,
+				result;
+
+			if(current.pledge.state === PLEDGE_PENDING) {
+				if(result = current.probe()) {
+					provide(function() { return result; });
+				} else {
+					setTimeout(self.check, 10);
+				}
 			}
 		}
 	};
@@ -979,10 +971,13 @@
 					self.retrieve();
 
 					self.handler = handler;
+					self.probe   = probes[self.path] || NULL;
 
 					if(self.cached) {
 						queue.add(self);
 					} else {
+						handler.onPreRequest && handler.onPreRequest.call(self);
+
 						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
 						xhr.onprogress = function() {};
 						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
@@ -998,7 +993,7 @@
 							}
 						};
 
-						xhr.open('GET', addTimestamp(handler.prepare(self.url)), true);
+						xhr.open('GET', addTimestamp(self.url), true);
 						xhr.send();
 
 						self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
@@ -1015,23 +1010,7 @@
 		cached:  NULL,
 		source:  NULL,
 		timeout: NULL,
-		/**
-		 * probe for the loading state of an external module
-		 */
-		probe: function() {
-			var self      = this,
-				path      = self.path,
-				isPending = self.pledge.state === PLEDGE_PENDING,
-				result;
-
-			if(isPending) {
-				if(result = probes[path]()) {
-					provide(function() { return result; });
-				} else {
-					setTimeout(self.probe.bind(self), 10);
-				}
-			}
-		},
+		probe:   NULL,
 		/**
 		 * store loaders result in localStorage
 		 */
