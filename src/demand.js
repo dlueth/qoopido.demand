@@ -599,7 +599,7 @@
 				scopedDemand.clear     = demand.clear;
 
 				/* jshint evil: true */
-				(new Function('demand', 'provide', source)).call(NULL, scopedDemand, provide.bind(aLoader));
+				(new Function('demand', 'provide', source)).call(global, scopedDemand, provide.bind(aLoader));
 				/* jshint evil: false */
 			}
 		},
