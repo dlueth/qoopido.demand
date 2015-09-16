@@ -152,7 +152,7 @@
 						);
 
 						!loader.cached && loader.store();
-						queue.length > 0 && queue.next();
+						queue.length > 0 && queue.process();
 					}
 				} else {
 					log('duplicate found for module ' + resolved.path);
@@ -568,8 +568,6 @@
 					replacement = removeProtocol(resolve.url(url + '/../' + match[1]));
 					source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
 				}
-			} else {
-				source = source.replace(regexMatchSourcemap, '');
 			}
 
 			self.source = source;
@@ -639,7 +637,17 @@
 			}
 		}
 
-		self.then = function(aResolved, aRejected) {
+		self.then = Pledge.prototype.then.bind(self, listener);
+
+		executor(resolve, reject);
+	}
+
+	Pledge.prototype = {
+		state:       PLEDGE_PENDING,
+		value:       NULL,
+		then:        function(listener, aResolved, aRejected) {
+			var self = this;
+
 			if(self.state === PLEDGE_PENDING) {
 				aResolved && listener[PLEDGE_RESOLVED].push(aResolved);
 				aRejected && listener[PLEDGE_REJECTED].push(aRejected);
@@ -655,16 +663,7 @@
 						break;
 				}
 			}
-		};
-
-		executor(resolve, reject);
-	}
-
-	Pledge.prototype = {
-		state:       PLEDGE_PENDING,
-		value:       NULL,
-		listener:    NULL,
-		then:        NULL
+		}
 	};
 
 	/**
@@ -890,12 +889,12 @@
 
 			self.length++;
 
-			queue.length === 1 && self.next();
+			queue.length === 1 && self.process();
 		},
 		/**
 		 * process the queue
 		 */
-		next: function() {
+		process: function() {
 			var self    = this,
 				current = self.current,
 				queue   = self.queue,
@@ -917,7 +916,7 @@
 				!current.cached && handler.onPostRequest && handler.onPostRequest.call(current);
 
 				handler.process.call(current);
-				current.probe && self.check();
+				current.probe && self.probe();
 
 				current.timeout = setTimeout(function() {
 					defered.reject(new Error('timeout resolving module', path));
@@ -927,7 +926,7 @@
 		/**
 		 * check probe state for current module
 		 */
-		check: function() {
+		probe: function() {
 			var self    = this,
 				current = self.current,
 				result;
@@ -936,7 +935,7 @@
 				if(result = current.probe()) {
 					provide(function() { return result; });
 				} else {
-					setTimeout(self.check, 10);
+					setTimeout(self.probe, 10);
 				}
 			}
 		}
@@ -952,8 +951,7 @@
 	 */
 	function Loader(aPath, aParent) {
 		var self    = this,
-			defered = Pledge.defer(),
-			xhr;
+			defered = Pledge.defer();
 
 		resolve.path.call(self, aPath, aParent);
 
@@ -966,37 +964,7 @@
 		
 		demand(DEMAND_PREFIX_HANDLER + self.type)
 			.then(
-				function(handler) {
-					handler.onPreRequest && handler.onPreRequest.call(self);
-					self.retrieve();
-
-					self.handler = handler;
-					self.probe   = probes[self.path] || NULL;
-
-					if(self.cached) {
-						queue.add(self);
-					} else {
-						xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-						xhr.onprogress = function() {};
-						xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
-						xhr.onload     = function() {
-							self.timeout = clearTimeout(self.timeout);
-
-							if(!('status' in xhr) || xhr.status === 200) {
-								self.source = xhr.responseText;
-
-								queue.add(self);
-							} else {
-								defered.reject(new Error('unable to load module', self.path));
-							}
-						};
-
-						xhr.open('GET', addTimestamp(self.url), true);
-						xhr.send();
-
-						self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
-					}
-				},
+				self.process.bind(self),
 				defered.reject
 			);
 	}
@@ -1005,10 +973,46 @@
 		handler: NULL,
 		url:     NULL,
 		defered: NULL,
+		pledge:  NULL,
 		cached:  NULL,
 		source:  NULL,
 		timeout: NULL,
 		probe:   NULL,
+		process: function(handler) {
+			var self    = this,
+				defered = self.defered,
+				xhr;
+
+			handler.onPreRequest && handler.onPreRequest.call(self);
+			self.retrieve();
+
+			self.handler = handler;
+			self.probe   = probes[self.path];
+
+			if(self.cached) {
+				queue.add(self);
+			} else {
+				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
+				xhr.onprogress = function() {};
+				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
+				xhr.onload     = function() {
+					self.timeout = clearTimeout(self.timeout);
+
+					if(!('status' in xhr) || xhr.status === 200) {
+						self.source = xhr.responseText;
+
+						queue.add(self);
+					} else {
+						defered.reject(new Error('unable to load module', self.path));
+					}
+				};
+
+				xhr.open('GET', addTimestamp(self.url), true);
+				xhr.send();
+
+				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+			}
+		},
 		/**
 		 * store loaders result in localStorage
 		 */
