@@ -1,13 +1,15 @@
 ;(function(global) {
 	'use strict';
 
-	function definition() {
+	function definition(demand, provide) {
+		console.log('demand module /app/main loaded');
+
 		// example: configuration
+
 			demand
 				.configure({
 					pattern: {
-						//'/adapter':       '/src/adapter',
-						//'/adapter':       '//rawgit.com/dlueth/qoopido.demand/release/1.0.9/src/adapter',
+						//'/adapter':       'src/adapter',
 						'/adapter':       '//rawgit.com/dlueth/qoopido.demand/master/dist/adapter',
 						'/qoopido/4.0.0': '//rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
 						'/qoopido/3.7.4': '//cdn.jsdelivr.net/qoopido.js/3.7.4',
@@ -90,7 +92,7 @@
 				}
 
 				provide('example2', definition2)
-					.when('/app/example1', '/jquery');
+					.when('example1', '/jquery');
 
 		// example: load & use require.js adapter
 			demand('/adapter/require')
@@ -121,5 +123,5 @@
 	}
 
 	provide(definition)
-		.when('simple');
+		.when('demand', 'provide');
 }(this));

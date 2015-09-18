@@ -21,6 +21,7 @@
 			target                  = document.getElementsByTagName('head')[0],
 			resolver                = document.createElement('a'),
 		// constants
+			PROVIDE_ID              = 'provide',
 			DEMAND_ID               = 'demand',
 			DEMAND_PREFIX           = '[' + DEMAND_ID + ']',
 			DEMAND_SUFFIX_STATE     = '[state]',
@@ -34,6 +35,7 @@
 			PLEDGE_PENDING          = 'pending',
 			PLEDGE_RESOLVED         = 'resolved',
 			PLEDGE_REJECTED         = 'rejected',
+			FUNCTION                = function() {},
 			NULL                    = null,
 			XHR                     = XMLHttpRequest,
 			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
@@ -50,6 +52,7 @@
 		// general storage & objects
 			defaults                = { cache: true, storage: 'localstorage', handler: 'js', debug: false, version: '1.0.0', lifetime: 0, timeout: 5, base: '/' },
 			modules                 = {},
+			defereds                = {},
 			pattern                 = {},
 			probes                  = {},
 			queue, resolve, storageAdapter,
@@ -80,21 +83,12 @@
 	 */
 	function demand() {
 		var self         = this,
-			defered      = Pledge.defer(),
 			context      = isInstanceOf(self, Module) || isInstanceOf(self, Loader) ? self : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments);
 
-		setTimeout(function() {
-			dependencies.forEach(resolveDependency, context);
-			
-			Pledge.all(dependencies)
-				.then(
-					defered.resolve,
-					defered.reject
-				);
-		});
+		dependencies.forEach(resolveDependency, context);
 
-		return defered.pledge;
+		return Pledge.all(dependencies);
 	}
 
 	/**
@@ -123,43 +117,43 @@
 			context    = isInstanceOf(self, Module) || isInstanceOf(self, Loader) ? self : NULL,
 			path       = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 			definition = !path ? arguments[0] : arguments[1],
-			loader, dependencies;
+			loader, dependencies, resolved, type, dPointer, mPointer;
 
-		if(!path && queue.current) {
+		if(queue.current && (!path || path === queue.current.path)) {
 			loader = queue.current;
 			path   = loader.type + '!' + loader.path;
 		}
 
 		if(path) {
-			setTimeout(function() {
-				var resolved = resolve.path(path, context),
-					pointer  = modules[resolved.type] || (modules[resolved.type] = {}),
-					module, pledge, defered;
+			resolved = resolve.path(path, context);
+			type     = resolved.type;
+			path     = resolved.path;
+			dPointer = defereds[type] || (defereds[type] = {});
+			mPointer = modules[type] || (modules[type] = {});
 
-				if(loader || !pointer[resolved.path]) {
-					module = new Module(resolved.path, definition, dependencies);
-					pledge = modules[module.type][module.path] = module.pledge;
+			if(!mPointer[path] || loader) {
+				if(!loader) {
+					dPointer[path] = Pledge.defer();
+					mPointer[path] = dPointer[path].pledge;
+				}
+
+				setTimeout(function() {
+					new Module(type + '!' + path, definition, dependencies);
 
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
-						defered        = loader.defered;
-
-						pledge.then(
-							defered.resolve,
-							function() {
-								defered.reject(new Error('unable to resolve module', path, arguments));
-							}
-						);
 
 						!loader.cached && loader.store();
 						queue.length > 0 && queue.process();
 					}
-				} else {
-					log('duplicate found for module ' + resolved.path);
-				}
-			});
+				});
 
-			return { when: function() { dependencies = arguments; } };
+				return { when: function() { dependencies = arguments; } };
+			} else {
+				log('duplicate found for module ' + resolved.path);
+
+				return { when: FUNCTION };
+			}
 		} else {
 			throw new Error('unspecified anonymous provide');
 		}
@@ -229,13 +223,43 @@
 			resolved = resolve.path(dependency, self),
 			type     = resolved.type,
 			path     = resolved.path,
-			pointer  = modules[type] || (modules[type] = {});
+			mPointer = modules[type] || (modules[type] = {}),
+			definition;
 
-		dependencies[index] = pointer[path] || (pointer[path] = (new Loader(dependency, self)).pledge);
+		if(!defereds[type]) {
+			defereds[type] = {};
+		}
+
+		if(self && (dependency === DEMAND_ID || dependency === PROVIDE_ID) && !mPointer[path]) {
+			switch(dependency) {
+				case DEMAND_ID:
+					definition = function() {
+						var scopedDemand = demand.bind(self);
+
+						scopedDemand.configure = demand.configure;
+						scopedDemand.clear     = demand.clear;
+						scopedDemand.list      = demand.list;
+
+						return scopedDemand;
+					};
+
+					break;
+				case PROVIDE_ID:
+					definition = function() {
+						return provide.bind(self);
+					};
+
+					break;
+			}
+
+			provide(path, definition);
+		}
+
+		dependencies[index] = mPointer[path] || (mPointer[path] = (new Loader(dependency, self)).pledge);
 	}
 
 	/**
-	 * Shortcut to globally provide internal functions
+	 * Shortcut to globally provide internal functions as modules
 	 *
 	 * @param {String} id
 	 * @param {Function} factory
@@ -563,11 +587,9 @@
 				source = self.source,
 				match, replacement;
 
-			if(self.probe) {
-				while(match = regexMatchSourcemap.exec(source)) {
-					replacement = removeProtocol(resolve.url(url + '/../' + match[1]));
-					source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
-				}
+			while(match = regexMatchSourcemap.exec(source)) {
+				replacement = removeProtocol(resolve.url(url + '/../' + match[1]));
+				source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
 			}
 
 			self.source = source;
@@ -580,25 +602,15 @@
 		process: function() {
 			var self   = this,
 				source = self.source,
-				scopedDemand, script;
+				script;
 
-			if(self.probe) {
-				script       = document.createElement('script');
-				script.async = true;
-				script.text  = source;
+			script       = document.createElement('script');
+			script.async = true;
+			script.text  = source;
 
-				script.setAttribute('demand-path', self.path);
+			script.setAttribute('demand-path', self.path);
 
-				target.appendChild(script);
-			} else {
-				scopedDemand           = demand.bind(self);
-				scopedDemand.configure = demand.configure;
-				scopedDemand.clear     = demand.clear;
-
-				/* jshint evil: true */
-				(new Function('demand', 'provide', source)).call(global, scopedDemand, provide.bind(self));
-				/* jshint evil: false */
-			}
+			target.appendChild(script);
 		}
 	};
 
@@ -654,11 +666,11 @@
 			} else {
 				switch(self.state) {
 					case PLEDGE_RESOLVED:
-						aResolved.apply(NULL, self.value);
+						aResolved && aResolved.apply(NULL, self.value);
 
 						break;
 					case PLEDGE_REJECTED:
-						aRejected.apply(NULL, self.value);
+						aRejected && aRejected.apply(NULL, self.value);
 
 						break;
 				}
@@ -702,6 +714,14 @@
 			countTotal    = aPledges.length,
 			countResolved = 0;
 
+		function checkState() {
+			if(countResolved === countTotal) {
+				defered.resolve.apply(NULL, arrayPrototypeConcat.apply([], resolved));
+			} else if(rejected.length + countResolved === countTotal) {
+				defered.reject.apply(NULL, arrayPrototypeConcat.apply([], rejected));
+			}
+		}
+
 		aPledges.forEach(function(aPledge, aIndex) {
 			aPledge.then(
 				function() {
@@ -709,12 +729,12 @@
 
 					countResolved++;
 
-					countResolved === countTotal && defered.resolve.apply(NULL, arrayPrototypeConcat.apply([], resolved));
+					checkState();
 				},
 				function() {
 					rejected.push(arrayPrototypeSlice.call(arguments));
 
-					rejected.length + countResolved === countTotal && defered.reject.apply(NULL, arrayPrototypeConcat.apply([], rejected));
+					checkState();
 				}
 			);
 		});
@@ -771,7 +791,7 @@
 		 */
 		toString: function() {
 			var self   = this,
-				result = DEMAND_PREFIX + ' ' + self.message + ' ' + self.module;
+				result = DEMAND_PREFIX + ' ' + self.message + ' ' + (self.module || '');
 
 			if(self.stack) {
 				result = Error.traverse(self.stack, result, 1);
@@ -898,7 +918,7 @@
 			var self    = this,
 				current = self.current,
 				queue   = self.queue,
-				defered, path, handler;
+				defered, path, handler, result;
 
 			if(current) {
 				self.current = NULL;
@@ -916,26 +936,13 @@
 				!current.cached && handler.onPostRequest && handler.onPostRequest.call(current);
 
 				handler.process.call(current);
-				current.probe && self.probe();
 
-				current.timeout = setTimeout(function() {
-					defered.reject(new Error('timeout resolving module', path));
-				}, timeoutQueue);
-			}
-		},
-		/**
-		 * check probe state for current module
-		 */
-		probe: function() {
-			var self    = this,
-				current = self.current,
-				result;
-
-			if(current.pledge.state === PLEDGE_PENDING) {
-				if(result = current.probe()) {
-					provide(function() { return result; });
-				} else {
-					setTimeout(self.probe, 10);
+				if(current.probe && current.pledge.state === PLEDGE_PENDING) {
+					if(result = current.probe()) {
+						provide(function() { return result; });
+					} else {
+						defered.reject(new Error('probe failed for module', path));
+					}
 				}
 			}
 		}
@@ -951,17 +958,17 @@
 	 */
 	function Loader(aPath, aParent) {
 		var self    = this,
-			defered = Pledge.defer();
+			defered, pledge;
 
 		resolve.path.call(self, aPath, aParent);
 
-		self.defered = defered;
-		self.pledge  = defered.pledge;
+		defered = self.defered = defereds[self.type][self.path] || (defereds[self.type][self.path] = Pledge.defer());
+		pledge  = self.pledge  = defered.pledge;
 
 		if(!aParent) {
-			self.pledge.then(NULL, log);
+			pledge.then(NULL, log);
 		}
-		
+
 		demand(DEMAND_PREFIX_HANDLER + self.type)
 			.then(
 				self.process.bind(self),
@@ -993,7 +1000,7 @@
 				queue.add(self);
 			} else {
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-				xhr.onprogress = function() {};
+				xhr.onprogress = FUNCTION;
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() {
 					self.timeout = clearTimeout(self.timeout);
@@ -1043,20 +1050,25 @@
 	 * @constructor
 	 */
 	function Module(aPath, aDefinition, aDependencies) {
-		var self    = this,
-			defered = Pledge.defer();
+		var self = this,
+			path, defered, pledge;
 
 		resolve.path.call(self, aPath);
 
-		(self.pledge = defered.pledge).then(NULL, function() {
-			log(new Error('unable to resolve module', self.path, arguments));
+		path    = self.path;
+		defered = defereds[self.type][path];
+		pledge  = self.pledge = defered.pledge;
+
+		pledge.then(NULL, function() {
+			log(new Error('unable to resolve module', path, arguments));
 		});
 
 		if(aDependencies && aDependencies.length > 0) {
-			demand.apply(self, aDependencies)
+			demand
+				.apply(self, aDependencies)
 				.then(
 					function() { defered.resolve(aDefinition.apply(NULL, arguments)); },
-					function() { defered.reject(new Error('unable to resolve dependencies for', self.path, arguments)); }
+					function() { defered.reject(new Error('unable to resolve dependencies for', path, arguments)); }
 				);
 		} else {
 			defered.resolve(aDefinition());
@@ -1064,9 +1076,9 @@
 	}
 
 	Module.prototype = {
-		type:    NULL,
-		path:    NULL,
-		pledge:  NULL
+		type:   NULL,
+		path:   NULL,
+		pledge: NULL
 	};
 
 	// initialization
@@ -1085,6 +1097,28 @@
 
 		// register in global scope
 			demand.configure  = configure;
+			demand.list       = function(state) {
+				var keys = {},
+					handler, kPointer, mPointer, path;
+
+				for(handler in modules) {
+					if(state) {
+						kPointer = keys[handler] = [];
+						mPointer = modules[handler];
+
+						for(path in mPointer) {
+							if(mPointer[path].state === state) {
+								kPointer.push(path);
+							}
+						}
+					} else {
+						keys[handler] = Object.keys(modules[handler]);
+					}
+				}
+
+				return keys;
+			};
+
 			global.demand     = demand;
 			global.provide    = provide;
 
