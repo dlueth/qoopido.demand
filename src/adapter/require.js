@@ -28,7 +28,7 @@
 	 *
 	 * @exports /adapter/require
 	 */
-	function definition(demand, provide) {
+	function definition() {
 		/**
 		 * provides require.js require functionality
 		 *
@@ -40,9 +40,13 @@
 				dependencies = arrayIsArray(parameter[0]) ? parameter[0] : NULL,
 				callback     = arguments[dependencies ? 1 : 0];
 
-			demand
-				.apply(NULL, dependencies || [])
-				.then(callback);
+			if(dependencies) {
+				demand
+					.apply(NULL, dependencies)
+					.then(callback);
+			} else {
+				callback();
+			}
 		}
 
 		/**
@@ -72,6 +76,5 @@
 		return { require: require, define: define };
 	}
 
-	provide(definition)
-		.when('/demand', '/provide');
+	provide(definition);
 }(this));

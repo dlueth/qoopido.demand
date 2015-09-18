@@ -1,12 +1,13 @@
 ;(function() {
 	'use strict';
 
-	function definition() {
+	function definition(demand, provide) {
 		function appSimple() {
 		}
 
 		return appSimple;
 	}
 
-	provide(definition);
+	provide(definition)
+		.when('demand', 'provide');
 }());

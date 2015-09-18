@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.75 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.88 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -28,7 +28,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 ## Compatibility
 Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE9+. By request and due to the minor amount of required changes and polyfills there is a legacy addon included from 1.0.7 onwards.
 
-The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind```, ```Array.prototype.forEach``` as well as ```Array.isArray```.
+The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind```, ```Array.prototype.forEach``` as well as ```Array.isArray``` and ```Object.keys```.
 
 I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE9, 10, 11 as well as Edge (which are also fully supported) the official Microsoft VMs in combination with VirtualBox are being used.
 
@@ -125,7 +125,7 @@ The demanded ```main``` module from the above script might look like the followi
 ;(function(global) {
 	'use strict';
 
-	function definition() {
+	function definition(demand, provide) {
 		demand
 			.configure({
 				// any option from the previous section
@@ -139,7 +139,8 @@ The demanded ```main``` module from the above script might look like the followi
 		return true; // just return true if there really is nothing to return
 	}
 	
-	provide(definition);
+	provide(definition)
+		.when('demand', 'provide');
 }(this));
 ```
 Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
@@ -213,7 +214,7 @@ demand('app/test', '/qoopido/component/iterator')
 	);
 ```
 
-Module paths not starting with a ```/``` will be resolved relative to the path of an eventual parent module. The resulting path will afterwards get matched to patterns defined via ```demand.configure``` which will finally lead to an absolute URL to fetch the module from.
+Relative module paths will be resolved relative to the base path or the path of an eventual parent module (see section **Path resolution**). The resulting path will afterwards get matched to patterns defined via ```demand.configure``` which will finally lead to an absolute URL to fetch the module from.
 
 **Sidenote**
 > The error callback function will be passed **all** rejected dependencies as arguments, not only the first one rejected.
@@ -286,3 +287,56 @@ demand('/adapter/require')
 Require.js modules loaded via the adapter will be loaded via ```demand``` and will therefore benefit from its caching mechanisms as well.
 
 Missing from the adapter is the support for the simplified CommonJS wrapper that is part of require.js itself. At the time of this writing require.js ```bundles```are also not supported. The latter will most likely change due to the fact that ```bundles```are planned as a feature of Qoopido.demand as well.
+
+
+## Path resolution
+Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
+
+There is on exception to this rule. When providing a module and requesting its dependencies by using ```when``` these dependencies will get resolved against the modules own path, if the dependencies path is relative.
+
+Absolute URLs starting either with a protocol or ```//``` will not get altered beside removing the protocol, if present.
+
+As always resolving relative paths against ```base``` might not be desired and you would prefer or need the behaviour of the ```when```resolution (like I do frequently) demand provides two special dependencies:
+
+Whenever you request ```demand``` and/or ```provide``` as a dependency of a module via ```when``` call your modules definition wil get passed a *localized* version of it. 
+
+```javascript
+;(function(global) {
+	'use strict';
+
+	function definition(demand, provide) {
+		return function() {
+			demand('dependency').then(
+				function() {}
+			);
+			
+			provide('module', function module() {
+			})
+		};
+	}
+	
+	provide(definition)
+		.when('demand', 'provide');
+}(this));
+```
+
+If you load the above Module from e.g. the directory ```app/``` and name it ```main.js``` it will get passed a localized version of ```demand``` and ```provide``` for the ```app/``` context. So by demanding ```dependency``` you actually demand ```app/dependency``` and by providing ```module``` you really provide ```app/module```.
+
+
+## State of modules
+Demand also provides means to get information of the state of modules. Similar to ```clear``` there is a ```list``` method attached to the global (or local) ```demand``` function.
+
+```javascript
+// get a list of all handlers and their modules ...
+	// ... regardless of state
+	demand.list.path();
+
+	// ... being currently loaded/resolved
+	demand.list('pending');
+
+	// ... that could not be loaded/resolved
+	demand.list('rejected');
+	
+	// ..t that where successfully loaded and resolved
+	demand.list('resolved');
+```
