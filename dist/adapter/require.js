@@ -1,3 +1,3 @@
-/*! Qoopido.demand 1.0.9 | https://github.com/dlueth/qoopido.demand | (c) 2015 Dirk Lueth */
-!function(e){"use strict";function n(n,t){function a(){var e=arguments,t=i(e[0])?e[0]:r,a=arguments[t?1:0];n.apply(r,t||[]).then(a)}function u(){var e=arguments,n="string"==typeof e[0]?e[0]:r,a=i(e[n?1:0])?e[n?1:0]:r,u=e[n?a?2:1:a?1:0],p=t.apply(r,n?[n,u]:[u]);a&&p.when.apply(r,a)}return u.amd=1,e.require=a,e.define=u,{require:a,define:u}}var r=null,i=Array.isArray;provide(n).when("/demand","/provide")}(this);
+/*! Qoopido.demand 1.1.0 | https://github.com/dlueth/qoopido.demand | (c) 2015 Dirk Lueth */
+!function(r){"use strict";function e(){function e(){var r=arguments,e=i(r[0])?r[0]:n,t=arguments[e?1:0];e?demand.apply(n,e).then(t):t()}function t(){var r=arguments,e="string"==typeof r[0]?r[0]:n,t=i(r[e?1:0])?r[e?1:0]:n,a=r[e?t?2:1:t?1:0],u=provide.apply(n,e?[e,a]:[a]);t&&u.when.apply(n,t)}return t.amd=1,r.require=e,r.define=t,{require:e,define:t}}var n=null,i=Array.isArray;provide(e)}(this);
 //# sourceMappingURL=../adapter/require.js.map
