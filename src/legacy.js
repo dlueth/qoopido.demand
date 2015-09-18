@@ -12,18 +12,28 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(functionPrototype, objectPrototype, arrayPrototype) {
+;(function(functionPrototype, objectPrototype, arrayPrototype, undefined) {
 	'use strict';
 
 	var arrayPrototypeSlice     = arrayPrototype.slice,
-		objectPrototypeToString = objectPrototype.toString;
+		objectPrototypeToString = objectPrototype.toString,
+		NULL                    = null,
+		STRING_FUNCTION         = 'function';
+
+	function isTypeOf(object, type) {
+		return typeof object === type;
+	}
+
+	function isObject(object) {
+		return object && isTypeOf(object, 'object');
+	}
 
 	if(!functionPrototype.bind) {
 		functionPrototype.bind = function(context) {
 			var self = this,
 				parameter, target, Constructor, bound;
 
-			if(typeof self === 'function') {
+			if(isTypeOf(self, STRING_FUNCTION)) {
 				parameter   = arrayPrototypeSlice.call(arguments, 1);
 				target      = self;
 				Constructor = function() {};
@@ -46,11 +56,11 @@
 			var self = this,
 				object, length, i = 0;
 
-			if(self !== null) {
+			if(self !== NULL) {
 				object = Object(self);
 				length = object.length >>> 0;
 
-				if(typeof callback === 'function') {
+				if(isTypeOf(callback, STRING_FUNCTION)) {
 					while(i < length) {
 						if(i in object) {
 							callback.call(context, object[i], i, object);
@@ -71,5 +81,38 @@
 		Array.isArray = function (value) {
 			return objectPrototypeToString.call(value) === '[object Array]';
 		};
+	}
+
+	if(!Object.keys) {
+		Object.keys = (function() {
+			var hasOwnProperty = objectPrototype.hasOwnProperty,
+				hasEnumBug     = !({ toString: NULL }).propertyIsEnumerable('toString'),
+				properties     = [ 'toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor' ];
+
+			return function(object) {
+				var keys = [],
+					i = 0, property;
+
+				if(!isObject(object) && !isTypeOf(object, STRING_FUNCTION)) {
+					throw new TypeError('Object.keys called on non-object');
+				}
+
+				for(property in object) {
+					if(hasOwnProperty.call(object, property)) {
+						keys.push(property);
+					}
+				}
+
+				if(hasEnumBug) {
+					for(; (property = properties[i]) !== undefined; i++) {
+						if(hasOwnProperty.call(object, property)) {
+							keys.push(property);
+						}
+					}
+				}
+
+				return keys;
+			};
+		}());
 	}
 }(Function.prototype, Object.prototype, Array.prototype));
