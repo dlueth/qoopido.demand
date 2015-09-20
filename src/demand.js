@@ -23,19 +23,22 @@
 		// constants
 			PROVIDE_ID              = 'provide',
 			DEMAND_ID               = 'demand',
-			DEMAND_PREFIX           = '[' + DEMAND_ID + ']',
-			DEMAND_SUFFIX_STATE     = '[state]',
-			DEMAND_SUFFIX_VALUE     = '[value]',
-			DEMAND_PREFIX_HANDLER   = '/' + DEMAND_ID + '/handler/',
-			DEMAND_PREFIX_STORAGE   = '/' + DEMAND_ID + '/storage/',
-			DEMAND_PREFIX_VALIDATOR = '/validator/',
+			SETTINGS_ID             = 'settings',
+			DEMAND_PREFIX           = '/' + DEMAND_ID + '/',
+			DEMAND_PREFIX_SCOPED    = DEMAND_PREFIX + 'scoped/',
+			DEMAND_PREFIX_HANDLER   = DEMAND_PREFIX + 'handler/',
+			DEMAND_PREFIX_STORAGE   = DEMAND_PREFIX + 'storage/',
+			DEMAND_PREFIX_VALIDATOR = DEMAND_PREFIX + 'validator/',
+			STORAGE_PREFIX          = '[' + DEMAND_ID + ']',
+			STORAGE_SUFFIX_STATE    = '[state]',
+			STORAGE_SUFFIX_VALUE    = '[value]',
 			STRING_UNDEFINED        = 'undefined',
 			STRING_STRING           = 'string',
 			STRING_BOOLEAN          = 'boolean',
 			PLEDGE_PENDING          = 'pending',
 			PLEDGE_RESOLVED         = 'resolved',
 			PLEDGE_REJECTED         = 'rejected',
-			FUNCTION                = function() {},
+			FUNCTION_EMPTY          = function() {},
 			NULL                    = null,
 			XHR                     = XMLHttpRequest,
 			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
@@ -55,13 +58,14 @@
 			defereds                = {},
 			pattern                 = {},
 			probes                  = {},
+			settings                = {},
 			queue, resolve, storageAdapter,
 		// handler
 			handlerJavascript,
 		// storage
 			storageLocalstorage,
 		// configuration
-			base, cache, storage, debug, timeoutXhr, timeoutQueue, version, lifetime;
+			base, cache, storage, debug, timeout, version, lifetime;
 
 	/**
 	 * demand required modules
@@ -144,7 +148,7 @@
 						loader.timeout = clearTimeout(loader.timeout);
 
 						!loader.cached && loader.store();
-						queue.length > 0 && queue.process();
+						queue.items > 0 && queue.process();
 					}
 				});
 
@@ -152,7 +156,7 @@
 			} else {
 				log('duplicate found for module ' + resolved.path);
 
-				return { when: FUNCTION };
+				return { when: FUNCTION_EMPTY };
 			}
 		} else {
 			throw new Error('unspecified anonymous provide');
@@ -174,6 +178,7 @@
 			aBase     = aConfig.base,
 			aPattern  = aConfig.pattern,
 			aProbes   = aConfig.probes,
+			aModules  = aConfig.modules,
 			key;
 
 		cache   = isTypeOf(aCache, STRING_BOOLEAN)  ? aCache   : cache;
@@ -182,8 +187,7 @@
 		version = isTypeOf(aVersion, STRING_STRING) ? aVersion : version;
 
 		if(isPositiveInteger(aTimeout)) {
-			timeoutXhr   = Math.min(Math.max(aTimeout, 2), 10) * 1000;
-			timeoutQueue = Math.min(Math.max(timeoutXhr / 5, 1000), 5000);
+			timeout   = Math.min(Math.max(aTimeout, 2), 10) * 1000;
 		}
 
 		if(isPositiveInteger(aLifetime)) {
@@ -203,6 +207,12 @@
 		if(isObject(aProbes)) {
 			for(key in aProbes) {
 				probes[key] = aProbes[key];
+			}
+		}
+
+		if(isObject(aModules)) {
+			for(key in aModules) {
+				settings[key] = aModules[key];
 			}
 		}
 
@@ -230,9 +240,11 @@
 			defereds[type] = {};
 		}
 
-		if(self && (dependency === DEMAND_ID || dependency === PROVIDE_ID) && !mPointer[path]) {
+		if(self && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID) && !mPointer[path]) {
 			switch(dependency) {
 				case DEMAND_ID:
+					path = DEMAND_PREFIX_SCOPED + DEMAND_ID + path;
+
 					definition = function() {
 						var scopedDemand = demand.bind(self);
 
@@ -245,8 +257,18 @@
 
 					break;
 				case PROVIDE_ID:
+					path = DEMAND_PREFIX_SCOPED + PROVIDE_ID + path;
+
 					definition = function() {
 						return provide.bind(self);
+					};
+
+					break;
+				case SETTINGS_ID:
+					path = DEMAND_PREFIX_SCOPED + SETTINGS_ID + self.path;
+
+					definition = function() {
+						return settings[self.path] || NULL;
 					};
 
 					break;
@@ -361,7 +383,7 @@
 	 *
 	 * @returns {Boolean}
 	 *
-	 * @exports /validator/isInstanceOf
+	 * @exports /demand/validator/isInstanceOf
 	 */
 	function isInstanceOf(object, module) {
 		return object instanceof module;
@@ -375,7 +397,7 @@
 	 *
 	 * @returns {Boolean}
 	 *
-	 * @exports /validator/isTypeOf
+	 * @exports /demand/validator/isTypeOf
 	 */
 	function isTypeOf(object, type) {
 		return typeof object === type;
@@ -388,7 +410,7 @@
 	 *
 	 * @returns {Boolean}
 	 *
-	 * @exports /validator/isObject
+	 * @exports /demand/validator/isObject
 	 */
 	function isObject(object) {
 		return object && isTypeOf(object, 'object');
@@ -401,7 +423,7 @@
 	 *
 	 * @returns {Boolean}
 	 *
-	 * @exports /validator/isPositiveInteger
+	 * @exports /demand/validator/isPositiveInteger
 	 */
 	function isPositiveInteger(value) {
 		return isTypeOf(value, 'number') && isFinite(value) && Math.floor(value) === value && value >= 0;
@@ -442,7 +464,7 @@
 			if(!isTypeOf(pointer, STRING_STRING)) {
 				aPath   = aPath.replace(regex('^' + escape(pointer[0])), '');
 
-				pointer = pointer[1];
+				pointer = pointer[0].slice(0, -1);
 			}
 
 			if(!regexMatchFull.test(aPath)) {
@@ -479,11 +501,11 @@
 			var id, state;
 
 			if(localStorage) {
-				id    = DEMAND_PREFIX + '[' + aPath + ']';
-				state = JSON.parse(localStorage.getItem(id + DEMAND_SUFFIX_STATE));
+				id    = STORAGE_PREFIX + '[' + aPath + ']';
+				state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
 
 				if(state && state.version === version && state.url === aUrl && (state.expires === 0 || state.expires > getTimestamp())) {
-					return localStorage.getItem(id + DEMAND_SUFFIX_VALUE);
+					return localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
 				} else {
 					storageLocalstorage.clear.path(aPath);
 				}
@@ -500,13 +522,13 @@
 			var id, spaceBefore;
 
 			if(localStorage) {
-				id = DEMAND_PREFIX + '[' + aPath + ']';
+				id = STORAGE_PREFIX + '[' + aPath + ']';
 
 				try {
 					spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
 
-					localStorage.setItem(id + DEMAND_SUFFIX_VALUE, aValue);
-					localStorage.setItem(id + DEMAND_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp() + lifetime : 0, url: aUrl }));
+					localStorage.setItem(id + STORAGE_SUFFIX_VALUE, aValue);
+					localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify({ version: version, expires: lifetime > 0 ? getTimestamp() + lifetime : 0, url: aUrl }));
 
 					// strict equality check with "===" is required due to spaceBefore might be "0"
 					if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
@@ -527,10 +549,10 @@
 				var id;
 
 				if(localStorage) {
-					id = DEMAND_PREFIX + '[' + aPath + ']';
+					id = STORAGE_PREFIX + '[' + aPath + ']';
 
-					localStorage.removeItem(id + DEMAND_SUFFIX_STATE);
-					localStorage.removeItem(id + DEMAND_SUFFIX_VALUE);
+					localStorage.removeItem(id + STORAGE_SUFFIX_STATE);
+					localStorage.removeItem(id + STORAGE_SUFFIX_VALUE);
 				}
 			},
 			all: function() {
@@ -538,7 +560,7 @@
 
 				if(localStorage) {
 					for(key in localStorage) {
-						key.indexOf(DEMAND_PREFIX) === 0 && (localStorage.removeItem(key));
+						key.indexOf(STORAGE_PREFIX) === 0 && (localStorage.removeItem(key));
 					}
 				}
 			},
@@ -550,7 +572,7 @@
 						match = key.match(regexMatchLsState);
 
 						if(match) {
-							state = JSON.parse(localStorage.getItem(DEMAND_PREFIX + '[' + match[1] + ']' + DEMAND_SUFFIX_STATE));
+							state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
 
 							if(state && state.expires > 0 && state.expires <= getTimestamp()) {
 								storageLocalstorage.clear.path(match[1]);
@@ -599,7 +621,7 @@
 		 *
 		 * @this Loader
 		 */
-		process: function() {
+		onPostProcess: function() {
 			var self   = this,
 				source = self.source,
 				script;
@@ -608,6 +630,7 @@
 			script.async = true;
 			script.text  = source;
 
+			script.setAttribute('demand-type', self.type);
 			script.setAttribute('demand-path', self.path);
 
 			target.appendChild(script);
@@ -649,17 +672,7 @@
 			}
 		}
 
-		self.then = Pledge.prototype.then.bind(self, listener);
-
-		executor(resolve, reject);
-	}
-
-	Pledge.prototype = {
-		state:       PLEDGE_PENDING,
-		value:       NULL,
-		then:        function(listener, aResolved, aRejected) {
-			var self = this;
-
+		self.then = function(aResolved, aRejected) {
 			if(self.state === PLEDGE_PENDING) {
 				aResolved && listener[PLEDGE_RESOLVED].push(aResolved);
 				aRejected && listener[PLEDGE_REJECTED].push(aRejected);
@@ -675,7 +688,15 @@
 						break;
 				}
 			}
-		}
+		};
+
+		executor(resolve, reject);
+	}
+
+	Pledge.prototype = {
+		state:  PLEDGE_PENDING,
+		value:  NULL,
+		then:   NULL
 	};
 
 	/**
@@ -791,7 +812,7 @@
 		 */
 		toString: function() {
 			var self   = this,
-				result = DEMAND_PREFIX + ' ' + self.message + ' ' + (self.module || '');
+				result = STORAGE_PREFIX + ' ' + self.message + ' ' + (self.module || '');
 
 			if(self.stack) {
 				result = Error.traverse(self.stack, result, 1);
@@ -895,21 +916,24 @@
 	Queue.prototype = {
 		current: NULL,
 		queue:   NULL,
-		length:  0,
+		items:   0,
 		/**
 		 * add an item to the queue
 		 *
-		 * @param {Loader} aItem
+		 * @param {Loader} aLoader
 		 */
-		add: function(aItem) {
-			var self  = this,
-				queue = self.queue;
+		add: function(aLoader) {
+			var self    = this,
+				queue   = self.queue,
+				handler = aLoader.handler;
 
-			queue.push(aItem);
+			handler.onPreProcess && handler.onPreProcess(aLoader);
 
-			self.length++;
+			queue.push(aLoader);
 
-			queue.length === 1 && self.process();
+			self.items++;
+
+			self.items === 1 && self.process();
 		},
 		/**
 		 * process the queue
@@ -924,18 +948,16 @@
 				self.current = NULL;
 
 				queue.shift();
-				self.length--;
+				self.items--;
 			}
 
-			if(queue.length) {
+			if(self.items) {
 				current = self.current = self.queue[0];
 				defered = current.defered;
 				path    = current.path;
 				handler = current.handler;
 
-				!current.cached && handler.onPostRequest && handler.onPostRequest.call(current);
-
-				handler.process.call(current);
+				handler.onPostProcess && handler.onPostProcess.call(current);
 
 				if(current.probe && current.pledge.state === PLEDGE_PENDING) {
 					if(result = current.probe()) {
@@ -965,9 +987,7 @@
 		defered = self.defered = defereds[self.type][self.path] || (defereds[self.type][self.path] = Pledge.defer());
 		pledge  = self.pledge  = defered.pledge;
 
-		if(!aParent) {
-			pledge.then(NULL, log);
-		}
+		aParent && pledge.then(NULL, log);
 
 		demand(DEMAND_PREFIX_HANDLER + self.type)
 			.then(
@@ -996,17 +1016,19 @@
 			self.handler = handler;
 			self.probe   = probes[self.path];
 
-			if(self.cached) {
+			if(self.cached || !self.url) {
 				queue.add(self);
 			} else {
 				xhr            = regexMatchUrl.test(self.url) ? new XHR() : new XDR();
-				xhr.onprogress = FUNCTION;
+				xhr.onprogress = FUNCTION_EMPTY;
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() {
 					self.timeout = clearTimeout(self.timeout);
 
 					if(!('status' in xhr) || xhr.status === 200) {
 						self.source = xhr.responseText;
+
+						handler.onPostRequest && handler.onPostRequest.call(self);
 
 						queue.add(self);
 					} else {
@@ -1017,7 +1039,7 @@
 				xhr.open('GET', addTimestamp(self.url), true);
 				xhr.send();
 
-				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeoutXhr);
+				self.timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, timeout);
 			}
 		},
 		/**
@@ -1026,7 +1048,7 @@
 		store: function() {
 			var self = this;
 
-			cache && storageAdapter.set(self.path, self.source, self.url);
+			cache && self.source && storageAdapter.set(self.path, self.source, self.url);
 		},
 		/**
 		 * retrieve cache for loader
@@ -1059,9 +1081,7 @@
 		defered = defereds[self.type][path];
 		pledge  = self.pledge = defered.pledge;
 
-		pledge.then(NULL, function() {
-			log(new Error('unable to resolve module', path, arguments));
-		});
+		pledge.then(NULL, function() { log(new Error('unable to resolve module', path, arguments));});
 
 		if(aDependencies && aDependencies.length > 0) {
 			demand
@@ -1084,7 +1104,7 @@
 	// initialization
 		// regex
 			regexMatchUrl     = regex('^' + escape(resolve.url('/')));
-			regexMatchLsState = regex('^' + escape(DEMAND_PREFIX + '\[(.+?)\]' + DEMAND_SUFFIX_STATE + '$'));
+			regexMatchLsState = regex('^' + escape(STORAGE_PREFIX + '\[(.+?)\]' + STORAGE_SUFFIX_STATE + '$'));
 
 		// create queue
 			queue = new Queue();
@@ -1123,10 +1143,9 @@
 			global.provide    = provide;
 
 		// register modules
-			assign('/' + DEMAND_ID, demand);
-			assign('/provide', provide);
-			assign('/pledge', Pledge);
-			assign('/resolve/url', resolve.url);
+			assign(DEMAND_PREFIX + 'pledge', Pledge);
+			assign(DEMAND_PREFIX + 'function/resolve/url', resolve.url);
+			assign(DEMAND_PREFIX + 'modifier/removeProtocol', removeProtocol);
 			assign(DEMAND_PREFIX_VALIDATOR + 'isObject', isObject);
 			assign(DEMAND_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
 			assign(DEMAND_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
@@ -1148,4 +1167,5 @@
 					}
 				}
 			);
+
 }(this, document, (function() { try { return 'localStorage' in this && localStorage; } catch(exception) { return false; } }()), JSON, XMLHttpRequest, setTimeout, clearTimeout, 'demand' in this && demand));
