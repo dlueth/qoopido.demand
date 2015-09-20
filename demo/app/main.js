@@ -9,14 +9,22 @@
 			demand
 				.configure({
 					pattern: {
-						'/adapter':       'src/adapter',
-						//'/adapter':       '//rawgit.com/dlueth/qoopido.demand/master/dist/adapter',
-						'/qoopido/4.0.0': '//rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
+						// IE9+ only, therefore disabled
+						//'/qoopido/4.0.0': '//rawgit.com/dlueth/qoopido.js/release/4.0.0/dist/latest/min',
 						'/qoopido/3.7.4': '//cdn.jsdelivr.net/qoopido.js/3.7.4',
-						'/jquery':        '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min'
+						// IE9+ only, therefore disabled
+						// collides with bundle as well
+						//'/jquery':        '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
+						'/jquery+ui':     '//cdn.jsdelivr.net/g/jquery@1.11.3,jquery.ui@1.11.4'
 					},
 					probes: {
-						'/jquery': function() { return global.jQuery; }
+						'/jquery': function() { return global.jQuery; },
+						'/jquery/ui': function() { return global.jQuery.ui; }
+					},
+					modules: {
+						'/demand/handler/bundle': {
+							'/jquery+ui': [ '/jquery', '/jquery/ui' ]
+						}
 					}
 				});
 
@@ -33,6 +41,7 @@
 					);
 
 			// loading a single, more complex module with further dependencies
+				// IE9+ only, therefore disabled
 				/*
 				demand('/qoopido/4.0.0/component/iterator')
 					.then(
@@ -46,6 +55,7 @@
 				*/
 
 			// loading multiple modules with further dependencies and a probe (~=shim)
+				// IE9+ only, therefore disabled
 				/*
 				demand('/qoopido/4.0.0/component/iterator', '/jquery')
 					.then(
@@ -71,6 +81,14 @@
 						}
 					);
 
+			// loading bundles with demand
+				demand('bundle!/jquery+ui').then(
+						function(jQuery, jQueryUI) {
+							console.log('bundle /jquery+ui loaded');
+						},
+						function() { console.log('error', arguments); }
+				);
+
 			// providing a simple inline module without dependencies
 				function definition1() {
 					console.log('demand module /app/example1 provided');
@@ -92,10 +110,12 @@
 				}
 
 				provide('example2', definition2)
-					.when('example1', '/jquery');
+					.when('example1');
 
 		// example: load & use require.js adapter
-			demand('/adapter/require')
+			// collides with bundle, therefore disabled
+			/*
+			demand('/demand/adapter/require')
 				.then(
 					function(adapter) {
 						// adapter.require is also register as "require" in global scope
@@ -118,6 +138,7 @@
 						});
 					}
 				);
+			*/
 
 		return true;
 	}
