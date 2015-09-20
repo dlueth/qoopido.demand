@@ -1,5 +1,5 @@
 /**
- * Qoopido.demand handler text/css
+ * Qoopido.demand handler/css
  *
  * Copyright (c) 2015 Dirk Lueth
  *
@@ -53,7 +53,7 @@
 			 *
 			 * @this Loader
 			 */
-			process: function() {
+			onPostProcess: function() {
 				var self   = this,
 					style  = document.createElement('style'),
 					source = self.source;
@@ -67,6 +67,7 @@
 					style.innerHTML = source;
 				}
 
+				style.setAttribute('demand-type', self.type);
 				style.setAttribute('demand-path', self.path);
 
 				target.appendChild(style);
@@ -79,5 +80,5 @@
 	}
 
 	provide(definition)
-		.when('/resolve/url');
+		.when('/demand/function/resolve/url');
 }(document, setTimeout));
