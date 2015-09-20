@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.88 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.98 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -17,6 +17,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - only state information will be stored in localStorage as JSON, value is stored as a String (so a probably huge JS will not have to be stringified/parsed every time)
 - dependencies of loaded modules are resolved relative to their parent module if their path is relative
 - support for loading JavaScript and CSS included
+- support for loading concatenated modules (bundles)
 - further custom types can be added easily
 - support for loading non compatible scripts via configurable "probe" functions, similar to, but more flexible than require.js shims
 - basic support for loading require.js modules via a loadable adapter module
@@ -104,8 +105,11 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 				
 	// optional
 	pattern: {
-		'/qoopido': '[path/url to Qoopido.js]',
-		'/jquery':  '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min'
+		'/qoopido':   '[path/url to Qoopido.js]',
+		// just an example, loading jQuery + bundle 
+		// will not work due to the nature of jQuery
+		'/jquery':    '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
+		'/jquery+ui': '//cdn.jsdelivr.net/g/jquery@2.1.4,jquery.ui@1.11.4'
 	},
 				
 	// probes allow you to write fallback tests
@@ -113,7 +117,17 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 	// demand/provide
 	// optional
 	probes: {
-		'/jquery': function() { return global.jQuery; }
+		'/jquery': function() { return global.jQuery; },
+		'/jquery/ui': function() { return global.jQuery.ui; }
+		}
+	},
+	// per module configuration (if applicable)
+	modules: {
+		// configure the bundle handler
+		'/demand/handler/bundle': {
+			// declare which modules are included in the bundle
+			// order is important
+			'/jquery+ui': [ '/jquery', '/jquery/ui' ]
 		}
 	}
 ```
@@ -133,6 +147,8 @@ The demanded ```main``` module from the above script might look like the followi
 				pattern: {
 				},
 				probes: {
+				},
+				modules: {
 				}
 			});
 			
@@ -150,11 +166,12 @@ Once demand is loaded anything that is either explicitly requested via ```demand
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
 
 ## More about handlers
-```demand``` comes with handlers for JavaScript and CSS. Handlers have three objectives:
+```demand``` comes with handlers for JavaScript and CSS. Handlers have four objectives:
 
 - provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
-- provide a function named ```process``` that handles DOM injection and final resolution of a module via an anonymous ```provide``` call
+- provide an optionl function named ```onPreRrocess``` that might handle DOM injection and final resolution of a module via an anonymous ```provide``` call
+- provide an optionl function named ```onPostRrocess``` that might handle DOM injection and final resolution of a module via an anonymous ```provide``` call
 
 Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```js``` which will automatically be used when no other handler is explicitly set.
 
