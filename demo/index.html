@@ -3,7 +3,8 @@
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<!--[if lte IE 8]>
-		<script src="//rawgit.com/dlueth/qoopido.demand/master/dist/legacy.js"></script>
+		<script src="/src/legacy.js"></script>
+		<!-- <script src="//rawgit.com/dlueth/qoopido.demand/master/dist/legacy.js"></script> -->
 	<![endif]-->
 </head>
 <body>
@@ -20,7 +21,7 @@
 			window[name] = { url: url, main: main, settings: settings };
 
 			if(localStorage) {
-				version  = settings.version || '1.0.0';
+				version  = settings.version || '1.1.2';
 				prefix   = '[' + name + ']',
 				keyState = prefix + '[state]',
 				keyValue = prefix + '[value]',
@@ -58,8 +59,8 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	//}('/src/demand.js', 'app/main', { base: '/demo', version: '1.1.1', cache: false }));
-	}('//rawgit.com/dlueth/qoopido.demand/master/dist/demand.js', 'app/main', { base: '//rawgit.com/dlueth/qoopido.demand/master/demo', version: '1.1.0' }));
+	}('/src/demand.js', 'app/main', { base: '/demo', version: '1.1.2', cache: false }));
+	//}('//rawgit.com/dlueth/qoopido.demand/master/dist/demand.js', 'app/main', { base: '//rawgit.com/dlueth/qoopido.demand/master/demo', version: '1.1.2' }));
 </script>
 </body>
 </html>
