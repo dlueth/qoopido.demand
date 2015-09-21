@@ -466,7 +466,7 @@
 				cache     = (parameter && parameter[1]) ? false : settings.cache,
 				type      = (parameter && parameter[2]) || defaults.handler,
 				version   = (parameter && parameter[3]) || settings.version,
-				lifetime  = (parameter && parameter[4]) || settings.lifetime,
+				lifetime  = (parameter && parameter[4] && parameter[4] * 1000) || settings.lifetime,
 				isLoader = isInstanceOf(self, Loader),
 				key, match;
 
