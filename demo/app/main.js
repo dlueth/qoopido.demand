@@ -30,8 +30,8 @@
 				});
 
 		// example: demand usage
-			// loading a single module without further dependencies with a specific version
-				demand('@1.0.3!simple')
+			// loading a single module without further dependencies with a specific version and lifetime
+				demand('@1.0.3#20!simple')
 					.then(
 						function(appSimple) {
 							console.log('demand module /app/simple loaded');
