@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~3.98 kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~4.1 kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -13,6 +13,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - promise like interface (no native promise support required)
 - any loaded module will be cached in localStorage for blazingly fast performance
 - cache will be validated against global semver versioning, a modules URL and an expiration timeout
+- allows per module setting of cache parameter
 - manual cache invalidation (if needed)
 - only state information will be stored in localStorage as JSON, value is stored as a String (so a probably huge JS will not have to be stringified/parsed every time)
 - dependencies of loaded modules are resolved relative to their parent module if their path is relative
@@ -235,6 +236,25 @@ Relative module paths will be resolved relative to the base path or the path of 
 
 **Sidenote**
 > The error callback function will be passed **all** rejected dependencies as arguments, not only the first one rejected.
+
+If no handler is specified it will default to the JavaScript handler. If you would like to load e.g. CSS simply prefix your path with ```css!```.
+
+Beside its global configuration Qoopido.demand also allows per module configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration. You already learnt that a prefix of ```css!``` tell Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
+
+```javascript
+demand('css@2.0.4#2000!AnyCssModule').then(
+	function() {}
+);
+```
+
+will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
+
+```javascript
+demand('!css!AnyCssModule').then(
+	function() {}
+);
+```
+As any parameter that are part of the path declaration are optional you gain total control over when and how Qoopido.demand caches your modules!
 
 
 ## Providing inline modules
