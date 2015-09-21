@@ -85,8 +85,7 @@
     "-W030": true,
     "globals": {
       "demand": true,
-      "provide": true,
-      "console": true
+      "provide": true
     }
   }
 }
