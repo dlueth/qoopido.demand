@@ -1,3 +1,4 @@
+/* globals console */
 ;(function(global) {
 	'use strict';
 
@@ -30,7 +31,7 @@
 
 		// example: demand usage
 			// loading a single module without further dependencies
-				demand('simple')
+				demand('js@1.0.3!simple')
 					.then(
 						function(appSimple) {
 							console.log('demand module /app/simple loaded');
