@@ -147,6 +147,10 @@
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
 
+						if(isTypeOf(loader.cached, STRING_BOOLEAN)) {
+							loader.pledge.cache = loader.cached ? 'hit' : 'miss';
+						}
+
 						!loader.cached && loader.store();
 						queue.items > 0 && queue.process();
 					}
@@ -1055,10 +1059,14 @@
 		 */
 		retrieve: function() {
 			var self   = this,
-				source = cache && storageAdapter.get(self.path, self.url),
+				source, cached;
+
+			if(self.url) {
+				source = cache && storageAdapter.get(self.path, self.url);
 				cached = self.cached = !!(source);
 
-			cached && (self.source = source);
+				cached && (self.source = source);
+			}
 		}
 	};
 
@@ -1119,7 +1127,7 @@
 			demand.configure  = configure;
 			demand.list       = function(state) {
 				var keys = {},
-					handler, kPointer, mPointer, path;
+					handler, kPointer, mPointer, path, pPointer;
 
 				for(handler in modules) {
 					if(state) {
@@ -1127,7 +1135,9 @@
 						mPointer = modules[handler];
 
 						for(path in mPointer) {
-							if(mPointer[path].state === state) {
+							pPointer = mPointer[path];
+
+							if(pPointer.state === state || (pPointer.cache && pPointer.cache === state)) {
 								kPointer.push(path);
 							}
 						}
