@@ -44,7 +44,7 @@
 			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		// regular expressions
 			regexIsAbsolute         = /^\//i,
-			regexMatchParameter     = /^((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
+			regexMatchParameter     = /^(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 			regexMatchSpecial       = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 			regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
 			regexMatchProtocol      = /^http(s?):/,
@@ -143,7 +143,7 @@
 					if(loader) {
 						loader.timeout = clearTimeout(loader.timeout);
 
-						if(isTypeOf(loader.cached, STRING_BOOLEAN)) {
+						if(loader.cache && isTypeOf(loader.cached, STRING_BOOLEAN)) {
 							loader.pledge.cache = loader.cached ? 'hit' : 'miss';
 						}
 
@@ -461,11 +461,12 @@
 		 * @returns {void|{type: String, path: String}}
 		 */
 		path: function(aPath, aParent) {
-			var self     = this,
+			var self      = this,
 				parameter = aPath.match(regexMatchParameter),
-				type      = (parameter && parameter[1]) || defaults.handler,
-				version   = (parameter && parameter[2]) || settings.version,
-				lifetime  = (parameter && parameter[3]) || settings.lifetime,
+				cache     = (parameter && parameter[1]) ? false : settings.cache,
+				type      = (parameter && parameter[2]) || defaults.handler,
+				version   = (parameter && parameter[3]) || settings.version,
+				lifetime  = (parameter && parameter[4]) || settings.lifetime,
 				isLoader = isInstanceOf(self, Loader),
 				key, match;
 
@@ -486,6 +487,7 @@
 				self.path = aPath;
 
 				if(isLoader) {
+					self.cache    = cache;
 					self.version  = version;
 					self.lifetime = lifetime;
 					self.url      = match ? removeProtocol(resolve.url(match.process(aPath))) : aPath;
@@ -1006,6 +1008,7 @@
 
 	Loader.prototype = {
 		type:     NULL,
+		cache:    NULL,
 		version:  NULL,
 		lifetime: NULL,
 		path:     NULL,
@@ -1060,7 +1063,7 @@
 		store: function() {
 			var self = this;
 
-			settings.cache && self.source && storageAdapter.set(self);
+			self.cache && self.source && storageAdapter.set(self);
 		},
 		/**
 		 * retrieve cache for loader
@@ -1070,7 +1073,7 @@
 				source, cached;
 
 			if(self.url) {
-				source = settings.cache && storageAdapter.get(self);
+				source = self.cache && storageAdapter.get(self);
 				cached = self.cached = !!(source);
 
 				cached && (self.source = source);
