@@ -10,7 +10,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(document, setTimeout) {
+;(function() {
 	'use strict';
 
 	function definition() {
