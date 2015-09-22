@@ -41,6 +41,17 @@
 						}
 					);
 
+			// load JSON data with caching disabled
+				demand('!json!dummy')
+					.then(
+						function(appDummy) {
+							console.log('demand module /app/dummy (application/json) loaded');
+						},
+						function() {
+							console.log('error loading modules', arguments);
+						}
+					);
+
 			// loading a single, more complex module with further dependencies
 				// IE9+ only, therefore disabled
 				/*

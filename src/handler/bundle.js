@@ -17,7 +17,8 @@
 		regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g;
 
 	function definition(settings, removeProtocol, resolveUrl) {
-		var handlerBundle = {
+		return {
+			matchType: /^(application|text)\/javascript/,
 			/**
 			 * handles modifying of JavaScript module's source prior to caching
 			 *
@@ -64,21 +65,19 @@
 				target.appendChild(script);
 
 				demand
-					.apply(null, modules)
-					.then(
-						function() {
-							defered.resolve.apply(null, arguments);
+						.apply(null, modules)
+						.then(
+								function() {
+									defered.resolve.apply(null, arguments);
 
-							setTimeout(function() {
-								provide(function() { return true; });
-							});
-						},
-						defered.reject
-					);
+									setTimeout(function() {
+										provide(function() { return true; });
+									});
+								},
+								defered.reject
+						);
 			}
 		};
-
-		return handlerBundle;
 	}
 
 	provide(definition)
