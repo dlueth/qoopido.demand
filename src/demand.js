@@ -1039,7 +1039,7 @@
 				xhr.onprogress = FUNCTION_EMPTY;
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() {
-					var type = xhr.getResponseHeader('content-type');
+					var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
 
 					self.timeout = clearTimeout(self.timeout);
 
