@@ -18,6 +18,7 @@
 
 	function definition(resolveUrl) {
 		return {
+			matchType: /^text\/css/,
 			/**
 			 * Enables modification of the URL that gets requested
 			 *

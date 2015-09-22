@@ -15,6 +15,7 @@
 
 	function definition() {
 		return {
+			matchType: /^application\/json/,
 			/**
 			 * Enables modification of the URL that gets requested
 			 *

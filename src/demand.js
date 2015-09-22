@@ -595,6 +595,7 @@
 	};
 
 	handlerJavascript = {
+		matchType: /^(application|text)\/javascript/,
 		/**
 		 * Enables modification of the URL that gets requested
 		 *
@@ -1038,9 +1039,11 @@
 				xhr.onprogress = FUNCTION_EMPTY;
 				xhr.ontimeout  = xhr.onerror = xhr.onabort = function() { defered.reject(new Error('unable to load module', self.path)); };
 				xhr.onload     = function() {
+					var type = xhr.getResponseHeader('content-type');
+
 					self.timeout = clearTimeout(self.timeout);
 
-					if(!('status' in xhr) || xhr.status === 200) {
+					if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
 						self.source = xhr.responseText;
 
 						handler.onPostRequest && handler.onPostRequest.call(self);
