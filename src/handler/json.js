@@ -16,23 +16,13 @@
 	function definition() {
 		return {
 			matchType: /^application\/json/,
-			/**
-			 * Enables modification of the URL that gets requested
-			 *
-			 * @this Loader
-			 */
 			onPreRequest: function() {
 				var self = this,
 					url  = self.url;
 
 				self.url = url.slice(-5) !== '.json' ? url + '.json' : url;
 			},
-			/**
-			 * handles processing of loaded JSON
-			 *
-			 * @this Loader
-			 */
-			onPostProcess: function() {
+			process: function() {
 				var data = JSON.parse(this.source);
 
 				provide(function() { return data; });
