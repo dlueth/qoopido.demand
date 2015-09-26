@@ -18,7 +18,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - state information and actual value are kept separate in localStorage for faster access
 - only state information needs to be JSON.parsed
 - relative paths can/will be resolved relative to an eventual parent module
-- support for handling modules, legacy scripts, bundles (concatenated scripts), CSS and JSON included
+- support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), CSS and JSON included
 - additional custom handlers can be added easily
 - support for "probes" which are similar to require.js "shims", yet more flexible
 - support for "patterns" which are mostly equivalent to require.js "paths"
@@ -89,6 +89,10 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 	// optional, defaults to "0"
 	// unit: seconds
 	lifetime: 60,
+	
+	// whether demand will store state of cached assets in cookies
+	// optional, defaults to "false"
+	cookie: true,
 				
 	// sets the timeout for XHR requests
 	// loaded but not yet resolved modules 
@@ -111,18 +115,25 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 		'/jquery':    '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
 		'/jquery+ui': '//cdn.jsdelivr.net/g/jquery@2.1.4,jquery.ui@1.11.4'
 	},
-				
-	// probes allow you to write fallback tests
-	// for modules that do not natively support
-	// demand/provide
-	// optional
-	probes: {
-		'/jquery': function() { return global.jQuery; },
-		'/jquery/ui': function() { return global.jQuery.ui; }
-		}
-	},
+
 	// per module configuration (if applicable)
 	modules: {
+		// configure the legacy handlr
+		'/demand/handler/legacy': {
+			'/jquery': {
+				probe: function() { return global.jQuery; }
+			},
+			'/jquery/ui': {
+				probe:        function() { return global.jQuery.ui; },
+				dependencies: [ 'legacy!/jquery' ]
+			},
+			'/velocity': {
+				probe: function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); }
+			},
+			'/leaflet': {
+				probe: function() { return global.L; }
+			}
+		}
 		// configure the bundle handler
 		'/demand/handler/bundle': {
 			// declare which modules are included in the bundle
@@ -146,8 +157,6 @@ The demanded ```main``` module from the above script might look like the followi
 				// most likely something like:
 				pattern: {
 				},
-				probes: {
-				},
 				modules: {
 				}
 			});
@@ -155,29 +164,26 @@ The demanded ```main``` module from the above script might look like the followi
 		return true; // just return true if there really is nothing to return
 	}
 	
-	provide(definition)
-		.when('demand', 'provide');
+	provide([ 'demand', 'provide' ], definition);
 }(this));
 ```
 Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
 
-Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a handler. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the version number and the timeout both set via ```configure```, as well as the modules URL.
+Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```configure``` or the modules path declrataion.
 
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
 
 ## More about handlers
-```demand``` comes with handlers for JavaScript and CSS. Handlers have four objectives:
+```demand``` comes with handlers for ```modules```, ```legacy```scripts, ```css``` and ```json```. Handlers have four objectives:
 
 - provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
-- provide an optionl function named ```onPreRrocess``` that might handle DOM injection and final resolution of a module via an anonymous ```provide``` call
-- provide an optionl function named ```onPostRrocess``` that might handle DOM injection and final resolution of a module via an anonymous ```provide``` call
+- provide an optional function named ```onPreRrocess```
+- provide an optional ```process``` function that will handle DOM injection and final resolution of a module via an anonymous ```provide``` call
 
-Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```js``` which will automatically be used when no other handler is explicitly set.
+Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```module``` which will automatically be used when no other handler is explicitly set.
 
-I mentioned earlier that demand comes with handlers for JavaScript and CSS. This is not technically correct I have to admit. As handlers are also modules the only built-in handler is for Javascript to be honest. The CSS handler is part of demand as a standalone module that will automatically get loaded from the ```handler``` subdirectory of the location you orignally loaded demand from.
-
-Due to the fact that handlers are modules as well you are able to write your own handlers quite easily. Simply look at the module in ```/src/handler/css.js``` and adopt it accordingly.
+I mentioned earlier that demand comes with handlers for modules, legacy JavaScript, CSS and JSON. This is technically not quite correct. As handlers are also modules the only built-in handler is for modules. All other handlers are automatically loaded on demand and, as they are modules as well, get cached in localStorage.
 
 As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
 
@@ -189,9 +195,9 @@ If caching is enabled, localStorage available and its quota not exceeded chances
 
 By default demand will invalidate a modules cache under the following conditions:
 
-- global ```version``` changed
-- cache is expired due to ```lifetime```
 - a modules URL changed
+- global/specific ```version``` changed
+- cache is expired due to ```lifetime```
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a cache if it gets requested and is found to be invalid for any reason.
 
@@ -209,7 +215,7 @@ demand.clear.all();
 ```
 
 **Sidenote**
-> Demand does use a prefix for its localStorage keys to prevent conflicts with other scripts. Each cache will consist of two keys, one to store the ```state``` information (as JSON) and one for the actual ```source``` of the module. By separating the two only a very small string will have to get parsed as JSON which could lead to performance constraints if a potentially huge module would have to get parsed this way.
+> Demand does use a prefix for its localStorage keys to prevent conflicts with other scripts. Each cache will consist of two keys, one to store the ```state``` information (as JSON) and one for the actual ```value``` (source) of the module. By separating the two only a very small string will have to get parsed as JSON which could lead to performance constraints if a potentially huge module would have to get parsed this way.
 
 > Demand will also do its best to detect "quota exceeded" errors by putting a try/catch around the actual cache writes. As IE does not throw exceptions currently a workaround to use ```localStorage.remainingSpace```is implemented as well.
 
@@ -236,17 +242,17 @@ Relative module paths will be resolved relative to the base path or the path of 
 **Sidenote**
 > The error callback function will be passed **all** rejected dependencies as arguments, not only the first one rejected.
 
-If no handler is specified it will default to the JavaScript handler. If you would like to load e.g. CSS simply prefix your path with ```css!```.
+If no handler is specified it will default to the module handler. If you would like to load e.g. CSS simply prefix your path with ```css!```.
 
-Beside its global configuration Qoopido.demand also allows per module configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration. You already learnt that a prefix of ```css!``` tell Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
+Beside its global configuration Qoopido.demand also allows per module configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration. You already learnt that a prefix of ```css!``` tells Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
 
 ```javascript
-demand('css@2.0.4#2000!AnyCssModule').then(
+demand('css@2.0.4#2000+cookie!AnyCssModule').then(
 	function() {}
 );
 ```
 
-will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
+will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds and maintain a cookie of the modules localStorage state you could read server-side. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
 
 ```javascript
 demand('!css!AnyCssModule').then(
@@ -266,18 +272,16 @@ function definition(appTest, qoopidoBase) {
 	}
 }
 
-provide('/app/main', definition)
-	.when('test', '/qoopido/base');
+provide('/app/main', [ 'test', '/qoopido/base' ], definition);
 ```
 
-This is an example for an inline module. The ```provide``` call, in this case, consists of two arguments:
+This is an example for an inline module. The ```provide``` call, in this case, consists of three arguments:
 
 - path of the module
+- dependencies of the module
 - definition of the module
 
 When dynamically loading modules ```path``` will have to be omitted and gets internally resolved via loading queue handling instead.
-
-Module resolution via ```provide``` is internally defered to be able to return an object providing a ```when``` function to request dependencies.
 
 
 ## Developing loadable modules
@@ -295,46 +299,23 @@ In addition to inline modules you just need some boilerplate code and an anynymo
 		}
 	}
 
-	provide(definition)
-		.when('/qoopido/base');
+	provide([ '/qoopido/base' ], definition);
 }());
 ```
 
 This example illustrates a module named ```/app/test``` which we already know as the first dependency of the prior example. As with the inline module the ```definition``` function will receive all dependencies as arguments passed so they are in scope of the actual module.
 
 
-## Loading require.js modules
-By its nature as a module loader demand shares the parameters common also to other loaders like require.js. As its function principle is quite different demand is therefore not directly able to load require.js modules.
-
-But to not let you guys down with your existing require.js modules (and, yes, I also used and loved it - honestly!) demand provides a loadable adapter to provide an abstraction between require.js modules and demand modules.
-
-The adapter can be loaded via demand and used in, e.g., your main module via:
-
-```javascript
-demand('/adapter/require')
-	.then(
-		function() {
-			require([ 'dependency1', 'dependency2' ], function(dependency1, dependency2) {
-			});
-		}
-	);
-```
-
-Require.js modules loaded via the adapter will be loaded via ```demand``` and will therefore benefit from its caching mechanisms as well.
-
-Missing from the adapter is the support for the simplified CommonJS wrapper that is part of require.js itself. At the time of this writing require.js ```bundles```are also not supported. The latter will most likely change due to the fact that ```bundles```are planned as a feature of Qoopido.demand as well.
-
-
 ## Path resolution
 Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
 
-There is on exception to this rule. When providing a module and requesting its dependencies by using ```when``` these dependencies will get resolved against the modules own path, if the dependencies path is relative.
+There is on exception to this rule. When providing a module with dependencies these dependencies will get resolved against the modules own path, if the dependencies path is relative.
 
 Absolute URLs starting either with a protocol or ```//``` will not get altered beside removing the protocol, if present.
 
-As always resolving relative paths against ```base``` might not be desired and you would prefer or need the behaviour of the ```when```resolution (like I do frequently) demand provides two special dependencies:
+As always resolving relative paths against ```base``` might not be desired and you would prefer or need a relative resolution demand provides two special dependencies:
 
-Whenever you request ```demand``` and/or ```provide``` as a dependency of a module via ```when``` call your modules definition wil get passed a *localized* version of it. 
+Whenever you request ```demand``` and/or ```provide``` as a dependency of a module your modules definition wil get passed a *localized* version of it. 
 
 ```javascript
 ;(function(global) {
@@ -351,8 +332,7 @@ Whenever you request ```demand``` and/or ```provide``` as a dependency of a modu
 		};
 	}
 	
-	provide(definition)
-		.when('demand', 'provide');
+	provide([ 'demand', 'provide' ], definition);
 }(this));
 ```
 
