@@ -77,12 +77,6 @@
 		};
 	}
 
-	if(!Array.isArray) {
-		Array.isArray = function (value) {
-			return objectPrototypeToString.call(value) === '[object Array]';
-		};
-	}
-
 	if(!Object.keys) {
 		Object.keys = (function() {
 			var hasOwnProperty = objectPrototype.hasOwnProperty,
