@@ -41,7 +41,8 @@
 		NULL                    = null,
 		XHR                     = XMLHttpRequest,
 		XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
-		regexIsAbsolute         = /^((http(s?):\/)?)\//i,
+		regexIsAbsolutePath     = /^\//i,
+		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /\/$/,
 		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?(\+cookie)?!/,
 		regexMatchProtocol      = /^http(s?):/,
@@ -194,7 +195,7 @@
 		path: function(path, context) {
 			path = path.replace(regexMatchParameter, '');
 
-			if(!regexIsAbsolute.test(path)) {
+			if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
 				path = '/' + resolve.url(((context && resolve.url(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
 			}
 
@@ -248,8 +249,10 @@
 
 			path = resolve.path(path, context);
 
-			for(key in pattern) {
-				pattern[key].matches(path) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
+			if(!regexIsAbsoluteUri.test(path)) {
+				for(key in pattern) {
+					pattern[key].matches(path) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
+				}
 			}
 
 			return {
