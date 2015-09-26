@@ -8,6 +8,5 @@
 		return appSimple;
 	}
 
-	provide(definition)
-		.when('demand', 'provide');
+	provide([ 'demand', 'provide' ], definition);
 }());

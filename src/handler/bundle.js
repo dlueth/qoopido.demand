@@ -10,76 +10,41 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(document) {
+;(function() {
 	'use strict';
 
-	var target              = document.getElementsByTagName('head')[0],
-		regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g;
-
-	function definition(settings, removeProtocol, resolveUrl) {
+	function definition(Reason, handlerModule, queue, settings) {
 		return {
-			matchType: /^(application|text)\/javascript/,
-			/**
-			 * handles modifying of JavaScript module's source prior to caching
-			 *
-			 * Rewrites sourcemap URL to an absolute URL in relation to the URL the module was loaded from
-			 *
-			 * @this Loader
-			 */
-			onPostRequest: function() {
-				var self   = this,
-					url    = self.url,
-					source = self.source,
-					match, replacement;
-
-				while(match = regexMatchSourcemap.exec(source)) {
-					replacement = removeProtocol(resolveUrl(url + '/../' + match[1]));
-					source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
-				}
-
-				self.source = source;
-			},
-			/**
-			 * handles pre-processing of loaded JavaScript bundles
-			 *
-			 * @this Loader
-			 */
-			onPreProcess: function(aLoader) {
-				var self    = aLoader,
-					source  = self.source,
-					defered = self.defered,
-					modules = settings[self.path],
-					i = 0, module, script;
-
-				for(; (module = modules[i]) !== undefined; i++) {
-					modules[i] = 'mock!' + module;
-				}
-
-				script       = document.createElement('script');
-				script.async = true;
-				script.text  = source;
-
-				script.setAttribute('demand-type', self.type);
-				script.setAttribute('demand-path', self.path);
-
-				target.appendChild(script);
+			matchType:     handlerModule.matchType,
+			onPostRequest: handlerModule.onPostRequest,
+			onPreProcess: function() {
+				var self     = this,
+					deferred = self.deferred,
+					modules  = settings[self.path];
 
 				demand
-						.apply(null, modules)
-						.then(
-								function() {
-									defered.resolve.apply(null, arguments);
+					.mock(modules)
+					.then(
+						function() {
+							queue.apply(null, arguments);
+							handlerModule.process.call(self);
 
-									setTimeout(function() {
-										provide(function() { return true; });
-									});
-								},
-								defered.reject
-						);
+							demand
+								.apply(null, modules)
+								.then(
+									deferred.resolve,
+									function() {
+										deferred.reject(new Reason('error resolving', self.path, arguments));
+									}
+								);
+						},
+						function() {
+							deferred.reject(new Reason('error mocking', null, arguments));
+						}
+					);
 			}
 		};
 	}
 
-	provide(definition)
-		.when('settings', '/demand/modifier/removeProtocol', '/demand/function/resolve/url', '/demand/handler/mock');
-}(document));
+	provide([ '/demand/reason', '/demand/handler/module', '/demand/queue', 'settings' ], definition);
+}());

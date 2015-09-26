@@ -27,11 +27,10 @@ body {
 	margin:           0;
 	padding:          0;
 	background-color: #333;
-	font-family:      Tahoma,Verdana,Segoe,sans-serif;
+	font-family:      'Courier New', Courier,sans-serif;
 	font-size:        14px;
 	line-height:      18px;
 	color:            #ddd;
-	text-align:       center;
 }
 
 a {

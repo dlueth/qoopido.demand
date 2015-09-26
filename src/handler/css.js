@@ -19,24 +19,12 @@
 	function definition(resolveUrl) {
 		return {
 			matchType: /^text\/css/,
-			/**
-			 * Enables modification of the URL that gets requested
-			 *
-			 * @this Loader
-			 */
 			onPreRequest: function() {
 				var self = this,
 					url  = self.url;
 
 				self.url = url.slice(-4) !== '.css' ? url + '.css' : url;
 			},
-			/**
-			 * handles modifying of CSS module's source prior to caching
-			 *
-			 * Rewrites relative CSS URLs to an absolute URL in relation to the URL the module was loaded from
-			 *
-			 * @this Loader
-			 */
 			onPostRequest: function() {
 				var self   = this,
 					base   = resolveUrl(self.url + '/..'),
@@ -49,18 +37,12 @@
 
 				self.source = source;
 			},
-			/**
-			 * handles processing of loaded CSS modules
-			 *
-			 * @this Loader
-			 */
-			onPostProcess: function() {
+			process: function() {
 				var self   = this,
 					style  = document.createElement('style'),
 					source = self.source;
 
-				style.type  = 'text/css';
-				style.media = 'only x';
+				style.type = 'text/css';
 
 				if(style.styleSheet) {
 					style.styleSheet.cssText = source;
@@ -68,7 +50,6 @@
 					style.innerHTML = source;
 				}
 
-				style.setAttribute('demand-type', self.type);
 				style.setAttribute('demand-path', self.path);
 
 				target.appendChild(style);
@@ -80,6 +61,5 @@
 		};
 	}
 
-	provide(definition)
-		.when('/demand/function/resolve/url');
+	provide([ '/demand/function/resolveUrl' ], definition);
 }(document, setTimeout));
