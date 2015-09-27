@@ -98,7 +98,7 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 	// loaded but not yet resolved modules 
 	// have a timeout of timeout / 5 to get
 	// resolved by their handler
-	// optional, defaults to "5" (limited to "2" up to "10")
+	// optional, defaults to "8" (limited to "2" up to "12")
 	// unit: seconds
 	timeout: 8, 
 				
