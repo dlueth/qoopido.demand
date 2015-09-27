@@ -41,12 +41,12 @@
 		NULL                    = null,
 		XHR                     = XMLHttpRequest,
 		XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
-		regexIsAbsolutePath     = /^\//i,
+		regexIsAbsolutePath     = /^\//,
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /\/$/,
 		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?(\+cookie)?!/,
-		regexMatchProtocol      = /^http(s?):/,
-		regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(.+?)\.map/g,
+		regexMatchProtocol      = /^http(s?):/i,
+		regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
 		settings                = { cache: true, debug: false, cookie: false, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module', storage: 'localstorage' },
@@ -278,14 +278,20 @@
 			},
 			onPostRequest: function() {
 				var self   = this,
-					url    = self.url,
 					source = self.source,
 					match, replacement;
 
 				if(source) {
 					while(match = regexMatchSourcemap.exec(source)) {
-						replacement = removeProtocol(resolve.url(url + '/../' + match[1]));
-						source      = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
+						if(regexIsAbsolutePath.test(match[1])) {
+							resolver.href = self.url;
+
+							replacement = '//' + resolver.host + match[1];
+						} else {
+							replacement = removeProtocol(resolve.url(self.url + '/../' + match[1]));
+						}
+
+						source = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
 					}
 
 					self.source = source;

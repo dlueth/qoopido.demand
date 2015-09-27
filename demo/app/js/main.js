@@ -13,7 +13,7 @@
 	}
 
 	function definition(demand, provide) {
-		log('[demand]&nbsp;&nbsp;/app/main (module) => done');
+		log('[demand]&nbsp;&nbsp;/app/js/main (module) => done');
 
 		// example: configuration
 			demand
@@ -50,9 +50,9 @@
 		// example: demand usage
 			// providing a simple inline module without dependencies
 				function definition1() {
-					log('[provide] /app/example1 (module) => done');
+					log('[provide] /app/js/example1 (module) => done');
 
-					return function appExample1() {
+					return function appJsExample1() {
 
 					};
 				}
@@ -60,10 +60,10 @@
 				provide('example1', definition1);
 
 			// providing an inline module with dependencies
-				function definition2(appExample1) {
-					log('[provide] /app/example2 (module) => done');
+				function definition2(appJsExample1) {
+					log('[provide] /app/js/example2 (module) => done');
 
-					return function appExample2() {
+					return function appJsExample2() {
 
 					};
 				}
@@ -74,22 +74,29 @@
 			// with a specific version and lifetime
 				demand('@1.0.3#60!simple')
 					.then(
-						function(appSimple) { log('[demand]&nbsp;&nbsp;/app/simple (module, 1.0.3, 60s) => done'); },
-						function() { log('[error] /app/simple'); }
+						function(appJsSimple) { log('[demand]&nbsp;&nbsp;/app/js/simple (module, 1.0.3, 60s) => done'); },
+						function() { log('[error] /app/js/simple'); }
 					);
 
-			// load JSON data with caching disabled
-				demand('!json!dummy')
+			// loading text (HTML in this case)
+				demand('text!../html/dummy.html')
 					.then(
-						function(appDummy) { log('[demand]&nbsp;&nbsp;/app/dummy (json) => done'); },
-						function() { log('[error] /app/dummy'); }
+						function(appHtmlDummy) { log('[demand]&nbsp;&nbsp;/app/html/dummy (text) => done'); },
+						function() { log('[error] /app/html/dummy'); }
 					);
 
 			// loading CSS with demand, store in cookie in addition
-				demand('css+cookie!default')
+				demand('css+cookie!../css/default')
 					.then(
-						function(cssDefault) { log('[demand]&nbsp;&nbsp;/app/default (css) => done'); },
-						function() { log('[error] /app/default'); }
+						function(appCssDefault) { log('[demand]&nbsp;&nbsp;/app/css/default (css) => done'); },
+						function() { log('[error] /app/css/default'); }
+					);
+
+			// load JSON data with caching disabled
+				demand('!json!../json/dummy')
+					.then(
+						function(appJsonDummy) { log('[demand]&nbsp;&nbsp;/app/json/dummy (json) => done'); },
+						function() { log('[error] /app/json/dummy'); }
 					);
 
 			// loading legacy scripts (with further dependencies)
