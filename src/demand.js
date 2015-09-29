@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter, undefined) {
+;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
 	'use strict';
 
 	var arrayPrototype          = Array.prototype,
@@ -38,6 +38,7 @@
 		PLEDGE_REJECTED         = 'rejected',
 		STRING_STRING           = 'string',
 		STRING_BOOLEAN          = 'boolean',
+		STRING_FUNCTION         = 'function',
 		NULL                    = null,
 		XHR                     = XMLHttpRequest,
 		XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
@@ -48,10 +49,12 @@
 		regexMatchProtocol      = /^http(s?):/i,
 		regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+		regexMatchEvent         = /^cache(Miss|Store|Hit|Exceed)$/,
 		hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
 		settings                = { cache: true, debug: false, cookie: false, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module', storage: 'localstorage' },
 		registry                = {},
 		mocks                   = {},
+		listener                = {},
 		resolve, defaults, regexMatchBaseUrl, regexMatchState, queue, storage;
 
 	function demand() {
@@ -59,7 +62,7 @@
 			dependencies = arrayPrototypeSlice.call(arguments),
 			i = 0, dependency;
 
-		for(; (dependency = dependencies[i]) !== undefined; i++) {
+		for(; (dependency = dependencies[i]); i++) {
 			dependencies[i] = resolve.dependency(dependency, self);
 		}
 
@@ -111,21 +114,25 @@
 		}
 	}
 
-	function mock(modules) {
-		var pledges = [],
-			i = 0, module, parameter;
-
-		for(; (module  = modules[i]) !== undefined; i++) {
-			parameter  = module.match(regexMatchParameter);
-			module     = module.replace(regexMatchParameter, '');
-			modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-
-			pledges.push((mocks[module] = Pledge.defer()).pledge);
+	function on(event, callback) {
+		if(isTypeOf(event, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION) && regexMatchEvent.test(event)) {
+			(listener[event] || (listener[event] = [])).push(callback);
 		}
 
-		demand.apply(NULL, modules);
+		return demand;
+	}
 
-		return Pledge.all(pledges);
+	function emit(event) {
+		var pointer = listener[event],
+			parameter, i = 0, callback;
+
+		if(pointer) {
+			parameter = arrayPrototypeSlice.call(arguments, 1);
+
+			for(; (callback = pointer[i]); i++) {
+				callback.apply(NULL, parameter);
+			}
+		}
 	}
 
 	function list(state) {
@@ -167,7 +174,7 @@
 			path       = resolve.path(path, this);
 			deferred   = registry[path] || (registry[path] = Pledge.defer());
 			pledge     = deferred.pledge;
-			isFunction = isTypeOf(definition, 'function');
+			isFunction = isTypeOf(definition, STRING_FUNCTION);
 
 			if(pledge.state === PLEDGE_PENDING) {
 				if(dependencies) {
@@ -264,6 +271,10 @@
 				cookie:   (parameter && parameter[6]) ? true : settings.cookie,
 				url:      match ? removeProtocol(resolve.url(match.process(path))) : path
 			};
+		},
+		loader: function(loader, handler) {
+			handler.onPreProcess && handler.onPreProcess.call(loader);
+			handler.process && queue.add(loader);
 		}
 	};
 
@@ -291,7 +302,7 @@
 							replacement = removeProtocol(resolve.url(self.url + '/../' + match[1]));
 						}
 
-						source = source.replace(match[0], '//# sourcemap=' + replacement + '.map');
+						source = source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
 					}
 
 					self.source = source;
@@ -353,6 +364,8 @@
 							setCookie(path, data, 'Fri, 31 Dec 9999 23:59:59 GMT');
 						}
 					} catch(error) {
+						emit('cacheExceed', loader);
+
 						log('error caching "' + path + '"');
 					}
 				}
@@ -412,6 +425,23 @@
 			console[type](message.toString());
 		}
 		/* jshint ignore:end */
+	}
+
+	function mock(modules) {
+		var pledges = [],
+			i = 0, module, parameter;
+
+		for(; (module  = modules[i]); i++) {
+			parameter  = module.match(regexMatchParameter);
+			module     = module.replace(regexMatchParameter, '');
+			modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
+
+			pledges.push((mocks[module] = Pledge.defer()).pledge);
+		}
+
+		demand.apply(NULL, modules);
+
+		return Pledge.all(pledges);
 	}
 
 	function assign(id, factory) {
@@ -516,9 +546,11 @@
 	}
 
 	Pledge.prototype = {
-		state:  PLEDGE_PENDING,
+		state:  PLEDGE_PENDING
+		/* only for reference
 		value:  NULL,
 		then:   NULL
+		*/
 	};
 
 	Pledge.defer = function() {
@@ -590,10 +622,12 @@
 	}
 
 	Pattern.prototype = {
+		/* only for reference
 		weight:       0,
 		url:          NULL,
 		matchPattern: NULL,
 		matchUrl:     NULL,
+		*/
 		matches: function(path) {
 			return this.matchPattern.test(path);
 		},
@@ -617,9 +651,11 @@
 	}
 
 	Reason.prototype = {
+		/* only for reference
 		message: NULL,
 		module:  NULL,
 		stack:   NULL,
+		*/
 		toString: function() {
 			var self   = this,
 				result = DEMAND_ID + ': ' + self.message + ' ' + (self.module ? '"' + self.module + '"' : '');
@@ -654,9 +690,11 @@
 	}
 
 	Queue.prototype = {
+		/* only for reference
 		items:   NULL,
 		queue:   NULL,
 		current: NULL,
+		*/
 		add: function() {
 			queue.stack  = queue.stack.concat(arrayPrototypeSlice.call(arguments));
 			queue.items += arguments.length;
@@ -699,6 +737,8 @@
 
 					if(!parameter.mock) {
 						if(!self.cache || !(self.source = storage.get(self))) {
+							self.cache && emit('cacheMiss', self);
+
 							deferred.pledge.cache = 'miss';
 
 							xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
@@ -715,11 +755,11 @@
 									self.source = xhr.responseText;
 
 									handler.onPostRequest && handler.onPostRequest.call(self);
+									resolve.loader(self, handler);
 
-									self.cache && storage.set(self);
-
-									handler.onPreProcess && handler.onPreProcess.call(self);
-									handler.process && queue.add(self);
+									if(self.cache) {
+										deferred.pledge.then(function() { emit('cacheStore', self); storage.set(self); });
+									}
 								} else {
 									deferred.reject(new Reason('error requesting', self.path));
 								}
@@ -733,8 +773,9 @@
 							deferred.pledge.cache = 'hit';
 
 							setTimeout(function() {
-								handler.onPreProcess && handler.onPreProcess.call(self);
-								handler.process && queue.add(self);
+								emit('cacheHit', self);
+
+								resolve.loader(self, handler);
 							});
 						}
 					} else {
@@ -747,6 +788,7 @@
 		return deferred;
 	}
 
+	/* only for reference
 	Loader.prototype = {
 		deferred: NULL,
 		path:     NULL,
@@ -758,6 +800,7 @@
 		version:  NULL,
 		cookie:   NULL
 	};
+	*/
 
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
 	regexMatchState   = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$');
@@ -766,6 +809,7 @@
 	snippetParameter && snippetParameter.settings && configure(snippetParameter.settings);
 
 	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
+	assign(MODULE_PREFIX + 'mock', mock);
 	assign(MODULE_PREFIX + 'pledge', Pledge);
 	assign(MODULE_PREFIX + 'reason', Reason);
 	assign(MODULE_PREFIX + 'handler/' + settings.handler, defaults.handler);
@@ -779,9 +823,9 @@
 	assign(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
 
 	demand.configure = configure;
-	demand.clear     = storage.clear;
-	demand.mock      = mock;
+	demand.on        = on;
 	demand.list      = list;
+	demand.clear     = storage.clear;
 	global.demand    = demand;
 	global.provide   = provide;
 
