@@ -13,7 +13,7 @@
 ;(function() {
 	'use strict';
 
-	function definition(Reason, handlerModule, queue, settings) {
+	function definition(mock, Reason, handlerModule, queue, settings) {
 		return {
 			matchType:     handlerModule.matchType,
 			onPostRequest: handlerModule.onPostRequest,
@@ -22,8 +22,7 @@
 					deferred = self.deferred,
 					modules  = settings[self.path];
 
-				demand
-					.mock(modules)
+				mock(modules)
 					.then(
 						function() {
 							queue.apply(null, arguments);
@@ -46,5 +45,5 @@
 		};
 	}
 
-	provide([ '/demand/reason', '/demand/handler/module', '/demand/queue', 'settings' ], definition);
+	provide([ '/demand/mock', '/demand/reason', '/demand/handler/module', '/demand/queue', 'settings' ], definition);
 }());
