@@ -1,7 +1,7 @@
 {
   "tasks": {
     "bump": {
-      "watch": "package.json",
+      "watch": [ "package.json", "bower.json" ],
       "destination": ""
     },
     "demo": {
