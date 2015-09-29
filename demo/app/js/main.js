@@ -26,6 +26,11 @@
 						'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.2,leaflet@0.7.3'
 					},
 					modules: {
+						'/demand/plugin/lzstring': {
+							'':                  false,
+							'/app/js/simple':    true,
+							'/app/css/default' : true
+						},
 						'/demand/handler/legacy': {
 							'/jquery': {
 								probe: function() { return global.jQuery; }
@@ -46,6 +51,18 @@
 						}
 					}
 				});
+
+		// listening to cache events
+			/*
+			demand
+				.on('cacheMiss',   function(loader) { console.log('cacheMiss', loader.path); })
+				.on('cacheStore',  function(loader) { console.log('cacheStore', loader.path); })
+				.on('cacheHit',    function(loader) { console.log('cacheHit', loader.path); })
+				.on('cacheExceed', function(loader) { console.log('cacheExceed', loader.path); });
+			*/
+
+		// load lzstring plugin to compress localStorage content (see configuration above)
+			demand('/demand/plugin/lzstring');
 
 		// example: demand usage
 			// providing a simple inline module without dependencies
@@ -74,7 +91,7 @@
 			// with a specific version and lifetime
 				demand('@1.0.3#60!simple')
 					.then(
-						function(appJsSimple) { log('[demand]&nbsp;&nbsp;/app/js/simple (module, 1.0.3, 60s) => done'); },
+						function(appJsSimple) { log('[demand]&nbsp;&nbsp;/app/js/simple (module, version 1.0.3, cached for 60s, compressed) => done'); },
 						function() { log('[error] /app/js/simple'); }
 					);
 
@@ -88,24 +105,24 @@
 			// loading CSS with demand, store in cookie in addition
 				demand('css+cookie!../css/default')
 					.then(
-						function(appCssDefault) { log('[demand]&nbsp;&nbsp;/app/css/default (css) => done'); },
+						function(appCssDefault) { log('[demand]&nbsp;&nbsp;/app/css/default (css, cookie enabled, compressed) => done'); },
 						function() { log('[error] /app/css/default'); }
 					);
 
 			// load JSON data with caching disabled
 				demand('!json!../json/dummy')
 					.then(
-						function(appJsonDummy) { log('[demand]&nbsp;&nbsp;/app/json/dummy (json) => done'); },
+						function(appJsonDummy) { log('[demand]&nbsp;&nbsp;/app/json/dummy (json, cache disabled) => done'); },
 						function() { log('[error] /app/json/dummy'); }
 					);
 
-			// loading legacy scripts (with further dependencies)
+			// loading legacy scripts (with further dependencies, see configuration above)
 				demand('legacy!/jquery/ui').then(
 					function(jQueryUI) { log('[demand]&nbsp;&nbsp;/jquery/ui (legacy) => done'); },
 					function() { log('[error] /jquery/ui'); }
 				);
 
-			// loading bundles with demand
+			// loading bundles with demand (see configuration above)
 				demand('bundle!/velocity+leaflet').then(
 					function(velocity, leaflet) { log('[demand]&nbsp;&nbsp;/velocity+leaflet (bundle) => done'); },
 					function() { log('[error] /velocity+leaflet'); }
@@ -114,5 +131,5 @@
 		return true;
 	}
 
-	provide([ 'demand', 'provide' ], definition); //
+	provide([ 'demand', 'provide' ], definition);
 }(this, document));
