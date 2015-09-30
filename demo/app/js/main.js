@@ -40,7 +40,8 @@
 								dependencies: [ 'legacy!/jquery' ]
 							},
 							'/velocity': {
-								probe: function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); }
+								probe:        function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); },
+								dependencies: [ 'legacy!/jquery' ]
 							},
 							'/leaflet': {
 								probe: function() { return global.L; }
