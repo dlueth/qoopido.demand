@@ -732,10 +732,11 @@
 			.then(
 				function(handler) {
 					self.handler = handler;
+					self.mock    = parameter.mock ? mocks[self.path] : NULL;
 
 					handler.onPreRequest && handler.onPreRequest.call(self);
 
-					if(!parameter.mock) {
+					if(!self.mock) {
 						if(!self.cache || !(self.source = storage.get(self))) {
 							self.cache && emit('cacheMiss', self);
 
@@ -779,7 +780,16 @@
 							});
 						}
 					} else {
-						mocks[self.path].resolve(self);
+						if(self.mock.dependencies) {
+							self.mock.dependencies.then(
+								function() {
+									self.mock.resolve(self);
+								},
+								self.mock.reject
+							);
+						} else {
+							self.mock.resolve(self);
+						}
 					}
 				},
 				deferred.reject
@@ -795,6 +805,7 @@
 		url:      NULL,
 		handler:  NULL,
 		source:   NULL,
+		mock:     NULL,
 		cache:    NULL,
 		lifetime: NULL,
 		version:  NULL,
