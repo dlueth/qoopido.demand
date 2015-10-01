@@ -1,5 +1,5 @@
 /**
- * Qoopido.demand lzstring
+ * Qoopido.demand plugin/lzstring
  *
  * Improved from:
  * https://github.com/pieroxy/lz-string
@@ -536,18 +536,22 @@
 			};
 		}
 
+		pattern.push(new Pattern(path, false));
+
 		for(key in settings) {
-			pattern.push(new Pattern(key, settings[key]));
+			if(key !== path) {
+				pattern.push(new Pattern(key, settings[key]));
+			}
 		}
 
 		demand
-			.on('cacheStore', function(loader) {
-				if(loader.path !== path && isEnabled(loader.path)) {
+			.on('preCache', function(loader) {
+				if(isEnabled(loader.path)) {
 					loader.source = compress(loader.source);
 				}
 			})
-			.on('cacheHit', function(loader) {
-				if(loader.path !== path && isEnabled(loader.path)) {
+			.on('preProcess', function(loader) {
+				if(loader.deferred.pledge.cache === 'hit' && isEnabled(loader.path)) {
 					loader.source = decompress(loader.source);
 				}
 			});
