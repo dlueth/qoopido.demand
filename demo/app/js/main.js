@@ -26,10 +26,18 @@
 						'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.2,leaflet@0.7.3'
 					},
 					modules: {
+						'/demand/storage/localstorage': {
+							'':      false,
+							'/app/': true
+						},
+						'/demand/plugin/cookie': {
+							'':      false,
+							'/app/': true
+						},
 						'/demand/plugin/lzstring': {
-							'':                  false,
-							'/app/js/simple':    true,
-							'/app/css/default' : true
+							'':         false,
+							'/app/':    true,
+							'/demand/': true
 						},
 						'/demand/handler/legacy': {
 							'/jquery': {
@@ -57,13 +65,19 @@
 			/*
 			demand
 				.on('cacheMiss',   function(loader) { console.log('cacheMiss', loader.path); })
-				.on('cacheStore',  function(loader) { console.log('cacheStore', loader.path); })
 				.on('cacheHit',    function(loader) { console.log('cacheHit', loader.path); })
-				.on('cacheExceed', function(loader) { console.log('cacheExceed', loader.path); });
+				.on('cacheExceed', function(loader) { console.log('cacheExceed', loader.path); })
+			 	.on('preRequest',  function(loader) { console.log('preRequest', loader.path); })
+			 	.on('postRequest', function(loader) { console.log('postRequest', loader.path); })
+			 	.on('preProcess',  function(loader) { console.log('preProcess', loader.path); })
+			 	.on('postProcess', function(loader) { console.log('postProcess', loader.path); })
+			 	.on('preCache',    function(loader) { console.log('preCache', loader.path); })
+			 	.on('postCache',   function(loader) { console.log('postCache', loader.path); })
 			*/
 
 		// load lzstring plugin to compress localStorage content (see configuration above)
 			demand('/demand/plugin/lzstring');
+			demand('/demand/plugin/cookie');
 
 		// example: demand usage
 			// providing a simple inline module without dependencies
@@ -99,12 +113,12 @@
 			// loading text (HTML in this case)
 				demand('text!../html/dummy.html')
 					.then(
-						function(appHtmlDummy) { log('[demand]&nbsp;&nbsp;/app/html/dummy (text) => done'); },
+						function(appHtmlDummy) { log('[demand]&nbsp;&nbsp;/app/html/dummy (text, cookie enabled, compressed) => done'); },
 						function() { log('[error] /app/html/dummy'); }
 					);
 
-			// loading CSS with demand, store in cookie in addition
-				demand('css+cookie!../css/default')
+			// loading CSS with demand
+				demand('css!../css/default')
 					.then(
 						function(appCssDefault) { log('[demand]&nbsp;&nbsp;/app/css/default (css, cookie enabled, compressed) => done'); },
 						function() { log('[error] /app/css/default'); }
