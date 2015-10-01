@@ -124,7 +124,11 @@ module.exports = gulp;
 			.pipe(plugins.frep(getDatePatterns()))
 			.pipe(chmod(644))
 			.pipe(plugins.size({ showFiles: true, gzip: true }))
-			.pipe(plugins.sourcemaps.write('./'))
+			.pipe(plugins.sourcemaps.write('./', {
+				sourceMappingURL: function(file) {
+					return file.relative.slice(file.relative.lastIndexOf('/') + 1) + '.map';
+				}
+			}))
 			.pipe(gulp.dest(config.tasks.dist.destination));
 	});
 
