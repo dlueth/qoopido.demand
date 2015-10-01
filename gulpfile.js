@@ -5,7 +5,7 @@ var gulp     = require('gulp'),
 	sequence = require('run-sequence'),
 	del      = require('del'),
 	config   = {},
-	jshintConfig, package, config, patterns = [];
+	package, config, patterns = [];
 
 module.exports = gulp;
 
@@ -19,8 +19,7 @@ module.exports = gulp;
 	function loadPackageFile() {
 		delete require.cache[require.resolve('./package.json')];
 
-		package      = require('./package.json');
-		jshintConfig = package.jshintConfig;
+		package = require('./package.json');
 	}
 
 	function loadConfigFile() {
@@ -96,8 +95,8 @@ module.exports = gulp;
 
 	gulp.task('demo:lint', function() {
 		return gulp.src(config.tasks.demo.lint)
-			.pipe(plugins.jshint(jshintConfig))
-			.pipe(plugins.jshint.reporter('jshint-stylish'));
+			.pipe(plugins.eslint())
+			.pipe(plugins.eslint.format());
 	});
 
 	gulp.task('demo', function(callback) {
@@ -106,8 +105,8 @@ module.exports = gulp;
 
 	gulp.task('dist:lint', function() {
 		return gulp.src(config.tasks.dist.lint || config.tasks.dist.watch)
-			.pipe(plugins.jshint(jshintConfig))
-			.pipe(plugins.jshint.reporter('jshint-stylish'));
+			.pipe(plugins.eslint())
+			.pipe(plugins.eslint.format());
 	});
 
 	gulp.task('dist:clean', function(callback) {
@@ -124,7 +123,11 @@ module.exports = gulp;
 			.pipe(plugins.frep(getDatePatterns()))
 			.pipe(chmod(644))
 			.pipe(plugins.size({ showFiles: true, gzip: true }))
-			.pipe(plugins.sourcemaps.write('./'))
+			.pipe(plugins.sourcemaps.write('./', {
+				sourceMappingURL: function(file) {
+					return file.relative.slice(file.relative.lastIndexOf('/') + 1) + '.map';
+				}
+			}))
 			.pipe(gulp.dest(config.tasks.dist.destination));
 	});
 

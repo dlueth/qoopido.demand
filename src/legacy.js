@@ -12,13 +12,12 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(functionPrototype, objectPrototype, arrayPrototype, undefined) {
+(function(functionPrototype, objectPrototype, arrayPrototype, undefined) {
 	'use strict';
 
-	var arrayPrototypeSlice     = arrayPrototype.slice,
-		objectPrototypeToString = objectPrototype.toString,
-		NULL                    = null,
-		STRING_FUNCTION         = 'function';
+	var arrayPrototypeSlice = arrayPrototype.slice,
+		NULL                = null,
+		STRING_FUNCTION     = 'function';
 
 	function isTypeOf(object, type) {
 		return typeof object === type;
