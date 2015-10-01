@@ -10,7 +10,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(document, setTimeout) {
+(function(document, setTimeout) {
 	'use strict';
 
 	var target              = document.getElementsByTagName('head')[0],

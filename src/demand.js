@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(global, document, localStorage, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
+(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
 	'use strict';
 
 	var arrayPrototype          = Array.prototype,
@@ -20,7 +20,6 @@
 		arrayPrototypeConcat    = arrayPrototype.concat,
 		objectPrototype         = Object.prototype,
 		objectPrototypeToString = objectPrototype.toString,
-		target                  = document.getElementsByTagName('head')[0],
 		resolver                = document.createElement('a'),
 		DEMAND_ID               = 'demand',
 		PROVIDE_ID              = 'provide',
@@ -30,9 +29,6 @@
 		MODULE_PREFIX_LOCAL     = MODULE_PREFIX + 'local',
 		MODULE_PREFIX_SETTINGS  = MODULE_PREFIX + 'settings',
 		MODULE_PREFIX_VALIDATOR = MODULE_PREFIX + 'validator/',
-		STORAGE_PREFIX          = '[' + DEMAND_ID + ']',
-		STORAGE_SUFFIX_STATE    = '[state]',
-		STORAGE_SUFFIX_VALUE    = '[value]',
 		PLEDGE_PENDING          = 'pending',
 		PLEDGE_RESOLVED         = 'resolved',
 		PLEDGE_REJECTED         = 'rejected',
@@ -45,17 +41,15 @@
 		regexIsAbsolutePath     = /^\//,
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /\/$/,
-		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?(\+cookie)?!/,
+		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 		regexMatchProtocol      = /^http(s?):/i,
-		regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-		regexMatchEvent         = /^cache(Miss|Store|Hit|Exceed)$/,
-		hasRemainingSpace       = localStorage && 'remainingSpace' in localStorage,
-		settings                = { cache: true, debug: false, cookie: false, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module', storage: 'localstorage' },
+		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
+		settings                = { cache: true, debug: false, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 		registry                = {},
 		mocks                   = {},
 		listener                = {},
-		resolve, defaults, regexMatchBaseUrl, regexMatchState, queue, storage;
+		resolve, regexMatchBaseUrl, queue, storage;
 
 	function demand() {
 		var self         = this !== window ? this : NULL,
@@ -72,7 +66,6 @@
 	function configure(parameter) {
 		var cache    = parameter.cache,
 			debug    = parameter.debug,
-			cookie   = parameter.cookie,
 			version  = parameter.version,
 			timeout  = parameter.timeout,
 			lifetime = parameter.lifetime,
@@ -81,9 +74,8 @@
 			modules  = parameter.modules,
 			key;
 
-		settings.cache  = isTypeOf(cache, STRING_BOOLEAN)  ? cache  : settings.cache;
-		settings.debug  = isTypeOf(debug, STRING_BOOLEAN)  ? debug  : settings.debug;
-		settings.cookie = isTypeOf(cookie, STRING_BOOLEAN) ? cookie : settings.cookie;
+		settings.cache = isTypeOf(cache, STRING_BOOLEAN) ? cache : settings.cache;
+		settings.debug = isTypeOf(debug, STRING_BOOLEAN) ? debug : settings.debug;
 
 		if(isTypeOf(version, STRING_STRING)) {
 			settings.version = version;
@@ -114,9 +106,17 @@
 		}
 	}
 
-	function on(event, callback) {
-		if(isTypeOf(event, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION) && regexMatchEvent.test(event)) {
-			(listener[event] || (listener[event] = [])).push(callback);
+	function on(events, callback) {
+		var event;
+
+		if(isTypeOf(events, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION)) {
+			events = events.split(' ');
+
+			while(event = events.shift()) {
+				if(regexMatchEvent.test(event)) {
+					(listener[event] || (listener[event] = [])).push(callback);
+				}
+			}
 		}
 
 		return demand;
@@ -127,9 +127,9 @@
 			parameter, i = 0, callback;
 
 		if(pointer) {
-			parameter = arrayPrototypeSlice.call(arguments, 1);
-
 			for(; (callback = pointer[i]); i++) {
+				parameter = arrayPrototypeSlice.call(arguments, 1);
+
 				callback.apply(NULL, parameter);
 			}
 		}
@@ -268,163 +268,27 @@
 				handler:  (parameter && parameter[3]) || settings.handler,
 				version:  (parameter && parameter[4]) || settings.version,
 				lifetime: (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime,
-				cookie:   (parameter && parameter[6]) ? true : settings.cookie,
 				url:      match ? removeProtocol(resolve.url(match.process(path))) : path
 			};
 		},
-		loader: function(loader, handler) {
+		loader: function(loader) {
+			var handler = loader.handler;
+
+			emit('preProcess', loader);
+
 			handler.onPreProcess && handler.onPreProcess.call(loader);
 			handler.process && queue.add(loader);
-		}
-	};
-
-	defaults = {
-		handler: {
-			matchType: /^(application|text)\/javascript/,
-			onPreRequest: function() {
-				var self = this,
-					url  = self.url;
-
-				self.url = url.slice(-3) !== '.js' ? url + '.js' : url;
-			},
-			onPostRequest: function() {
-				var self   = this,
-					source = self.source,
-					match, replacement;
-
-				if(source) {
-					while(match = regexMatchSourcemap.exec(source)) {
-						if(regexIsAbsolutePath.test(match[1])) {
-							resolver.href = self.url;
-
-							replacement = '//' + resolver.host + match[1];
-						} else {
-							replacement = removeProtocol(resolve.url(self.url + '/../' + match[1]));
-						}
-
-						source = source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
-					}
-
-					self.source = source;
-				}
-			},
-			process: function() {
-				var self   = this,
-					source = self.source,
-					script;
-
-				if(source) {
-					script       = document.createElement('script');
-					script.async = true;
-					script.text  = source;
-
-					script.setAttribute('demand-path', self.path);
-
-					target.appendChild(script);
-				}
-			}
-		},
-		storage: {
-			get: function(loader) {
-				var path, id, state;
-
-				if(localStorage) {
-					path  = loader.path;
-					id    = STORAGE_PREFIX + '[' + path + ']';
-					state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
-
-					if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
-						return localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
-					} else {
-						defaults.storage.clear.path(path);
-					}
-				}
-			},
-			set: function(loader) {
-				var path, lifetime, id, data, spaceBefore;
-
-				if(localStorage) {
-					path     = loader.path;
-					lifetime = loader.lifetime;
-					id       = STORAGE_PREFIX + '[' + path + ']';
-					data     = JSON.stringify({ version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url });
-
-					try {
-						spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
-
-						localStorage.setItem(id + STORAGE_SUFFIX_VALUE, loader.source);
-						localStorage.setItem(id + STORAGE_SUFFIX_STATE, data);
-
-						// strict equality check with "===" is required due to spaceBefore might be "0"
-						if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-							throw 'QUOTA_EXCEEDED_ERR';
-						}
-
-						if(loader.cookie) {
-							setCookie(path, data, 'Fri, 31 Dec 9999 23:59:59 GMT');
-						}
-					} catch(error) {
-						emit('cacheExceed', loader);
-
-						log('error caching "' + path + '"');
-					}
-				}
-			},
-			clear: {
-				path: function(path) {
-					var id;
-
-					if(localStorage) {
-						id = STORAGE_PREFIX + '[' + path + ']';
-
-						localStorage.removeItem(id + STORAGE_SUFFIX_STATE);
-						localStorage.removeItem(id + STORAGE_SUFFIX_VALUE);
-
-						setCookie(path, '', 'Thu, 01 Jan 1970 00:00:00 GMT');
-					}
-				},
-				all: function() {
-					var key, match;
-
-					if(localStorage) {
-						for(key in localStorage) {
-							match = key.match(regexMatchState);
-
-							if(match) {
-								defaults.storage.clear.path(match[1]);
-							}
-						}
-					}
-				},
-				expired: function() {
-					var key, match, state;
-
-					if(localStorage) {
-						for(key in localStorage) {
-							match = key.match(regexMatchState);
-
-							if(match) {
-								state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
-
-								if(state && state.expires > 0 && state.expires <= getTimestamp()) {
-									defaults.storage.clear.path(match[1]);
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 	};
 
 	function log(message) {
 		var type = (isInstanceOf(message, Reason)) ? 'error' : 'warn';
 
-		/* jshint ignore:start */
+		/* eslint-disable no-console */
 		if(!isTypeOf(console, 'undefined') && (settings.debug || type !== 'warn')) {
 			console[type](message.toString());
 		}
-		/* jshint ignore:end */
+		/* eslint-enable no-console */
 	}
 
 	function mock(modules) {
@@ -464,7 +328,7 @@
 		resolver.href = url;
 
 		var value = resolver.search,
-			param = DEMAND_ID + '[timestamp]=' + getTimestamp();
+			param = DEMAND_ID + '[time]=' + getTimestamp();
 
 		resolver.search += (value && value !== '?') ? '&' + param : '?' + param;
 
@@ -473,10 +337,6 @@
 
 	function removeProtocol(url) {
 		return url.replace(regexMatchProtocol, '');
-	}
-
-	function setCookie(path, value, expiration) {
-		document.cookie = DEMAND_ID + '[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
 	}
 
 	function isArray(value) {
@@ -710,6 +570,7 @@
 				current = queue.current = queue.stack.shift();
 
 				current.handler.process.call(current);
+				emit('postProcess', current);
 			}
 		}
 	};
@@ -726,24 +587,22 @@
 		self.cache    = parameter.cache;
 		self.version  = parameter.version;
 		self.lifetime = parameter.lifetime;
-		self.cookie   = parameter.cookie;
 
 		demand(MODULE_PREFIX_HANDLER + handler)
 			.then(
 				function(handler) {
 					self.handler = handler;
+					self.mock    = parameter.mock ? mocks[self.path] : NULL;
 
 					handler.onPreRequest && handler.onPreRequest.call(self);
 
-					if(!parameter.mock) {
-						if(!self.cache || !(self.source = storage.get(self))) {
-							self.cache && emit('cacheMiss', self);
+					if(!self.mock) {
+						if(!self.cache || !storage.get(self)) {
+							emit('preRequest', self);
 
-							deferred.pledge.cache = 'miss';
-
-							xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
+							xhr            = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
 							xhr.onprogress = function() {};
-							xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+							xhr.ontimeout  = xhr.onerror = xhr.onabort = function() {
 								deferred.reject(new Reason('timeout requesting', self.path));
 							};
 							xhr.onload = function() {
@@ -754,11 +613,13 @@
 								if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
 									self.source = xhr.responseText;
 
+									emit('postRequest', self);
+
 									handler.onPostRequest && handler.onPostRequest.call(self);
-									resolve.loader(self, handler);
+									resolve.loader(self);
 
 									if(self.cache) {
-										deferred.pledge.then(function() { emit('cacheStore', self); storage.set(self); });
+										deferred.pledge.then(function() { storage.set(self); });
 									}
 								} else {
 									deferred.reject(new Reason('error requesting', self.path));
@@ -770,16 +631,21 @@
 
 							timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, settings.timeout);
 						} else {
-							deferred.pledge.cache = 'hit';
-
 							setTimeout(function() {
-								emit('cacheHit', self);
-
-								resolve.loader(self, handler);
+								resolve.loader(self);
 							});
 						}
 					} else {
-						mocks[self.path].resolve(self);
+						if(self.mock.dependencies) {
+							self.mock.dependencies.then(
+								function() {
+									self.mock.resolve(self);
+								},
+								self.mock.reject
+							);
+						} else {
+							self.mock.resolve(self);
+						}
 					}
 				},
 				deferred.reject
@@ -795,15 +661,192 @@
 		url:      NULL,
 		handler:  NULL,
 		source:   NULL,
+		mock:     NULL,
 		cache:    NULL,
 		lifetime: NULL,
-		version:  NULL,
-		cookie:   NULL
+		version:  NULL
 	};
 	*/
 
+	(function() {
+		function definition() {
+			var target              = document.getElementsByTagName('head')[0],
+				regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
+
+
+			return {
+				matchType: /^(application|text)\/javascript/,
+				onPreRequest: function() {
+					var self = this,
+						url  = self.url;
+
+					self.url = url.slice(-3) !== '.js' ? url + '.js' : url;
+				},
+				onPostRequest: function() {
+					var self   = this,
+						source = self.source,
+						match, replacement;
+
+					if(source) {
+						while(match = regexMatchSourcemap.exec(source)) {
+							if(regexIsAbsolutePath.test(match[1])) {
+								resolver.href = self.url;
+
+								replacement = '//' + resolver.host + match[1];
+							} else {
+								replacement = removeProtocol(resolve.url(self.url + '/../' + match[1]));
+							}
+
+							source = source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
+						}
+
+						self.source = source;
+					}
+				},
+				process: function() {
+					var self   = this,
+						source = self.source,
+						script;
+
+					if(source) {
+						script       = document.createElement('script');
+						script.async = true;
+						script.text  = source;
+
+						script.setAttribute('demand-path', self.path);
+
+						target.appendChild(script);
+					}
+				}
+			};
+		}
+
+		provide(MODULE_PREFIX_HANDLER + 'module', definition);
+	}());
+
+	(function(){
+		function definition() {
+			var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
+				STORAGE_SUFFIX_STATE = '[state]',
+				STORAGE_SUFFIX_VALUE = '[value]',
+				regexMatchState      = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$'),
+				localStorage         = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return false; } }()),
+				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
+
+			function Storage() {}
+
+			Storage.prototype = {
+				get: function(loader) {
+					var path, id, state;
+
+					if(localStorage) {
+						path  = loader.path;
+						id    = STORAGE_PREFIX + '[' + path + ']';
+						state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
+
+						if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
+							loader.deferred.pledge.cache = 'hit';
+							loader.source                = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
+
+							emit('cacheHit', loader);
+
+							return loader.source;
+						} else {
+							loader.deferred.pledge.cache = 'miss';
+
+							emit('cacheMiss', loader);
+							this.clear.path(path);
+						}
+					}
+				},
+				set: function(loader) {
+					var path, lifetime, id, data, spaceBefore;
+
+					if(localStorage) {
+						emit('preCache', loader);
+
+						path     = loader.path;
+						lifetime = loader.lifetime;
+						id       = STORAGE_PREFIX + '[' + path + ']';
+						data     = loader.state = JSON.stringify({ version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url });
+
+						try {
+							spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
+
+							localStorage.setItem(id + STORAGE_SUFFIX_VALUE, loader.source);
+							localStorage.setItem(id + STORAGE_SUFFIX_STATE, data);
+
+							// strict equality check with "===" is required due to spaceBefore might be "0"
+							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
+								throw 'QUOTA_EXCEEDED_ERR';
+							}
+
+							emit('postCache', loader);
+						} catch(error) {
+							emit('cacheExceed', loader);
+
+							log('error caching "' + path + '"');
+						}
+					}
+				},
+				clear: {
+					path: function(path) {
+						var id;
+
+						if(localStorage) {
+							id = STORAGE_PREFIX + '[' + path + ']';
+
+							localStorage.removeItem(id + STORAGE_SUFFIX_STATE);
+							localStorage.removeItem(id + STORAGE_SUFFIX_VALUE);
+
+							emit('cacheClear', path);
+						}
+					},
+					all: function() {
+						var key, match;
+
+						if(localStorage) {
+							for(key in localStorage) {
+								match = key.match(regexMatchState);
+
+								if(match) {
+									this.path(match[1]);
+								}
+							}
+						}
+					},
+					expired: function() {
+						var key, match, state;
+
+						if(localStorage) {
+							for(key in localStorage) {
+								match = key.match(regexMatchState);
+
+								if(match) {
+									state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
+
+									if(state && state.expires > 0 && state.expires <= getTimestamp()) {
+										this.path(match[1]);
+									}
+								}
+							}
+						}
+					}
+				}
+			};
+
+			storage = new Storage();
+			storage.clear.expired();
+
+			demand.clear = storage.clear;
+
+			return storage;
+		}
+
+		provide(MODULE_PREFIX + 'storage', definition);
+	}());
+
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
-	regexMatchState   = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$');
 
 	configure({ base: '/', pattern: { '/demand': resolve.url(((snippetParameter && snippetParameter.url) || location.href) + '/../').slice(0, -1)} });
 	snippetParameter && snippetParameter.settings && configure(snippetParameter.settings);
@@ -812,8 +855,6 @@
 	assign(MODULE_PREFIX + 'mock', mock);
 	assign(MODULE_PREFIX + 'pledge', Pledge);
 	assign(MODULE_PREFIX + 'reason', Reason);
-	assign(MODULE_PREFIX + 'handler/' + settings.handler, defaults.handler);
-	assign(MODULE_PREFIX + 'storage/' + settings.storage, (storage = defaults.storage));
 	assign(MODULE_PREFIX + 'function/resolveUrl', resolve.url);
 	assign(MODULE_PREFIX + 'modifier/removeProtocol', removeProtocol);
 	assign(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
@@ -825,13 +866,10 @@
 	demand.configure = configure;
 	demand.on        = on;
 	demand.list      = list;
-	demand.clear     = storage.clear;
 	global.demand    = demand;
 	global.provide   = provide;
-
-	storage.clear.expired();
 
 	if(snippetParameter && snippetParameter.main) {
 		demand(snippetParameter.main);
 	}
-}(this, document, (function() { try { return 'localStorage' in this && localStorage; } catch(exception) { return false; } }()), JSON, XMLHttpRequest, setTimeout, clearTimeout, 'demand' in this && demand));
+}(this, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, 'demand' in this && demand));

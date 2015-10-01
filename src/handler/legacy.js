@@ -10,10 +10,32 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(setTimeout) {
+(function(setTimeout) {
 	'use strict';
 
 	function definition(Reason, handlerModule, settings) {
+		function finalize() {
+			var self  = this,
+				probe = settings[self.path] && settings[self.path].probe,
+				deferred, result;
+
+			handlerModule.process.call(self);
+
+			if(probe) {
+				setTimeout(function() {
+					deferred = self.deferred;
+
+					if(deferred.pledge.state === 'pending') {
+						if(result = probe()) {
+							provide(function() { return result; });
+						} else {
+							deferred.reject(new Reason('error probing', self.path));
+						}
+					}
+				});
+			}
+		}
+
 		return {
 			matchType:     handlerModule.matchType,
 			onPreRequest:  function() {
@@ -22,7 +44,7 @@
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					demand
+					self.dependencies = dependencies = demand
 						.apply(null, dependencies)
 						.then(
 							null,
@@ -32,28 +54,24 @@
 						);
 				}
 
+				if(dependencies && self.mock) {
+					self.mock.dependencies = dependencies;
+				}
+
 				handlerModule.onPreRequest.call(this);
 			},
 			onPostRequest: handlerModule.onPostRequest,
 			process: function() {
-				var self  = this,
-					probe = settings[self.path] && settings[self.path].probe,
-					deferred, result;
+				var self    = this,
+					resolve = finalize.bind(self);
 
-				handlerModule.process.call(self);
-
-				if(probe) {
-					setTimeout(function() {
-						deferred = self.deferred;
-
-						if(deferred.pledge.state === 'pending') {
-							if(result = probe()) {
-								provide(function() { return result; });
-							} else {
-								deferred.reject(new Reason('error probing', self.path));
-							}
-						}
-					});
+				if(self.dependencies) {
+					self.dependencies.then(
+						resolve,
+						self.deferred.reject
+					);
+				} else {
+					resolve();
 				}
 			}
 		};

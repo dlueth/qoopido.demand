@@ -1,4 +1,5 @@
-;(function() {
+/* eslint no-unused-vars:0 */
+(function() {
 	'use strict';
 
 	function definition(demand, provide) {
