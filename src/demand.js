@@ -10,11 +10,9 @@
  *  - http://www.gnu.org/copyleft/gpl.html
  *
  * @author Dirk Lueth <info@qoopido.com>
- *
- * @todo check if for i loops can be replaced by while loops
  */
 
-;(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
+(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
 	'use strict';
 
 	var arrayPrototype          = Array.prototype,
@@ -28,7 +26,6 @@
 		SETTINGS_ID             = 'settings',
 		MODULE_PREFIX           = '/' + DEMAND_ID + '/',
 		MODULE_PREFIX_HANDLER   = MODULE_PREFIX + 'handler/',
-		MODULE_PREFIX_STORAGE   = MODULE_PREFIX + 'storage/',
 		MODULE_PREFIX_LOCAL     = MODULE_PREFIX + 'local',
 		MODULE_PREFIX_SETTINGS  = MODULE_PREFIX + 'settings',
 		MODULE_PREFIX_VALIDATOR = MODULE_PREFIX + 'validator/',
@@ -77,8 +74,8 @@
 			modules  = parameter.modules,
 			key;
 
-		settings.cache  = isTypeOf(cache, STRING_BOOLEAN)  ? cache  : settings.cache;
-		settings.debug  = isTypeOf(debug, STRING_BOOLEAN)  ? debug  : settings.debug;
+		settings.cache = isTypeOf(cache, STRING_BOOLEAN) ? cache : settings.cache;
+		settings.debug = isTypeOf(debug, STRING_BOOLEAN) ? debug : settings.debug;
 
 		if(isTypeOf(version, STRING_STRING)) {
 			settings.version = version;
@@ -287,11 +284,11 @@
 	function log(message) {
 		var type = (isInstanceOf(message, Reason)) ? 'error' : 'warn';
 
-		/* jshint ignore:start */
+		/* eslint-disable no-console */
 		if(!isTypeOf(console, 'undefined') && (settings.debug || type !== 'warn')) {
 			console[type](message.toString());
 		}
-		/* jshint ignore:end */
+		/* eslint-enable no-console */
 	}
 
 	function mock(modules) {
@@ -674,7 +671,7 @@
 	(function() {
 		function definition() {
 			var target              = document.getElementsByTagName('head')[0],
-	 			regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
+				regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
 
 
 			return {
@@ -729,12 +726,12 @@
 
 	(function(){
 		function definition() {
-	 		var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
-	 			STORAGE_SUFFIX_STATE = '[state]',
-	 			STORAGE_SUFFIX_VALUE = '[value]',
-	 			regexMatchState      = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$'),
-				localStorage         = (function() { try { return 'localStorage' in global && localStorage; } catch(exception) { return false; } }()),
-	 			hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
+			var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
+				STORAGE_SUFFIX_STATE = '[state]',
+				STORAGE_SUFFIX_VALUE = '[value]',
+				regexMatchState      = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$'),
+				localStorage         = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return false; } }()),
+				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
 
 			function Storage() {}
 
@@ -846,7 +843,7 @@
 			return storage;
 		}
 
-		provide(MODULE_PREFIX_STORAGE + 'localstorage', definition);
+		provide(MODULE_PREFIX + 'storage', definition);
 	}());
 
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));

@@ -13,7 +13,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(document) {
+(function(document) {
 	'use strict';
 
 	function definition(settings) {

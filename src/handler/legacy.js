@@ -10,7 +10,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function(setTimeout) {
+(function(setTimeout) {
 	'use strict';
 
 	function definition(Reason, handlerModule, settings) {

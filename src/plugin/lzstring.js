@@ -13,7 +13,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-;(function() {
+(function() {
 	'use strict';
 
 	function definition(settings) {
@@ -284,7 +284,7 @@
 				value = value >> 1;
 			}
 
-			while(true) {
+			while(true) { // eslint-disable-line no-constant-condition
 				context_data_val = (context_data_val << 1);
 
 				if(context_data_position === bitsPerChar) {
@@ -330,7 +330,9 @@
 				power <<= 1;
 			}
 
-			switch(next = bits) {
+			next = bits;
+
+			switch(next) {
 				case 0:
 					bits     = 0;
 					maxpower = mathPow28;
@@ -384,7 +386,7 @@
 
 			result.push(c);
 
-			while(true) {
+			while(true) { // eslint-disable-line no-constant-condition
 				if(data.index > length) {
 					return '';
 				}
