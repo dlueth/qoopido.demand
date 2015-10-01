@@ -63,7 +63,7 @@
 			demand
 				.on('cacheMiss',   function(loader) { console.log('cacheMiss', loader.path); })
 				.on('cacheHit',    function(loader) { console.log('cacheHit', loader.path); })
-				.on('cacheStore',  function(loader) { console.log('cacheExceed', loader.path); })
+				.on('cacheClear',  function(loader) { console.log('cacheExceed', loader.path); })
 				.on('cacheExceed', function(loader) { console.log('cacheExceed', loader.path); })
 				.on('preRequest',  function(loader) { console.log('preRequest', loader.path); })
 				.on('postRequest', function(loader) { console.log('postRequest', loader.path); })
