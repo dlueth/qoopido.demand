@@ -16,16 +16,23 @@
 (function() {
 	'use strict';
 
-	function definition(settings) {
+	function definition(settings, isObject, isTypeOf) {
 		var path                          = '/demand/plugin/lzstring',
 			stringFormCharCode            = String.fromCharCode,
 			objectPrototypeHasOwnProperty = Object.prototype.hasOwnProperty,
 			mathPow22                     = Math.pow(2, 2),
 			mathPow28                     = Math.pow(2, 8),
 			mathPow216                    = Math.pow(2, 16),
-			pattern                       = [],
-			storage                       = {},
-			key;
+			pattern                       = [ { pattern: path, weight: path.length, state: false }],
+			enabled, key;
+
+		if(isObject(settings)) {
+			for(key in settings) {
+				pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+			}
+		} else if(isTypeOf(settings, 'boolean')) {
+			enabled = settings;
+		}
 
 		function compressUTF16(uncompressed, bitsPerChar) {
 			var context_dictionary         = {},
@@ -515,45 +522,25 @@
 		}
 
 		function isEnabled(path) {
-			var i, pointer, match;
+			var i = 0, pointer, match;
 
-			if(!storage[path]) {
-				for(i = 0; (pointer = pattern[i]); i++) {
-					if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
-						match = pointer;
-					}
+			for(; (pointer = pattern[i]); i++) {
+				if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
+					match = pointer;
 				}
-
-				storage[path] = match ? match.state : false;
 			}
 
-			return storage[path];
-		}
-
-		function Pattern(pattern, state) {
-			return {
-				pattern: pattern,
-				weight:  pattern.length,
-				state:   state
-			};
-		}
-
-		pattern.push(new Pattern(path, false));
-
-		for(key in settings) {
-			if(key !== path) {
-				pattern.push(new Pattern(key, settings[key]));
-			}
+			return match ? match.state : false;
 		}
 
 		demand
 			.on('preCache', function(loader) {
-				if(isEnabled(loader.path)) {
+				if(enabled || isEnabled(loader.path)) {
 					loader.source = compress(loader.source);
 				}
 			})
 			.on('preProcess', function(loader) {
-				if(loader.deferred.pledge.cache === 'hit' && isEnabled(loader.path)) {
+				if(loader.deferred.pledge.cache === 'hit' && (enabled || isEnabled(loader.path))) {
 					loader.source = decompress(loader.source);
 				}
 			});
@@ -564,5 +551,5 @@
 		};
 	}
 
-	provide([ 'settings' ], definition);
+	provide([ 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }());

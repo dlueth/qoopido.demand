@@ -16,53 +16,44 @@
 (function(document) {
 	'use strict';
 
-	function definition(settings) {
+	function definition(settings, isObject, isTypeOf) {
 		var pattern = [],
-			storage = {},
-			key;
+			enabled, key;
+
+		if(isObject(settings)) {
+			for(key in settings) {
+				pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+			}
+		} else if(isTypeOf(settings, 'boolean')) {
+			enabled = settings;
+		}
 
 		function setCookie(path, value, expiration) {
 			document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
 		}
 
 		function isEnabled(path) {
-			var i, pointer, match;
+			var i = 0, pointer, match;
 
-			if(!storage[path]) {
-				for(i = 0; (pointer = pattern[i]); i++) {
-					if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
-						match = pointer;
-					}
+			for(; (pointer = pattern[i]); i++) {
+				if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
+					match = pointer;
 				}
-
-				storage[path] = match ? match.state : false;
 			}
 
-			return storage[path];
-		}
-
-		function Pattern(pattern, state) {
-			return {
-				pattern: pattern,
-				weight:  pattern.length,
-				state:   state
-			};
-		}
-
-		for(key in settings) {
-			pattern.push(new Pattern(key, settings[key]));
+			return match ? match.state : false;
 		}
 
 		demand
 			.on('cacheMiss cacheClear', function(item) {
 				item = typeof item === 'string' ? item : item.path;
 
-				if(isEnabled(item)) {
+				if(enabled || isEnabled(item)) {
 					setCookie(item, '', 'Thu, 01 Jan 1970 00:00:00 GMT');
 				}
 			})
 			.on('postCache', function(loader) {
-				if(isEnabled(loader.path)) {
+				if(enabled || isEnabled(loader.path)) {
 					setCookie(loader.path, JSON.stringify(loader.state), 'Fri, 31 Dec 9999 23:59:59 GMT');
 				}
 			});
@@ -70,5 +61,5 @@
 		return true;
 	}
 
-	provide([ 'settings' ], definition);
+	provide([ 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }(document));

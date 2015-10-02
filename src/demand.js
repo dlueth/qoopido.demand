@@ -10,12 +10,9 @@
  *  - http://www.gnu.org/copyleft/gpl.html
  *
  * @author Dirk Lueth <info@qoopido.com>
- *
- * @todo check options to alter module configs after initialization
- * @todo eventually add checking of probe before loading to handler/legacy
  */
 
-(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
+(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippet) {
 	'use strict';
 
 	var arrayPrototype          = Array.prototype,
@@ -55,6 +52,9 @@
 		listener                = {},
 		resolve, regexMatchBaseUrl, queue, storage;
 
+	/**
+	 * /demand
+	 */
 	function demand() {
 		var self         = this !== window ? this : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments),
@@ -76,18 +76,15 @@
 			base     = parameter.base,
 			pattern  = parameter.pattern,
 			modules  = parameter.modules,
+			pointer  = settings.modules,
 			key;
 
 		settings.debug = isTypeOf(debug, STRING_BOOLEAN) ? debug : settings.debug;
 
-		if(cache && !settings.modules[MODULE_PREFIX_STORAGE]) {
-			if(isTypeOf(cache, STRING_BOOLEAN)) {
-				settings.modules[MODULE_PREFIX_STORAGE] = {
-					'': cache
-				}
-			} else if(isObject(cache)) {
-				settings.modules[MODULE_PREFIX_STORAGE] = cache;
-			}
+		if(!pointer[MODULE_PREFIX_STORAGE]) {
+			pointer[MODULE_PREFIX_STORAGE] = settings.cache;
+		} else if(isTypeOf(cache, STRING_BOOLEAN) || isObject(cache)) {
+			pointer[MODULE_PREFIX_STORAGE] = cache;
 		}
 
 		if(isTypeOf(version, STRING_STRING)) {
@@ -114,7 +111,9 @@
 
 		if(isObject(modules)) {
 			for(key in modules) {
-				settings.modules[key] = modules[key];
+				if(key !== MODULE_PREFIX_STORAGE) {
+					pointer[key] = modules[key];
+				}
 			}
 		}
 	}
@@ -177,6 +176,9 @@
 		return keys;
 	}
 
+	/**
+	 * /provide
+	 */
 	function provide() {
 		var parameter    = arguments,
 			path         = isTypeOf(parameter[0], STRING_STRING) ? parameter[0] : NULL,
@@ -216,6 +218,13 @@
 	}
 
 	resolve = {
+		/**
+		 * /demand/modifier/resolveUrl
+		 *
+		 * @param url
+		 *
+		 * @returns {string}
+		 */
 		url: function(url) {
 			resolver.href = url;
 
@@ -286,7 +295,7 @@
 
 			return {
 				mock:     (parameter && parameter[1]) ? true : false,
-				cache:    (parameter && parameter[2]) ? false : settings.cache,
+				cache:    (parameter && parameter[2]) ? false : NULL,
 				handler:  (parameter && parameter[3]) || settings.handler,
 				version:  (parameter && parameter[4]) || settings.version,
 				lifetime: (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime,
@@ -313,17 +322,23 @@
 		/* eslint-enable no-console */
 	}
 
+	/**
+	 * /demand/mock
+	 *
+	 * @param modules
+	 *
+	 * @return {Pledge}
+	 */
 	function mock(modules) {
 		var pledges = [],
-			i = 0, module, parameter, pledge;
+			i = 0, module, parameter;
 
 		for(; (module  = modules[i]); i++) {
 			parameter  = module.match(regexMatchParameter);
 			module     = module.replace(regexMatchParameter, '');
 			modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-			pledge     = (mocks[module] = Pledge.defer()).pledge.then(function(loader) { delete mocks[loader.path] });
 
-			pledges.push(pledge);
+			pledges.push((mocks[module] = Pledge.defer()).pledge.then(function(loader) { delete mocks[loader.path] }));
 		}
 
 		demand.apply(NULL, modules);
@@ -358,30 +373,81 @@
 		return resolver.href;
 	}
 
+	/**
+	 * /demand/modifier/removeProtocol
+	 *
+	 * @param url
+	 *
+	 * @returns {string}
+	 */
 	function removeProtocol(url) {
 		return url.replace(regexMatchProtocol, '');
 	}
 
+	/**
+	 * /demand/validator/isArray
+	 *
+	 * @param value
+	 *
+	 * @returns {boolean}
+	 */
 	function isArray(value) {
 		return objectPrototypeToString.call(value) === '[object Array]';
 	}
 
+	/**
+	 * /demand/validator(isObject
+	 *
+	 * @param object
+	 *
+	 * @returns {boolean}
+	 */
 	function isObject(object) {
 		return object && isTypeOf(object, 'object');
 	}
 
+	/**
+	 * /demand/validator/isTypeOf
+	 *
+	 * @param object
+	 * @param type
+	 *
+	 * @returns {boolean}
+	 */
 	function isTypeOf(object, type) {
 		return typeof object === type;
 	}
 
+	/**
+	 * /demand/validator/isInstanceOf
+	 *
+	 * @param object
+	 * @param module
+	 *
+	 * @returns {boolean}
+	 */
 	function isInstanceOf(object, module) {
 		return object instanceof module;
 	}
 
+	/**
+	 * /demand/validator/isPositiveInteger
+	 *
+	 * @param value
+	 *
+	 * @returns {boolean}
+	 */
 	function isPositiveInteger(value) {
 		return isTypeOf(value, 'number') && isFinite(value) && Math.floor(value) === value && value >= 0;
 	}
 
+	/**
+	 * /demand/pledge
+	 *
+	 * @param executor
+	 *
+	 * @constructor
+	 */
 	function Pledge(executor) {
 		var self     = this,
 			listener = { resolved: [], rejected: [] };
@@ -525,6 +591,15 @@
 		}
 	};
 
+	/**
+	 * /demand/reason
+	 *
+	 * @param message
+	 * @param module
+	 * @param stack
+	 *
+	 * @constructor
+	 */
 	function Reason(message, module, stack) {
 		var self = this;
 
@@ -566,6 +641,11 @@
 		return value;
 	};
 
+	/**
+	 * /demand/queue
+	 *
+	 * @constructor
+	 */
 	function Queue() {
 		var self = this;
 
@@ -621,7 +701,8 @@
 					handler.onPreRequest && handler.onPreRequest.call(self);
 
 					if(!self.mock) {
-						if(!self.cache || !storage.get(self)) {
+						// strict equality check required here, self.cache is valid when "null"
+						if(self.cache === false || !storage.get(self)) {
 							emit('preRequest', self);
 
 							xhr            = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
@@ -642,7 +723,8 @@
 									handler.onPostRequest && handler.onPostRequest.call(self);
 									resolve.loader(self);
 
-									if(self.cache) {
+									// strict equality check required here, self.cache is valid when "null"
+									if(self.cache === NULL) {
 										deferred.pledge.then(function() { storage.set(self); });
 									}
 								} else {
@@ -695,8 +777,8 @@
 
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
 
-	configure({ base: '/', pattern: { '/demand': resolve.url(((snippetParameter && snippetParameter.url) || location.href) + '/../').slice(0, -1)} });
-	snippetParameter && snippetParameter.settings && configure(snippetParameter.settings);
+	configure({ base: '/', pattern: { '/demand': resolve.url(((snippet && snippet.url) || location.href) + '/../').slice(0, -1)} });
+	snippet && snippet.settings && configure(snippet.settings);
 
 	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
 	assign(MODULE_PREFIX + 'mock', mock);
@@ -717,11 +799,13 @@
 	global.demand    = demand;
 	global.provide   = provide;
 
+	/**
+	 * /demand/handler/module
+	 */
 	(function() {
 		function definition() {
 			var target              = document.getElementsByTagName('head')[0],
 				regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
-
 
 			return {
 				matchType: /^(application|text)\/javascript/,
@@ -773,6 +857,9 @@
 		provide(MODULE_PREFIX_HANDLER + 'module', definition);
 	}());
 
+	/**
+	 * /demand/storage
+	 */
 	(function(){
 		function definition(settings) {
 			var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
@@ -780,21 +867,41 @@
 				STORAGE_SUFFIX_VALUE = '[value]',
 				regexMatchState      = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$'),
 				localStorage         = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return false; } }()),
-				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
+				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage,
+				pattern              = [],
+				enabled, key;
 
-			console.log(settings);
+			if(isObject(settings)) {
+				for(key in settings) {
+					pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+				}
+			} else if(isTypeOf(settings, STRING_BOOLEAN)) {
+				enabled = settings;
+			}
+
+			function isEnabled(path) {
+				var i = 0, pointer, match;
+
+				for(; (pointer = pattern[i]); i++) {
+					if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
+						match = pointer;
+					}
+				}
+
+				return match ? match.state : false;
+			}
 
 			function Storage() {}
 
 			Storage.prototype = {
 				get: function(loader) {
-					var path, id, state, pledge;
+					var path = loader.path,
+						id, state, pledge;
 
-					if(localStorage) {
-						path   = loader.path;
+					if(localStorage && (enabled || isEnabled(path))) {
 						id     = STORAGE_PREFIX + '[' + path + ']';
-						state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE)),
-								pledge = loader.deferred.pledge;
+						state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
+						pledge = loader.deferred.pledge;
 
 						if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
 							pledge.cache  = 'hit';
@@ -812,12 +919,12 @@
 					}
 				},
 				set: function(loader) {
-					var path, lifetime, id, spaceBefore;
+					var path = loader.path,
+						lifetime, id, spaceBefore;
 
-					if(localStorage) {
+					if(localStorage && (enabled || isEnabled(path))) {
 						emit('preCache', loader);
 
-						path     = loader.path;
 						lifetime = loader.lifetime;
 						id       = STORAGE_PREFIX + '[' + path + ']',
 
@@ -899,7 +1006,7 @@
 		provide(MODULE_PREFIX_STORAGE, [ 'settings' ], definition);
 	}());
 
-	if(snippetParameter && snippetParameter.main) {
-		demand(snippetParameter.main);
+	if(snippet && snippet.main) {
+		demand(snippet.main);
 	}
 }(this, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, 'demand' in this && demand));
