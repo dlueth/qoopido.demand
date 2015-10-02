@@ -8,6 +8,17 @@
 	<!-- <script src="/src/legacy.js"></script> -->
 </head>
 <body>
+<table cellspacing="0" cellpadding="0">
+	<thead>
+		<tr>
+			<th>Action</th>
+			<th>Module</th>
+			<th>State</th>
+			<th>Details</th>
+		</tr>
+	</thead>
+	<tbody id="target"></tbody>
+</table>
 <script>
 	(function(url, main, settings) {
 		(function(window, document, type, target, script){
@@ -21,8 +32,8 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	//}('/src/demand.js', 'app/js/main', { base: '/demo', version: '2.0.4', cache: true }));
-	}('//rawgit.com/dlueth/qoopido.demand/master/dist/demand.js', 'app/js/main', { base: '//rawgit.com/dlueth/qoopido.demand/master/demo', version: '2.0.4' }));
+	//}('/src/demand.js', 'app/js/main', { base: '/demo', version: '2.0.5', cache: true }));
+	}('//rawgit.com/dlueth/qoopido.demand/master/dist/demand.js', 'app/js/main', { base: '//rawgit.com/dlueth/qoopido.demand/master/demo', version: '2.0.5' }));
 </script>
 </body>
 </html>

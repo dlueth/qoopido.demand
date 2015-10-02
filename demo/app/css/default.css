@@ -23,17 +23,99 @@ html {
 }
 
 body {
-	overflow-x:       hidden;
 	margin:           0;
 	padding:          0;
 	background-color: #333;
-	font-family:      'Courier New', Courier,sans-serif;
-	font-size:        14px;
-	line-height:      18px;
+	font-family:      'Trebuchet MS', Tahoma, Arial, sans-serif;
+	font-size:        16px;
+	line-height:      32px;
 	color:            #ddd;
+	text-align:       center;
 }
 
 a {
 	color:           #95ba00;
 	text-decoration: none;
+}
+
+table {
+	display:    inline-block;
+	position:   relative;
+	margin-top: 32px;
+	text-align: left;
+}
+
+table:before, table:after {
+	z-index:    -1;
+	position:   absolute;
+	content:    '';
+	left:       .75rem;
+	bottom:     .75rem;
+	width:      40%;
+	height:     .75rem;
+	background: 0 0;
+	box-shadow: 0 1rem 1rem rgba(0,0,0,.5);
+
+	-webkit-transform-origin: left bottom;
+	-ms-transform-origin:     left bottom;
+	transform-origin:         left bottom;
+
+	-webkit-transform: skew(-2deg) rotate(-2deg);
+	-ms-transform:     skew(-2deg) rotate(-2deg);
+	transform:         skew(-2deg) rotate(-2deg);
+}
+
+table:after {
+	right: .75rem;
+	left:  auto;
+
+	-webkit-transform-origin: right bottom;
+	-ms-transform-origin:     right bottom;
+	transform-origin:         right bottom;
+
+	-webkit-transform: skew(2deg) rotate(2deg);
+	-ms-transform:     skew(2deg) rotate(2deg);
+	transform:         skew(2deg) rotate(2deg);
+}
+
+thead tr {
+	background-color: #463354;
+	color:            #fff;
+}
+
+tbody tr {
+	background-color: #222;
+}
+
+th, td {
+	position: relative;
+	margin:   0;
+	padding:  0 16px;
+	border:   0 none;
+}
+
+td {
+	border-top: 5px solid #222;
+}
+
+td.resolved:before {
+	position:         absolute;
+	display:          block;
+	content:          '';
+	top:              0;
+	left:             0;
+	width:            5px;
+	height:           100%;
+	background-color: #95ba00;
+}
+
+td.rejected:before {
+	position:         absolute;
+	display:          block;
+	content:          '';
+	top:              0;
+	left:             0;
+	width:            5px;
+	height:           100%;
+	background-color: #ed1837;
 }
