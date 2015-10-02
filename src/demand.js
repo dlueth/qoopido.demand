@@ -10,6 +10,9 @@
  *  - http://www.gnu.org/copyleft/gpl.html
  *
  * @author Dirk Lueth <info@qoopido.com>
+ *
+ * @todo check options to alter module configs after initialization
+ * @todo eventually add checking of probe before loading to handler/legacy
  */
 
 (function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippetParameter) {
@@ -25,6 +28,7 @@
 		PROVIDE_ID              = 'provide',
 		SETTINGS_ID             = 'settings',
 		MODULE_PREFIX           = '/' + DEMAND_ID + '/',
+		MODULE_PREFIX_STORAGE   = MODULE_PREFIX + 'storage/',
 		MODULE_PREFIX_HANDLER   = MODULE_PREFIX + 'handler/',
 		MODULE_PREFIX_LOCAL     = MODULE_PREFIX + 'local',
 		MODULE_PREFIX_SETTINGS  = MODULE_PREFIX + 'settings',
@@ -45,7 +49,7 @@
 		regexMatchProtocol      = /^http(s?):/i,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
-		settings                = { cache: true, debug: false, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
+		settings                = { debug: false, cache: true, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 		registry                = {},
 		mocks                   = {},
 		listener                = {},
@@ -64,8 +68,8 @@
 	}
 
 	function configure(parameter) {
-		var cache    = parameter.cache,
-			debug    = parameter.debug,
+		var debug    = parameter.debug,
+			cache    = parameter.cache,
 			version  = parameter.version,
 			timeout  = parameter.timeout,
 			lifetime = parameter.lifetime,
@@ -74,8 +78,17 @@
 			modules  = parameter.modules,
 			key;
 
-		settings.cache = isTypeOf(cache, STRING_BOOLEAN) ? cache : settings.cache;
 		settings.debug = isTypeOf(debug, STRING_BOOLEAN) ? debug : settings.debug;
+
+		if(cache && !settings.modules[MODULE_PREFIX_STORAGE]) {
+			if(isTypeOf(cache, STRING_BOOLEAN)) {
+				settings.modules[MODULE_PREFIX_STORAGE] = {
+					'': cache
+				}
+			} else if(isObject(cache)) {
+				settings.modules[MODULE_PREFIX_STORAGE] = cache;
+			}
+		}
 
 		if(isTypeOf(version, STRING_STRING)) {
 			settings.version = version;
@@ -106,6 +119,15 @@
 		}
 	}
 
+	function remove(path) {
+		if(registry[path]) {
+			!!registry[path].cache && storage.clean.path(path);
+
+			delete registry[path];
+			delete mocks[path];
+		}
+	}
+
 	function on(events, callback) {
 		var event;
 
@@ -124,12 +146,12 @@
 
 	function emit(event) {
 		var pointer = listener[event],
-			parameter, i = 0, callback;
+			parameter, i, callback;
 
 		if(pointer) {
-			for(; (callback = pointer[i]); i++) {
-				parameter = arrayPrototypeSlice.call(arguments, 1);
+			parameter = arrayPrototypeSlice.call(arguments, 1);
 
+			for(i = 0; (callback = pointer[i]); i++) {
 				callback.apply(NULL, parameter);
 			}
 		}
@@ -293,14 +315,15 @@
 
 	function mock(modules) {
 		var pledges = [],
-			i = 0, module, parameter;
+			i = 0, module, parameter, pledge;
 
 		for(; (module  = modules[i]); i++) {
 			parameter  = module.match(regexMatchParameter);
 			module     = module.replace(regexMatchParameter, '');
 			modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
+			pledge     = (mocks[module] = Pledge.defer()).pledge.then(function(loader) { delete mocks[loader.path] });
 
-			pledges.push((mocks[module] = Pledge.defer()).pledge);
+			pledges.push(pledge);
 		}
 
 		demand.apply(NULL, modules);
@@ -409,7 +432,8 @@
 		state:  PLEDGE_PENDING
 		/* only for reference
 		value:  NULL,
-		then:   NULL
+		then:   NULL,
+		cache:  NULL, // will only be set by storage
 		*/
 	};
 
@@ -664,9 +688,34 @@
 		mock:     NULL,
 		cache:    NULL,
 		lifetime: NULL,
-		version:  NULL
+		version:  NULL,
+		state:    { version: NULL, expires: NULL, url: NULL } // will only be set by storage
 	};
 	*/
+
+	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
+
+	configure({ base: '/', pattern: { '/demand': resolve.url(((snippetParameter && snippetParameter.url) || location.href) + '/../').slice(0, -1)} });
+	snippetParameter && snippetParameter.settings && configure(snippetParameter.settings);
+
+	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
+	assign(MODULE_PREFIX + 'mock', mock);
+	assign(MODULE_PREFIX + 'pledge', Pledge);
+	assign(MODULE_PREFIX + 'reason', Reason);
+	assign(MODULE_PREFIX + 'function/resolveUrl', resolve.url);
+	assign(MODULE_PREFIX + 'modifier/removeProtocol', removeProtocol);
+	assign(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
+	assign(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
+	assign(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
+	assign(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
+	assign(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+
+	demand.configure = configure;
+	demand.remove    = remove;
+	demand.on        = on;
+	demand.list      = list;
+	global.demand    = demand;
+	global.provide   = provide;
 
 	(function() {
 		function definition() {
@@ -725,7 +774,7 @@
 	}());
 
 	(function(){
-		function definition() {
+		function definition(settings) {
 			var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
 				STORAGE_SUFFIX_STATE = '[state]',
 				STORAGE_SUFFIX_VALUE = '[value]',
@@ -733,26 +782,29 @@
 				localStorage         = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return false; } }()),
 				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
 
+			console.log(settings);
+
 			function Storage() {}
 
 			Storage.prototype = {
 				get: function(loader) {
-					var path, id, state;
+					var path, id, state, pledge;
 
 					if(localStorage) {
-						path  = loader.path;
-						id    = STORAGE_PREFIX + '[' + path + ']';
-						state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
+						path   = loader.path;
+						id     = STORAGE_PREFIX + '[' + path + ']';
+						state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE)),
+								pledge = loader.deferred.pledge;
 
 						if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
-							loader.deferred.pledge.cache = 'hit';
-							loader.source                = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
+							pledge.cache  = 'hit';
+							loader.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
 
 							emit('cacheHit', loader);
 
 							return loader.source;
 						} else {
-							loader.deferred.pledge.cache = 'miss';
+							pledge.cache = 'miss';
 
 							emit('cacheMiss', loader);
 							this.clear.path(path);
@@ -760,21 +812,22 @@
 					}
 				},
 				set: function(loader) {
-					var path, lifetime, id, data, spaceBefore;
+					var path, lifetime, id, spaceBefore;
 
 					if(localStorage) {
 						emit('preCache', loader);
 
 						path     = loader.path;
 						lifetime = loader.lifetime;
-						id       = STORAGE_PREFIX + '[' + path + ']';
-						data     = loader.state = JSON.stringify({ version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url });
+						id       = STORAGE_PREFIX + '[' + path + ']',
+
+								loader.state = { version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url };
 
 						try {
 							spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
 
 							localStorage.setItem(id + STORAGE_SUFFIX_VALUE, loader.source);
-							localStorage.setItem(id + STORAGE_SUFFIX_STATE, data);
+							localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(loader.state));
 
 							// strict equality check with "===" is required due to spaceBefore might be "0"
 							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
@@ -843,31 +896,8 @@
 			return storage;
 		}
 
-		provide(MODULE_PREFIX + 'storage', definition);
+		provide(MODULE_PREFIX_STORAGE, [ 'settings' ], definition);
 	}());
-
-	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
-
-	configure({ base: '/', pattern: { '/demand': resolve.url(((snippetParameter && snippetParameter.url) || location.href) + '/../').slice(0, -1)} });
-	snippetParameter && snippetParameter.settings && configure(snippetParameter.settings);
-
-	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
-	assign(MODULE_PREFIX + 'mock', mock);
-	assign(MODULE_PREFIX + 'pledge', Pledge);
-	assign(MODULE_PREFIX + 'reason', Reason);
-	assign(MODULE_PREFIX + 'function/resolveUrl', resolve.url);
-	assign(MODULE_PREFIX + 'modifier/removeProtocol', removeProtocol);
-	assign(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
-	assign(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
-	assign(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
-	assign(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
-	assign(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
-
-	demand.configure = configure;
-	demand.on        = on;
-	demand.list      = list;
-	global.demand    = demand;
-	global.provide   = provide;
 
 	if(snippetParameter && snippetParameter.main) {
 		demand(snippetParameter.main);

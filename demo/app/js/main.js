@@ -27,10 +27,6 @@
 						'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.2,leaflet@0.7.3'
 					},
 					modules: {
-						'/demand/plugin/cookie': {
-							'':      false,
-							'/app/': true
-						},
 						'/demand/plugin/lzstring': {
 							'':         false,
 							'/app/':    true,

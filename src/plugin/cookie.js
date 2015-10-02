@@ -54,16 +54,16 @@
 		}
 
 		demand
-			.on('postCache', function(loader) {
-				if(isEnabled(loader.path)) {
-					setCookie(loader.path, loader.state, 'Fri, 31 Dec 9999 23:59:59 GMT');
-				}
-			})
-			.on('preRequest cacheClear', function(item) {
+			.on('cacheMiss cacheClear', function(item) {
 				item = typeof item === 'string' ? item : item.path;
 
 				if(isEnabled(item)) {
 					setCookie(item, '', 'Thu, 01 Jan 1970 00:00:00 GMT');
+				}
+			})
+			.on('postCache', function(loader) {
+				if(isEnabled(loader.path)) {
+					setCookie(loader.path, JSON.stringify(loader.state), 'Fri, 31 Dec 9999 23:59:59 GMT');
 				}
 			});
 
