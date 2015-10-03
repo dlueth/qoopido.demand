@@ -60,14 +60,14 @@ Use the following code snippet in a standalone script tag before the closing bod
 
 		target.parentNode.insertBefore(script, target);
 	}(window, document, 'script'))
-}('/src/demand.js', 'app/main', { base: '/demo', version: '1.0.0' }));
+}('/src/demand.js', 'app/main', { base: '/demo' }));
 ```
 
 You may as well use the uglified version:
 
 ```javascript
 !function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
-("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
+("/src/demand.js","app/main",{base:"/demo"});
 ```
 
 The above snippet is very similar to the one Google Analytics uses. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
@@ -77,22 +77,28 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 
 ```javascript
 {
-	// enables or disables caching in general
+	// enables or disables caching in general (when true/false)
 	// optional, defaults to "true"
 	cache: true,
+	
+	// fine grained cache control (when object)
+	// any path or part of a path can be set to true to 
+	// activate caching or false to disable it.
+	// The longest matching path wins over others.
+	cache: {
+		'/demand/':     true,
+		'/app/':        true,
+		'/app/nocache': false
+	},
 				
 	// cache will be validated against version
-	// optional, defaults to "1.0.0"
+	// optional, defaults to "undefined"
 	version: '1.0.0',
 				
 	// cache will be validated against lifetime, if > 0
 	// optional, defaults to "0"
 	// unit: seconds
 	lifetime: 60,
-	
-	// whether demand will store state of cached assets in cookies
-	// optional, defaults to "false"
-	cookie: true,
 				
 	// sets the timeout for XHR requests
 	// loaded but not yet resolved modules 
@@ -147,7 +153,7 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 The demanded ```main``` module from the above script might look like the following example:
 
 ```javascript
-;(function(global) {
+(function(global) {
 	'use strict';
 
 	function definition(demand, provide) {
@@ -221,7 +227,7 @@ demand.clear.all();
 
 
 ## Demanding modules
-After your project is set up accordingly you can load further modules like this
+After your project is set up accordingly you can load further modules like in the following example:
 
 ```javascript
 demand('app/test', '/qoopido/component/iterator')
@@ -247,12 +253,12 @@ If no handler is specified it will default to the module handler. If you would l
 Beside its global configuration Qoopido.demand also allows per module configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration. You already learnt that a prefix of ```css!``` tells Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
 
 ```javascript
-demand('css@2.0.4#2000+cookie!AnyCssModule').then(
+demand('css@2.0.4#2000!AnyCssModule').then(
 	function() {}
 );
 ```
 
-will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds and maintain a cookie of the modules localStorage state you could read server-side. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
+will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
 
 ```javascript
 demand('!css!AnyCssModule').then(
@@ -290,7 +296,7 @@ You just learnt how to provide inline modules which is only slightly different f
 In addition to inline modules you just need some boilerplate code and an anynymous ```provide``` call without the ```path``` argument like in the following example:
 
 ```javascript
-;(function() {
+(function() {
 	'use strict';
 
 	function definition(qoopidoBase) {
@@ -318,7 +324,7 @@ As always resolving relative paths against ```base``` might not be desired and y
 Whenever you request ```demand``` and/or ```provide``` as a dependency of a module your modules definition wil get passed a *localized* version of it. 
 
 ```javascript
-;(function(global) {
+(function(global) {
 	'use strict';
 
 	function definition(demand, provide) {
@@ -353,6 +359,12 @@ Demand also provides means to get information of the state of modules. Similar t
 	// ... that could not be loaded/resolved
 	demand.list('rejected');
 	
-	// ..t that where successfully loaded and resolved
+	// .. that where successfully loaded and resolved
 	demand.list('resolved');
+	
+	// .. that where taken from localStorage cache
+	demand.list('hit');
+	
+	// .. that no valid cache was found but should be cached
+	demand.list('miss');
 ```
