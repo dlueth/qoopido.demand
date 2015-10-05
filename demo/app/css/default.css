@@ -106,6 +106,8 @@ td.resolved:before {
 	left:             0;
 	width:            5px;
 	height:           100%;
+	margin:           0;
+	padding:          0;
 	background-color: #95ba00;
 }
 
@@ -117,5 +119,7 @@ td.rejected:before {
 	left:             0;
 	width:            5px;
 	height:           100%;
+	margin:           0;
+	padding:          0;
 	background-color: #ed1837;
 }

@@ -46,7 +46,7 @@
 		regexMatchProtocol      = /^http(s?):/i,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
-		settings                = { debug: false, cache: true, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
+		settings                = { cache: true, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 		registry                = {},
 		mocks                   = {},
 		listener                = {},
@@ -68,8 +68,7 @@
 	}
 
 	function configure(parameter) {
-		var debug    = parameter.debug,
-			cache    = parameter.cache,
+		var cache    = parameter.cache,
 			version  = parameter.version,
 			timeout  = parameter.timeout,
 			lifetime = parameter.lifetime,
@@ -78,8 +77,6 @@
 			modules  = parameter.modules,
 			pointer  = settings.modules,
 			key;
-
-		settings.debug = isTypeOf(debug, STRING_BOOLEAN) ? debug : settings.debug;
 
 		if(!pointer[MODULE_PREFIX_STORAGE]) {
 			pointer[MODULE_PREFIX_STORAGE] = settings.cache;
@@ -312,12 +309,10 @@
 		}
 	};
 
-	function log(message) {
-		var type = (isInstanceOf(message, Reason)) ? 'error' : 'warn';
-
+	function log(error) {
 		/* eslint-disable no-console */
-		if(!isTypeOf(console, 'undefined') && (settings.debug || type !== 'warn')) {
-			console[type](message.toString());
+		if(!isTypeOf(console, 'undefined')) {
+			console.error(error.toString());
 		}
 		/* eslint-enable no-console */
 	}
@@ -944,8 +939,6 @@
 							emit('postCache', loader);
 						} catch(error) {
 							emit('cacheExceed', loader);
-
-							log('error caching "' + path + '"');
 						}
 					}
 				},

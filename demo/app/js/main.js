@@ -3,25 +3,42 @@
 (function(global, document) {
 	'use strict';
 
-	var target = document.getElementById('target');
+	var target  = document.getElementById('target'),
+		content = target.textContent ? 'textContent' : 'innerText';
 
 	function log(action, module, state, details) {
-		var row = document.createElement('tr');
+		var row = document.createElement('tr'),
+			cell;
 
-		row.innerHTML = '<td class="' + state+ '">' + action + '</td><td>' + module + '</td><td>' + state + '</td><td>' + (details || '') + '</td>';
+		cell          = document.createElement('td');
+		cell[content] = action;
+		cell.setAttribute('class', state);
+		row.appendChild(cell);
+
+		cell          = document.createElement('td');
+		cell[content] = module;
+		row.appendChild(cell);
+
+		cell          = document.createElement('td');
+		cell[content] = state;
+		row.appendChild(cell);
+
+		cell          = document.createElement('td');
+		cell[content] = details || '';
+		row.appendChild(cell);
 
 		target.appendChild(row);
 	}
 
 	function definition(demand, provide) {
-		log('provide', '/app/js/main', 'resolved', 'module');
+		log('demand', '/app/js/main', 'resolved', 'module');
 
 		// example: configuration
 		demand.configure({
 			pattern: {
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
 				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js',
-				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.2/velocity.min.js',
+				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
 				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.2,leaflet@0.7.3'
 			},
@@ -72,81 +89,89 @@
 
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
-		demand('/demand/plugin/lzstring')
-			.then(function() {
-				// load cookie plugin to be able to track client
-				// cache on server and eventually inline certain
-				// parts (see configuration above)
-				demand('/demand/plugin/cookie')
-					.then(function() {
-						// example: demand usage
-						// providing a simple inline module without dependencies
-						function definition1() {
-							log('provide', '/app/js/example1', 'resolved', 'module');
+		demand('css!../css/default', '/demand/plugin/lzstring')
+		// loading CSS with demand
+			.then(
+				function(appCssDefault, pluginLzstring) {
+					log('demand', '/app/css/default', 'resolved', 'css');
+					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
 
-							return function appJsExample1() {
+					// load cookie plugin to be able to track client
+					// cache on server and eventually inline certain
+					// parts (see configuration above)
+					demand('/demand/plugin/cookie')
+						.then(
+							function(pluginCookie) {
+								log('demand', '/demand/plugin/cookie', 'resolved', 'module, plugin');
 
-							};
-						}
+								// example: demand usage
+								// providing a simple inline module without dependencies
+								function definition1() {
+									log('provide', '/app/js/example1', 'resolved', 'module');
 
-						provide('example1', definition1);
+									return function appJsExample1() {
 
-						// providing an inline module with dependencies
-						function definition2(appJsExample1) {
-							log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
+									};
+								}
 
-							return function appJsExample2() {
+								provide('example1', definition1);
 
-							};
-						}
+								// providing an inline module with dependencies
+								function definition2(appJsExample1) {
+									log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
 
-						provide('example2', [ 'example1' ], definition2);
+									return function appJsExample2() {
 
-						// loading a single module without further dependencies
-						// with a specific version and lifetime
-						demand('@1.0.3#60!simple')
-							.then(
-								function(appJsSimple) { log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress'); },
-								function() { log('demand', '/app/js/simple', 'rejected'); }
-							);
+									};
+								}
 
-						// loading text (HTML in this case)
-						demand('text!../html/dummy.html')
-							.then(
-								function(appHtmlDummy) { log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress'); },
-								function() { log('demand', '/app/html/dummy', 'rejected'); }
-							);
+								provide('example2', [ 'example1' ], definition2);
 
-						// loading CSS with demand
-						demand('css!../css/default')
-							.then(
-								function(appCssDefault) { log('demand', '/app/css/default', 'resolved', 'css, cookie, compress'); },
-								function() { log('demand', '/app/css/default', 'rejected'); }
-							);
+								// loading a single module without further dependencies
+								// with a specific version and lifetime
+								demand('@1.0.3#60!simple')
+									.then(
+										function(appJsSimple) { log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress'); },
+										function() { log('demand', '/app/js/simple', 'rejected'); }
+									);
 
-						// load JSON data with caching disabled
-						demand('!json!../json/dummy')
-							.then(
-								function(appJsonDummy) { log('demand', '/app/json/dummy', 'resolved', 'json, no cache'); },
-								function() { log('demand', '/app/json/dummy', 'rejected'); }
-							);
+								// loading text (HTML in this case)
+								demand('text!../html/dummy.html')
+									.then(
+										function(appHtmlDummy) { log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress'); },
+										function() { log('demand', '/app/html/dummy', 'rejected'); }
+									);
 
-						// loading legacy scripts (with further dependencies, see configuration above)
-						demand('legacy!/jquery/ui')
-							.then(
-								function(jQueryUI) { log('demand', '/jquery/ui', 'resolved', 'legacy, with dependency'); },
-								function() { log('demand', '/jquery/ui', 'rejected'); }
-							);
+								// load JSON data with caching disabled
+								demand('!json!../json/dummy')
+									.then(
+										function(appJsonDummy) { log('demand', '/app/json/dummy', 'resolved', 'json, no cache'); },
+										function() { log('demand', '/app/json/dummy', 'rejected'); }
+									);
 
-						// loading bundles with demand (see configuration above)
-						demand('bundle!/velocity+leaflet')
-							.then(
-								function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
-								function() { log('demand', '/velocity+leaflet', 'rejected'); }
-							);
-					});
-			});
+								// loading legacy scripts (with further dependencies, see configuration above)
+								demand('legacy!/jquery/ui')
+									.then(
+										function(jQueryUI) { log('demand', '/jquery/ui', 'resolved', 'legacy, with dependency'); },
+										function() { log('demand', '/jquery/ui', 'rejected'); }
+									);
 
+								// loading bundles with demand (see configuration above)
+								demand('bundle!/velocity+leaflet')
+									.then(
+										function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
+										function() { log('demand', '/velocity+leaflet', 'rejected'); }
+									);
+							},
+							function() {
+								log('demand', '/demand/plugin/cookie', 'rejected');
+							}
+						);
+				},
+				function() {
+					log('demand', '/css/default & /demand/plugin/lzstring', 'rejected');
+				}
+			);
 
 		return true;
 	}
