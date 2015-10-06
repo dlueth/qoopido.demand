@@ -50,6 +50,10 @@
 				'/demand/plugin/cookie': {
 					'/app/': true
 				},
+				'/demand/plugin/sri': {
+					'/app/js/simple': { type: 'sha256', hash: 'DsUmscjFGZU+3H+7jzs+O8hcJfNkaDvgfYj5DvxH9zE=' },
+					'/app/html/dummy.html': { type: 'sha256', hash: 'SlRwOlHGx/06aQNPOeUwgfQxbmeESluIMyue3hIsW7A=' }
+				},
 				'/demand/handler/legacy': {
 					'/jquery': {
 						probe: function() { return global.jQuery; }
@@ -89,12 +93,13 @@
 
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
-		demand('css!../css/default', '/demand/plugin/lzstring')
+		demand('css!../css/default', '/demand/plugin/lzstring', '/demand/plugin/sri')
 		// loading CSS with demand
 			.then(
-				function(appCssDefault, pluginLzstring) {
+				function(appCssDefault, pluginLzstring, pluginSri) {
 					log('demand', '/app/css/default', 'resolved', 'css');
 					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
+					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
 
 					// load cookie plugin to be able to track client
 					// cache on server and eventually inline certain
@@ -131,14 +136,14 @@
 								// with a specific version and lifetime
 								demand('@1.0.3#60!simple')
 									.then(
-										function(appJsSimple) { log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress'); },
+										function(appJsSimple) { log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri'); },
 										function() { log('demand', '/app/js/simple', 'rejected'); }
 									);
 
 								// loading text (HTML in this case)
 								demand('text!../html/dummy.html')
 									.then(
-										function(appHtmlDummy) { log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress'); },
+										function(appHtmlDummy) { log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri'); },
 										function() { log('demand', '/app/html/dummy', 'rejected'); }
 									);
 
@@ -169,7 +174,9 @@
 						);
 				},
 				function() {
-					log('demand', '/css/default & /demand/plugin/lzstring', 'rejected');
+					log('demand', '/css/default', 'rejected');
+					log('demand', '/demand/plugin/lzstring', 'rejected');
+					log('demand', '/demand/plugin/sri', 'rejected');
 				}
 			);
 
