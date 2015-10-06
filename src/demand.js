@@ -304,8 +304,10 @@
 
 			emit('preProcess', loader);
 
-			handler.onPreProcess && handler.onPreProcess.call(loader);
-			handler.process && queue.add(loader);
+			if(loader.deferred.pledge.state === PLEDGE_PENDING) {
+				handler.onPreProcess && handler.onPreProcess.call(loader);
+				handler.process && queue.add(loader);
+			}
 		}
 	};
 
@@ -677,6 +679,7 @@
 	function Loader(path, parameter) {
 		var self     = this,
 			deferred = Pledge.defer(),
+			pledge   = deferred.pledge,
 			handler  = parameter.handler,
 			xhr, timeout;
 
@@ -700,37 +703,50 @@
 						if(self.cache === false || !storage.get(self)) {
 							emit('preRequest', self);
 
-							xhr            = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
-							xhr.onprogress = function() {};
-							xhr.ontimeout  = xhr.onerror = xhr.onabort = function() {
-								deferred.reject(new Reason('timeout requesting', self.path));
-							};
-							xhr.onload = function() {
-								var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
+							if(pledge.state === PLEDGE_PENDING) {
+								xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
+								xhr.onprogress = function() {
+								};
+								xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+									deferred.reject(new Reason('timeout requesting', self.path));
+								};
+								xhr.onload = function() {
+									var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
 
-								timeout = clearTimeout(timeout);
+									timeout = clearTimeout(timeout);
 
-								if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
-									self.source = xhr.responseText;
+									if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
+										self.source = xhr.responseText;
 
-									emit('postRequest', self);
+										emit('postRequest', self);
 
-									handler.onPostRequest && handler.onPostRequest.call(self);
-									resolve.loader(self);
+										if(pledge.state === PLEDGE_PENDING) {
+											handler.onPostRequest && handler.onPostRequest.call(self);
+											resolve.loader(self);
 
-									// strict equality check required here, self.cache is valid when "null"
-									if(self.cache === NULL) {
-										deferred.pledge.then(function() { storage.set(self); });
+											// strict equality check required here, self.cache is valid when "null"
+											if(self.cache === NULL) {
+												pledge.then(function() {
+															storage.set(self);
+														}
+												);
+											}
+										}
+									} else {
+										deferred.reject(new Reason('error requesting', self.path));
 									}
-								} else {
-									deferred.reject(new Reason('error requesting', self.path));
-								}
-							};
+								};
 
-							xhr.open('GET', addTimestamp(self.url), true);
-							xhr.send();
+								xhr.open('GET', addTimestamp(self.url), true);
+								xhr.send();
 
-							timeout = setTimeout(function() { if(xhr.readyState < 4) { xhr.abort(); } }, settings.timeout);
+								timeout = setTimeout(function() {
+											if(xhr.readyState < 4) {
+												xhr.abort();
+											}
+										}, settings.timeout
+								);
+							}
 						} else {
 							setTimeout(function() {
 								resolve.loader(self);
@@ -921,9 +937,9 @@
 						emit('preCache', loader);
 
 						lifetime = loader.lifetime;
-						id       = STORAGE_PREFIX + '[' + path + ']',
+						id       = STORAGE_PREFIX + '[' + path + ']';
 
-								loader.state = { version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url };
+						loader.state = { version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url };
 
 						try {
 							spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
