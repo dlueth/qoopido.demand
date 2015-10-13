@@ -237,45 +237,53 @@
 			return path;
 		},
 		dependency: function(dependency, context) {
-			var path = resolve.path(dependency, context),
-				definition;
+			var path = isTypeOf(dependency, STRING_STRING) ? resolve.path(dependency, context) : NULL,
+				definition, deferred;
 
-			if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID)) {
-				switch(dependency) {
-					case DEMAND_ID:
-						path       = MODULE_PREFIX_LOCAL + path;
-						definition = function() {
-							var scopedDemand = demand.bind(context),
-								key;
+			if(path) {
+				if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID)) {
+					switch(dependency) {
+						case DEMAND_ID:
+							path       = MODULE_PREFIX_LOCAL + path;
+							definition = function() {
+								var scopedDemand = demand.bind(context),
+									key;
 
-							for(key in demand) {
-								scopedDemand[key] = demand[key];
-							}
+								for(key in demand) {
+									scopedDemand[key] = demand[key];
+								}
 
-							return scopedDemand;
-						};
+								return scopedDemand;
+							};
 
-						break;
-					case PROVIDE_ID:
-						path       = MODULE_PREFIX_LOCAL + path;
-						definition = function() {
-							return provide.bind(context);
-						};
+							break;
+						case PROVIDE_ID:
+							path       = MODULE_PREFIX_LOCAL + path;
+							definition = function() {
+								return provide.bind(context);
+							};
 
-						break;
-					case SETTINGS_ID:
-						path       = MODULE_PREFIX_SETTINGS + context;
-						definition = function() {
-							return settings.modules[context] || NULL;
-						};
+							break;
+						case SETTINGS_ID:
+							path       = MODULE_PREFIX_SETTINGS + context;
+							definition = function() {
+								return settings.modules[context] || NULL;
+							};
 
-						break;
+							break;
+					}
+
+					!registry[path] && provide(path, definition);
 				}
 
-				!registry[path] && provide(path, definition);
-			}
+				return (registry[path] || (registry[path] = new Loader(path, resolve.parameter(dependency, context)))).pledge;
+			} else {
+				deferred = Pledge.defer();
 
-			return (registry[path] || (registry[path] = new Loader(path, resolve.parameter(dependency, context)))).pledge;
+				deferred.resolve(dependency);
+
+				return deferred.pledge;
+			}
 		},
 		parameter: function(path, context) {
 			var parameter = path.match(regexMatchParameter),
