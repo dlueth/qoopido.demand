@@ -40,7 +40,7 @@
 				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
 				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
-				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.2,leaflet@0.7.3'
+				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
 			},
 			modules: {
 				'/demand/plugin/lzstring': {
