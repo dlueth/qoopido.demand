@@ -843,9 +843,9 @@
 							if(regexIsAbsolutePath.test(match[1])) {
 								resolver.href = self.url;
 
-								replacement = '//' + resolver.host + match[1];
+								replacement = resolver.protocol + '//' + resolver.host + match[1];
 							} else {
-								replacement = removeProtocol(resolve.url(self.url + '/../' + match[1]));
+								replacement = resolve.url(self.url + '/../' + match[1]);
 							}
 
 							source = source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
