@@ -749,11 +749,10 @@
 								xhr.send();
 
 								timeout = setTimeout(function() {
-											if(xhr.readyState < 4) {
-												xhr.abort();
-											}
-										}, settings.timeout
-								);
+									if(xhr.readyState < 4) {
+										xhr.abort();
+									}
+								}, settings.timeout);
 							}
 						} else {
 							setTimeout(function() {
