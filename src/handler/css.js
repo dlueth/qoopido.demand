@@ -17,7 +17,6 @@
 		resolver            = document.createElement('a'),
 		regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
 		regexMatchImport    = /@import\s+["'](.+?)["']/gi,
-		regexMatchProtocol  = /http(s?):\/\//gi,
 		regexIsAbsolutePath = /^\//i,
 		regexIsAbsoluteUri  = /^data:|http(s?):|\/\//i;
 
@@ -56,8 +55,6 @@
 					}
 				}
 
-				source = source.replace(regexMatchProtocol, '//');
-
 				self.source = source;
 			},
 			process: function() {
@@ -70,7 +67,7 @@
 				if(style.styleSheet) {
 					style.styleSheet.cssText = source;
 				} else {
-					style.innerHTML = source;
+					style.textContent = source;
 				}
 
 				style.setAttribute('demand-path', self.path);
