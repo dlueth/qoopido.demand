@@ -41,7 +41,7 @@
 		XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		regexIsAbsolutePath     = /^\//,
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
-		regexMatchTrailingSlash = /\/$/,
+		regexMatchTrailingSlash = /(.+)\/$/,
 		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 		regexMatchProtocol      = /^http(s?):/i,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
@@ -96,8 +96,8 @@
 			settings.lifetime = lifetime * 1000;
 		}
 
-		if(isTypeOf(base, STRING_STRING)) {
-			settings.pattern.base = new Pattern('', resolve.url(base.replace(regexMatchTrailingSlash, '')));
+		if(isTypeOf(base, STRING_STRING) && base !== '') {
+			settings.pattern.base = new Pattern('', base);
 		}
 
 		if(isObject(pattern)) {
@@ -571,7 +571,7 @@
 		var self = this;
 
 		self.weight       = pattern.length;
-		self.url          = resolve.url(url);
+		self.url          = resolve.url(url).replace(regexMatchTrailingSlash, '$1');
 		self.matchPattern = createRegularExpression('^' + escapeRegularExpression(pattern));
 		self.matchUrl     = createRegularExpression('^' + escapeRegularExpression(url));
 	}
