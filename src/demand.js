@@ -367,17 +367,6 @@
 		return +new Date();
 	}
 
-	function addTimestamp(url) {
-		resolver.href = url;
-
-		var value = resolver.search,
-			param = DEMAND_ID + '[time]=' + getTimestamp();
-
-		resolver.search += (value && value !== '?') ? '&' + param : '?' + param;
-
-		return resolver.href;
-	}
-
 	/**
 	 * /demand/modifier/removeProtocol
 	 *
@@ -745,7 +734,7 @@
 									}
 								};
 
-								xhr.open('GET', addTimestamp(self.url), true);
+								xhr.open('GET', self.url, true);
 								xhr.send();
 
 								timeout = setTimeout(function() {
