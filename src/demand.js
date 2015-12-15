@@ -43,7 +43,6 @@
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /(.+)\/$/,
 		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
-		regexMatchProtocol      = /^http(s?):/i,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
 		settings                = { cache: true, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
@@ -304,7 +303,7 @@
 				handler:  (parameter && parameter[3]) || settings.handler,
 				version:  (parameter && parameter[4]) || settings.version,
 				lifetime: (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime,
-				url:      match ? removeProtocol(resolve.url(match.process(path))) : path
+				url:      match ? resolve.url(match.process(path)) : path
 			};
 		},
 		loader: function(loader) {
@@ -365,17 +364,6 @@
 
 	function getTimestamp() {
 		return +new Date();
-	}
-
-	/**
-	 * /demand/modifier/removeProtocol
-	 *
-	 * @param url
-	 *
-	 * @returns {string}
-	 */
-	function removeProtocol(url) {
-		return url.replace(regexMatchProtocol, '');
 	}
 
 	/**
@@ -792,7 +780,6 @@
 	assign(MODULE_PREFIX + 'pledge', Pledge);
 	assign(MODULE_PREFIX + 'reason', Reason);
 	assign(MODULE_PREFIX + 'function/resolveUrl', resolve.url);
-	assign(MODULE_PREFIX + 'modifier/removeProtocol', removeProtocol);
 	assign(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
 	assign(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
 	assign(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
