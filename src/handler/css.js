@@ -58,24 +58,28 @@
 				self.source = source;
 			},
 			process: function() {
-				var self   = this,
-					style  = document.createElement('style'),
-					source = self.source;
+				var self    = this,
+					element = document.querySelector('[demand-path="' + self.path + '"]'),
+					source  = self.source;
 
-				style.type = 'text/css';
+				if(!element) {
+					element      = document.createElement('style');
+					element.type = 'text/css';
 
-				if(style.styleSheet) {
-					style.styleSheet.cssText = source;
-				} else {
-					style.textContent = source;
+					element.setAttribute('demand-path', self.path);
+					target.appendChild(element);
 				}
 
-				style.setAttribute('demand-path', self.path);
-
-				target.appendChild(style);
+				if(element.tagName === 'STYLE') {
+					if(element.styleSheet) {
+						element.styleSheet.cssText = source;
+					} else {
+						element.textContent = source;
+					}
+				}
 
 				setTimeout(function() {
-					provide(function() { return style; });
+					provide(function() { return element; });
 				});
 			}
 		};
