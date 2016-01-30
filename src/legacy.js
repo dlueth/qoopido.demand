@@ -3,7 +3,7 @@
  *
  * Polyfills required to provide IE8 compatibility
  *
- * Copyright (c) 2015 Dirk Lueth
+ * Copyright (c) 2016 Dirk Lueth
  *
  * Dual licensed under the MIT and GPL licenses.
  *  - http://www.opensource.org/licenses/mit-license.php
