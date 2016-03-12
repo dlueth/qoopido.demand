@@ -22,8 +22,8 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - additional custom handlers can be added easily
 - support for "probes" which are similar to require.js "shims", yet more flexible
 - support for "patterns" which are mostly equivalent to require.js "paths"
-- success handlers get passed all resolved modules
-- error handlers receive all rejected modules
+- success handlers get passed **all** resolved modules
+- error handlers receive **all** rejected modules
 
 
 ## Compatibility
@@ -184,7 +184,7 @@ As you might have guessed already ```main``` itself is also loaded as a module a
 
 - provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
-- provide an optional function named ```onPreRrocess```
+- provide an optional function named ```onPreProcess```
 - provide an optional ```process``` function that will handle DOM injection and final resolution of a module via an anonymous ```provide``` call
 
 Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```module``` which will automatically be used when no other handler is explicitly set.
