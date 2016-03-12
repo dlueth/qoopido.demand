@@ -14,7 +14,7 @@
 
 (function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippet) {
 	'use strict';
-
+	
 	var arrayPrototype          = Array.prototype,
 		arrayPrototypeSlice     = arrayPrototype.slice,
 		arrayPrototypeConcat    = arrayPrototype.concat,
@@ -50,7 +50,7 @@
 		mocks                   = {},
 		listener                = {},
 		resolve, regexMatchBaseUrl, queue, storage;
-
+	
 	/**
 	 * /demand
 	 */
@@ -58,14 +58,14 @@
 		var self         = this !== window ? this : NULL,
 			dependencies = arrayPrototypeSlice.call(arguments),
 			i = 0, dependency;
-
+		
 		for(; (dependency = dependencies[i]); i++) {
 			dependencies[i] = resolve.dependency(dependency, self);
 		}
-
+		
 		return Pledge.all(dependencies);
 	}
-
+	
 	function configure(parameter) {
 		var cache    = parameter.cache,
 			version  = parameter.version,
@@ -76,35 +76,35 @@
 			modules  = parameter.modules,
 			pointer  = settings.modules,
 			key;
-
+		
 		if(!pointer[MODULE_PREFIX_STORAGE]) {
 			pointer[MODULE_PREFIX_STORAGE] = settings.cache;
 		} else if(isTypeOf(cache, STRING_BOOLEAN) || isObject(cache)) {
 			pointer[MODULE_PREFIX_STORAGE] = cache;
 		}
-
+		
 		if(isTypeOf(version, STRING_STRING)) {
 			settings.version = version;
 		}
-
+		
 		if(isPositiveInteger(timeout)) {
 			settings.timeout = Math.min(Math.max(timeout, 2), 12) * 1000;
 		}
-
+		
 		if(isPositiveInteger(lifetime) && lifetime > 0) {
 			settings.lifetime = lifetime * 1000;
 		}
-
+		
 		if(isTypeOf(base, STRING_STRING) && base !== '') {
 			settings.pattern.base = new Pattern('', base);
 		}
-
+		
 		if(isObject(pattern)) {
 			for(key in pattern) {
 				key !== 'base' && (settings.pattern[key] = new Pattern(key, pattern[key]));
 			}
 		}
-
+		
 		if(isObject(modules)) {
 			for(key in modules) {
 				if(key !== MODULE_PREFIX_STORAGE) {
@@ -113,54 +113,54 @@
 			}
 		}
 	}
-
+	
 	function remove(path) {
 		if(registry[path]) {
 			!!registry[path].cache && storage.clean.path(path);
-
+			
 			delete registry[path];
 			delete mocks[path];
 		}
 	}
-
+	
 	function on(events, callback) {
 		var event;
-
+		
 		if(isTypeOf(events, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION)) {
 			events = events.split(' ');
-
+			
 			while(event = events.shift()) {
 				if(regexMatchEvent.test(event)) {
 					(listener[event] || (listener[event] = [])).push(callback);
 				}
 			}
 		}
-
+		
 		return demand;
 	}
-
+	
 	function emit(event) {
 		var pointer = listener[event],
 			parameter, i, callback;
-
+		
 		if(pointer) {
 			parameter = arrayPrototypeSlice.call(arguments, 1);
-
+			
 			for(i = 0; (callback = pointer[i]); i++) {
 				callback.apply(NULL, parameter);
 			}
 		}
 	}
-
+	
 	function list(state) {
 		var keys, path, pledge;
-
+		
 		if(state) {
 			keys = [];
-
+			
 			for(path in registry) {
 				pledge = registry[path].pledge;
-
+				
 				if(pledge.state === state || pledge.cache === state) {
 					keys.push(path);
 				}
@@ -168,10 +168,10 @@
 		} else {
 			keys = Object.keys(registry);
 		}
-
+		
 		return keys;
 	}
-
+	
 	/**
 	 * /provide
 	 */
@@ -181,21 +181,21 @@
 			dependencies = isArray(parameter[path ? 1 : 0]) ? parameter[path ? 1 : 0] : NULL,
 			definition   = dependencies ? parameter[path ? 2 : 1] : parameter[path ? 1 : 0],
 			deferred, pledge, isFunction;
-
+		
 		if(!path && queue.current) {
 			path = queue.current.path;
-
+			
 			queue.current = NULL;
-
+			
 			queue.items > 0 && queue.process();
 		}
-
+		
 		if(path) {
 			path       = resolve.path(path, this);
 			deferred   = registry[path] || (registry[path] = Pledge.defer());
 			pledge     = deferred.pledge;
 			isFunction = isTypeOf(definition, STRING_FUNCTION);
-
+			
 			if(pledge.state === PLEDGE_PENDING) {
 				if(dependencies) {
 					demand
@@ -212,7 +212,7 @@
 			throw 'unspecified anonymous provide';
 		}
 	}
-
+	
 	resolve = {
 		/**
 		 * /demand/modifier/resolveUrl
@@ -223,22 +223,22 @@
 		 */
 		url: function(url) {
 			resolver.href = url;
-
+			
 			return resolver.href;
 		},
 		path: function(path, context) {
 			path = path.replace(regexMatchParameter, '');
-
+			
 			if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
 				path = '/' + resolve.url(((context && resolve.url(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
 			}
-
+			
 			return path;
 		},
 		dependency: function(dependency, context) {
 			var path = isTypeOf(dependency, STRING_STRING) ? resolve.path(dependency, context) : NULL,
 				definition, deferred;
-
+			
 			if(path) {
 				if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID)) {
 					switch(dependency) {
@@ -247,40 +247,40 @@
 							definition = function() {
 								var scopedDemand = demand.bind(context),
 									key;
-
+								
 								for(key in demand) {
 									scopedDemand[key] = demand[key];
 								}
-
+								
 								return scopedDemand;
 							};
-
+							
 							break;
 						case PROVIDE_ID:
 							path       = MODULE_PREFIX_LOCAL + path;
 							definition = function() {
 								return provide.bind(context);
 							};
-
+							
 							break;
 						case SETTINGS_ID:
 							path       = MODULE_PREFIX_SETTINGS + context;
 							definition = function() {
 								return settings.modules[context] || NULL;
 							};
-
+							
 							break;
 					}
-
+					
 					!registry[path] && provide(path, definition);
 				}
-
+				
 				return (registry[path] || (registry[path] = new Loader(path, resolve.parameter(dependency, context)))).pledge;
 			} else {
 				deferred = Pledge.defer();
-
+				
 				deferred.resolve(dependency);
-
+				
 				return deferred.pledge;
 			}
 		},
@@ -288,15 +288,15 @@
 			var parameter = path.match(regexMatchParameter),
 				pattern   = settings.pattern,
 				key, match;
-
+			
 			path = resolve.path(path, context);
-
+			
 			if(!regexIsAbsoluteUri.test(path)) {
 				for(key in pattern) {
 					pattern[key].matches(path) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 				}
 			}
-
+			
 			return {
 				mock:     (parameter && parameter[1]) ? true : false,
 				cache:    (parameter && parameter[2]) ? false : NULL,
@@ -308,16 +308,16 @@
 		},
 		loader: function(loader) {
 			var handler = loader.handler;
-
+			
 			emit('preProcess', loader);
-
+			
 			if(loader.deferred.pledge.state === PLEDGE_PENDING) {
 				handler.onPreProcess && handler.onPreProcess.call(loader);
 				handler.process && queue.add(loader);
 			}
 		}
 	};
-
+	
 	function log(error) {
 		/* eslint-disable no-console */
 		if(!isTypeOf(console, 'undefined')) {
@@ -325,7 +325,7 @@
 		}
 		/* eslint-enable no-console */
 	}
-
+	
 	/**
 	 * /demand/mock
 	 *
@@ -335,37 +335,40 @@
 	 */
 	function mock(modules) {
 		var pledges = [],
-			i = 0, module, parameter;
-
-		for(; (module  = modules[i]); i++) {
-			parameter  = module.match(regexMatchParameter);
-			module     = module.replace(regexMatchParameter, '');
-			modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-
-			pledges.push((mocks[module] = Pledge.defer()).pledge.then(function(loader) { delete mocks[loader.path] }));
+			i = 0, module, pledge, parameter;
+		
+		for(; (module = modules[i]); i++) {
+			parameter     = module.match(regexMatchParameter);
+			module        = module.replace(regexMatchParameter, '');
+			modules[i]    = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
+			pledge        = (mocks[module] = Pledge.defer()).pledge;
+			
+			pledge.then(function(loader) { delete mocks[loader.path]; });
+			
+			pledges.push(pledge);
 		}
-
+		
 		demand.apply(NULL, modules);
-
+		
 		return Pledge.all(pledges);
 	}
-
+	
 	function assign(id, factory) {
 		provide(id, function() { return factory; });
 	}
-
+	
 	function escapeRegularExpression(value) {
 		return value.replace(regexMatchRegex, '\\$&');
 	}
-
+	
 	function createRegularExpression(expression, modifier) {
 		return new RegExp(expression, modifier);
 	}
-
+	
 	function getTimestamp() {
 		return +new Date();
 	}
-
+	
 	/**
 	 * /demand/validator/isArray
 	 *
@@ -376,7 +379,7 @@
 	function isArray(value) {
 		return objectPrototypeToString.call(value) === '[object Array]';
 	}
-
+	
 	/**
 	 * /demand/validator(isObject
 	 *
@@ -387,7 +390,7 @@
 	function isObject(object) {
 		return object && isTypeOf(object, 'object');
 	}
-
+	
 	/**
 	 * /demand/validator/isTypeOf
 	 *
@@ -399,7 +402,7 @@
 	function isTypeOf(object, type) {
 		return typeof object === type;
 	}
-
+	
 	/**
 	 * /demand/validator/isInstanceOf
 	 *
@@ -411,7 +414,7 @@
 	function isInstanceOf(object, module) {
 		return object instanceof module;
 	}
-
+	
 	/**
 	 * /demand/validator/isPositiveInteger
 	 *
@@ -422,7 +425,7 @@
 	function isPositiveInteger(value) {
 		return isTypeOf(value, 'number') && isFinite(value) && Math.floor(value) === value && value >= 0;
 	}
-
+	
 	/**
 	 * /demand/pledge
 	 *
@@ -433,76 +436,98 @@
 	function Pledge(executor) {
 		var self     = this,
 			listener = { resolved: [], rejected: [] };
-
+		
 		function resolve() {
 			handle(PLEDGE_RESOLVED, arguments);
 		}
-
+		
 		function reject() {
 			handle(PLEDGE_REJECTED, arguments);
 		}
-
+		
 		function handle(aState, aParameter) {
+			var result;
+
 			if(self.state === PLEDGE_PENDING) {
 				self.state = aState;
 				self.value = aParameter;
+				
+				listener[aState].forEach(function(pointer) {
+					try {
+						result = pointer.handler.apply(NULL, aParameter);
 
-				listener[aState].forEach(function(aHandler) {
-					aHandler.apply(NULL, aParameter);
+						if(result && typeof result.then === 'function') {
+							result.then(pointer.defered.resolve, pointer.defered.reject);
+						} else {
+							pointer.defered.resolve(result);
+						}
+					} catch(exception) {
+						pointer.defered.reject(exception);
+					}
 				});
 			}
 		}
-
+		
 		self.then = function(aResolved, aRejected) {
+			var defered = Pledge.defer();
+			
 			if(self.state === PLEDGE_PENDING) {
-				aResolved && listener[PLEDGE_RESOLVED].push(aResolved);
-				aRejected && listener[PLEDGE_REJECTED].push(aRejected);
+				aResolved && listener[PLEDGE_RESOLVED].push({ handler: aResolved, defered: defered });
+				aRejected && listener[PLEDGE_REJECTED].push({ handler: aRejected, defered: defered });
 			} else {
 				switch(self.state) {
 					case PLEDGE_RESOLVED:
-						aResolved && aResolved.apply(NULL, self.value);
-
+						try {
+							defered.resolve(aResolved && aResolved.apply(NULL, self.value));
+						} catch(exception) {
+							defered.reject(exception);
+						}
+						
 						break;
 					case PLEDGE_REJECTED:
-						aRejected && aRejected.apply(NULL, self.value);
-
+						try {
+							defered.reject(aRejected && aRejected.apply(NULL, self.value));
+						} catch(exception) {
+							defered.reject(exception);
+						}
+						
 						break;
 				}
 			}
-
-			return self;
+			
+			return defered.pledge;
 		};
-
+		
 		executor(resolve, reject);
 	}
-
+	
 	Pledge.prototype = {
 		state:  PLEDGE_PENDING
 		/* only for reference
-		value:  NULL,
-		then:   NULL,
-		cache:  NULL, // will only be set by storage
-		*/
+		 value:  NULL,
+		 then:   NULL,
+		 cache:  NULL, // will only be set by storage
+		 */
 	};
-
+	
 	Pledge.defer = function() {
 		var self = {};
-
+		
 		self.pledge = new Pledge(function(aResolve, aReject) {
 			self.resolve = aResolve;
 			self.reject  = aReject;
 		});
-
+		
 		return self;
 	};
-
+	
 	Pledge.all = function(pledges) {
 		var deferred      = Pledge.defer(),
 			resolved      = [],
 			rejected      = [],
 			countTotal    = pledges.length,
 			countResolved = 0;
-
+		
 		function checkState() {
 			if(countResolved === countTotal) {
 				deferred.resolve.apply(NULL, arrayPrototypeConcat.apply([], resolved));
@@ -510,56 +535,56 @@
 				deferred.reject.apply(NULL, arrayPrototypeConcat.apply([], rejected));
 			}
 		}
-
+		
 		pledges.forEach(function(pledge, index) {
 			pledge.then(
 				function() {
 					resolved[index] = arrayPrototypeSlice.call(arguments);
-
+					
 					countResolved++;
-
+					
 					checkState();
 				},
 				function() {
 					rejected.push(arrayPrototypeSlice.call(arguments));
-
+					
 					checkState();
 				}
 			);
 		});
-
+		
 		return deferred.pledge;
 	};
-
+	
 	Pledge.race = function(pledges) {
 		var deferred = Pledge.defer();
-
+		
 		pledges.forEach(function(pledge) {
 			pledge.then(
 				deferred.resolve,
 				deferred.reject
 			);
 		});
-
+		
 		return deferred.pledge;
 	};
-
+	
 	function Pattern(pattern, url) {
 		var self = this;
-
+		
 		self.weight       = pattern.length;
 		self.url          = resolve.url(url).replace(regexMatchTrailingSlash, '$1');
 		self.matchPattern = createRegularExpression('^' + escapeRegularExpression(pattern));
 		self.matchUrl     = createRegularExpression('^' + escapeRegularExpression(url));
 	}
-
+	
 	Pattern.prototype = {
 		/* only for reference
-		weight:       0,
-		url:          NULL,
-		matchPattern: NULL,
-		matchUrl:     NULL,
-		*/
+		 weight:       0,
+		 url:          NULL,
+		 matchPattern: NULL,
+		 matchUrl:     NULL,
+		 */
 		matches: function(path) {
 			return this.matchPattern.test(path);
 		},
@@ -568,11 +593,11 @@
 		},
 		process: function(path) {
 			var self = this;
-
+			
 			return path.replace(self.matchPattern, self.url);
 		}
 	};
-
+	
 	/**
 	 * /demand/reason
 	 *
@@ -584,45 +609,45 @@
 	 */
 	function Reason(message, module, stack) {
 		var self = this;
-
+		
 		self.message = message;
-
+		
 		module && (self.module = module);
 		stack && (self.stack = arrayPrototypeSlice.call(stack));
 	}
-
+	
 	Reason.prototype = {
 		/* only for reference
-		message: NULL,
-		module:  NULL,
-		stack:   NULL,
-		*/
+		 message: NULL,
+		 module:  NULL,
+		 stack:   NULL,
+		 */
 		toString: function() {
 			var self   = this,
 				result = DEMAND_ID + ': ' + self.message + ' ' + (self.module ? '"' + self.module + '"' : '');
-
+			
 			if(self.stack) {
 				result = Reason.traverse(self.stack, result, 1);
 			}
-
+			
 			return result;
 		}
 	};
-
+	
 	Reason.traverse = function(stack, value, depth) {
 		var indention = new Array(depth + 1).join(' ');
-
+		
 		stack.forEach(function(item) {
 			value += '\n' + indention + '> ' + item.message + ' ' + (item.module ? '"' + item.module + '"' : '');
-
+			
 			if(item.stack) {
 				value = Reason.traverse(item.stack, value, depth + 1);
 			}
 		});
-
+		
 		return value;
 	};
-
+	
 	/**
 	 * /demand/queue
 	 *
@@ -630,64 +655,64 @@
 	 */
 	function Queue() {
 		var self = this;
-
+		
 		self.items = 0;
 		self.stack = [];
 	}
-
+	
 	Queue.prototype = {
 		/* only for reference
-		items:   NULL,
-		queue:   NULL,
-		current: NULL,
-		*/
+		 items:   NULL,
+		 queue:   NULL,
+		 current: NULL,
+		 */
 		add: function() {
 			queue.stack  = queue.stack.concat(arrayPrototypeSlice.call(arguments));
 			queue.items += arguments.length;
-
+			
 			!queue.current && queue.process();
 		},
 		process: function() {
 			var current;
-
+			
 			if(queue.items) {
 				queue.items--;
-
+				
 				current = queue.current = queue.stack.shift();
-
+				
 				current.handler.process.call(current);
 				emit('postProcess', current);
 			}
 		}
 	};
-
+	
 	function Loader(path, parameter) {
 		var self     = this,
 			deferred = Pledge.defer(),
 			pledge   = deferred.pledge,
 			handler  = parameter.handler,
 			xhr, timeout;
-
+		
 		self.deferred = deferred;
 		self.path     = path;
 		self.url      = parameter.url;
 		self.cache    = parameter.cache;
 		self.version  = parameter.version;
 		self.lifetime = parameter.lifetime;
-
+		
 		demand(MODULE_PREFIX_HANDLER + handler)
 			.then(
 				function(handler) {
 					self.handler = handler;
 					self.mock    = parameter.mock ? mocks[self.path] : NULL;
-
+					
 					handler.onPreRequest && handler.onPreRequest.call(self);
-
+					
 					if(!self.mock) {
 						// strict equality check required here, self.cache is valid when "null"
 						if(self.cache === false || !storage.get(self)) {
 							emit('preRequest', self);
-
+							
 							if(pledge.state === PLEDGE_PENDING) {
 								xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
 								xhr.onprogress = function() {
@@ -697,23 +722,23 @@
 								};
 								xhr.onload = function() {
 									var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
-
+									
 									timeout = clearTimeout(timeout);
-
+									
 									if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
 										self.source = xhr.responseText;
-
+										
 										emit('postRequest', self);
-
+										
 										if(pledge.state === PLEDGE_PENDING) {
 											handler.onPostRequest && handler.onPostRequest.call(self);
 											resolve.loader(self);
-
+											
 											// strict equality check required here, self.cache is valid when "null"
 											if(self.cache === NULL) {
 												pledge.then(function() {
-															storage.set(self);
-														}
+														storage.set(self);
+													}
 												);
 											}
 										}
@@ -721,10 +746,10 @@
 										deferred.reject(new Reason('error requesting', self.path));
 									}
 								};
-
+								
 								xhr.open('GET', self.url, true);
 								xhr.send();
-
+								
 								timeout = setTimeout(function() {
 									if(xhr.readyState < 4) {
 										xhr.abort();
@@ -751,30 +776,30 @@
 				},
 				deferred.reject
 			);
-
+		
 		return deferred;
 	}
-
+	
 	/* only for reference
-	Loader.prototype = {
-		deferred: NULL,
-		path:     NULL,
-		url:      NULL,
-		handler:  NULL,
-		source:   NULL,
-		mock:     NULL,
-		cache:    NULL,
-		lifetime: NULL,
-		version:  NULL,
-		state:    { version: NULL, expires: NULL, url: NULL } // will only be set by storage
-	};
-	*/
-
+	 Loader.prototype = {
+	 deferred: NULL,
+	 path:     NULL,
+	 url:      NULL,
+	 handler:  NULL,
+	 source:   NULL,
+	 mock:     NULL,
+	 cache:    NULL,
+	 lifetime: NULL,
+	 version:  NULL,
+	 state:    { version: NULL, expires: NULL, url: NULL } // will only be set by storage
+	 };
+	 */
+	
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
-
+	
 	configure({ base: '/', pattern: { '/demand': resolve.url(((snippet && snippet.url) || location.href) + '/../').slice(0, -1)} });
 	snippet && snippet.settings && configure(snippet.settings);
-
+	
 	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
 	assign(MODULE_PREFIX + 'mock', mock);
 	assign(MODULE_PREFIX + 'pledge', Pledge);
@@ -785,14 +810,14 @@
 	assign(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
 	assign(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
 	assign(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
-
+	
 	demand.configure = configure;
 	demand.remove    = remove;
 	demand.on        = on;
 	demand.list      = list;
 	global.demand    = demand;
 	global.provide   = provide;
-
+	
 	/**
 	 * /demand/handler/module
 	 */
@@ -800,33 +825,33 @@
 		function definition() {
 			var target              = document.getElementsByTagName('head')[0],
 				regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
-
+			
 			return {
 				matchType: /^(application|text)\/javascript/,
 				onPreRequest: function() {
 					var self = this,
 						url  = self.url;
-
+					
 					self.url = url.slice(-3) !== '.js' ? url + '.js' : url;
 				},
 				onPostRequest: function() {
 					var self   = this,
 						source = self.source,
 						match, replacement;
-
+					
 					if(source) {
 						while(match = regexMatchSourcemap.exec(source)) {
 							if(regexIsAbsolutePath.test(match[1])) {
 								resolver.href = self.url;
-
+								
 								replacement = resolver.protocol + '//' + resolver.host + match[1];
 							} else {
 								replacement = resolve.url(self.url + '/../' + match[1]);
 							}
-
+							
 							source = source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
 						}
-
+						
 						self.source = source;
 					}
 				},
@@ -834,23 +859,23 @@
 					var self   = this,
 						source = self.source,
 						script;
-
+					
 					if(source) {
 						script       = document.createElement('script');
 						script.async = true;
 						script.text  = source;
-
+						
 						script.setAttribute('demand-path', self.path);
-
+						
 						target.appendChild(script);
 					}
 				}
 			};
 		}
-
+		
 		provide(MODULE_PREFIX_HANDLER + 'module', definition);
 	}());
-
+	
 	/**
 	 * /demand/storage
 	 */
@@ -864,7 +889,7 @@
 				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage,
 				pattern              = [],
 				enabled, key;
-
+			
 			if(isObject(settings)) {
 				for(key in settings) {
 					pattern.push({ pattern: key, weight: key.length, state: settings[key] });
@@ -872,41 +897,41 @@
 			} else if(isTypeOf(settings, STRING_BOOLEAN)) {
 				enabled = settings;
 			}
-
+			
 			function isEnabled(path) {
 				var i = 0, pointer, match;
-
+				
 				for(; (pointer = pattern[i]); i++) {
 					if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
 						match = pointer;
 					}
 				}
-
+				
 				return match ? match.state : false;
 			}
-
+			
 			function Storage() {}
-
+			
 			Storage.prototype = {
 				get: function(loader) {
 					var path = loader.path,
 						id, state, pledge;
-
+					
 					if(localStorage && (enabled || isEnabled(path))) {
 						id     = STORAGE_PREFIX + '[' + path + ']';
 						state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
 						pledge = loader.deferred.pledge;
-
+						
 						if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
 							pledge.cache  = 'hit';
 							loader.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
-
+							
 							emit('cacheHit', loader);
-
+							
 							return loader.source;
 						} else {
 							pledge.cache = 'miss';
-
+							
 							emit('cacheMiss', loader);
 							this.clear.path(path);
 						}
@@ -915,26 +940,26 @@
 				set: function(loader) {
 					var path = loader.path,
 						lifetime, id, spaceBefore;
-
+					
 					if(localStorage && (enabled || isEnabled(path))) {
 						emit('preCache', loader);
-
+						
 						lifetime = loader.lifetime;
 						id       = STORAGE_PREFIX + '[' + path + ']';
-
+						
 						loader.state = { version: loader.version, expires: lifetime ? getTimestamp() + lifetime : lifetime, url: loader.url };
-
+						
 						try {
 							spaceBefore = hasRemainingSpace ? localStorage.remainingSpace : NULL;
-
+							
 							localStorage.setItem(id + STORAGE_SUFFIX_VALUE, loader.source);
 							localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(loader.state));
-
+							
 							// strict equality check with "===" is required due to spaceBefore might be "0"
 							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
 								throw 'QUOTA_EXCEEDED_ERR';
 							}
-
+							
 							emit('postCache', loader);
 						} catch(error) {
 							emit('cacheExceed', loader);
@@ -944,23 +969,23 @@
 				clear: {
 					path: function(path) {
 						var id;
-
+						
 						if(localStorage) {
 							id = STORAGE_PREFIX + '[' + path + ']';
-
+							
 							localStorage.removeItem(id + STORAGE_SUFFIX_STATE);
 							localStorage.removeItem(id + STORAGE_SUFFIX_VALUE);
-
+							
 							emit('cacheClear', path);
 						}
 					},
 					all: function() {
 						var key, match;
-
+						
 						if(localStorage) {
 							for(key in localStorage) {
 								match = key.match(regexMatchState);
-
+								
 								if(match) {
 									this.path(match[1]);
 								}
@@ -969,14 +994,14 @@
 					},
 					expired: function() {
 						var key, match, state;
-
+						
 						if(localStorage) {
 							for(key in localStorage) {
 								match = key.match(regexMatchState);
-
+								
 								if(match) {
 									state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
-
+									
 									if(state && state.expires > 0 && state.expires <= getTimestamp()) {
 										this.path(match[1]);
 									}
@@ -986,18 +1011,18 @@
 					}
 				}
 			};
-
+			
 			storage = new Storage();
 			storage.clear.expired();
-
+			
 			demand.clear = storage.clear;
-
+			
 			return storage;
 		}
-
+		
 		provide(MODULE_PREFIX_STORAGE, [ 'settings' ], definition);
 	}());
-
+	
 	if(snippet && snippet.main) {
 		demand(snippet.main);
 	}
