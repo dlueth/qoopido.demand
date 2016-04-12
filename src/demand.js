@@ -42,15 +42,15 @@
 		regexIsAbsolutePath     = /^\//,
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /(.+)\/$/,
-		regexMatchParameter     = /^(mock:)?(!)?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
+		regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?(!)?/,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
-		settings                = { cache: true, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
+		settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 		registry                = {},
 		mocks                   = {},
 		listener                = {},
 		resolve, regexMatchBaseUrl, queue, storage;
-	
+
 	/**
 	 * /demand
 	 */
@@ -76,11 +76,13 @@
 			modules  = parameter.modules,
 			pointer  = settings.modules,
 			key;
-		
-		if(!pointer[MODULE_PREFIX_STORAGE]) {
-			pointer[MODULE_PREFIX_STORAGE] = settings.cache;
-		} else if(isTypeOf(cache, STRING_BOOLEAN) || isObject(cache)) {
-			pointer[MODULE_PREFIX_STORAGE] = cache;
+
+		if(isTypeOf(cache, STRING_BOOLEAN)) {
+			settings.cache[''] = { weight: 0, state: cache };
+		} else if(isObject(cache)) {
+			for(key in cache) {
+				settings.cache[key] = { weight: key.length, state: cache[key] };
+			}
 		}
 		
 		if(isTypeOf(version, STRING_STRING)) {
@@ -296,10 +298,10 @@
 					pattern[key].matches(path) && (!match || match.weight < pattern[key].weight) && (match = pattern[key]);
 				}
 			}
-			
+
 			return {
 				mock:     (parameter && parameter[1]) ? true : false,
-				cache:    (parameter && parameter[2]) ? false : NULL,
+				cache:    (parameter && parameter[2]) ? parameter[2] === '+' : NULL,
 				handler:  (parameter && parameter[3]) || settings.handler,
 				version:  (parameter && parameter[4]) || settings.version,
 				lifetime: (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime,
@@ -699,7 +701,7 @@
 		self.cache    = parameter.cache;
 		self.version  = parameter.version;
 		self.lifetime = parameter.lifetime;
-		
+
 		demand(MODULE_PREFIX_HANDLER + handler)
 			.then(
 				function(handler) {
@@ -709,10 +711,9 @@
 					handler.onPreRequest && handler.onPreRequest.call(self);
 					
 					if(!self.mock) {
-						// strict equality check required here, self.cache is valid when "null"
 						if(self.cache === false || !storage.get(self)) {
 							emit('preRequest', self);
-							
+
 							if(pledge.state === PLEDGE_PENDING) {
 								xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
 								xhr.onprogress = function() {
@@ -733,9 +734,8 @@
 										if(pledge.state === PLEDGE_PENDING) {
 											handler.onPostRequest && handler.onPostRequest.call(self);
 											resolve.loader(self);
-											
-											// strict equality check required here, self.cache is valid when "null"
-											if(self.cache === NULL) {
+
+											if(self.cache !== false) {
 												pledge.then(function() {
 														storage.set(self);
 													}
@@ -797,7 +797,7 @@
 	
 	regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolve.url('/')));
 	
-	configure({ base: '/', pattern: { '/demand': resolve.url(((snippet && snippet.url) || location.href) + '/../').slice(0, -1)} });
+	configure({ cache: true, base: '/', pattern: { '/demand': resolve.url(((snippet && snippet.url) || location.href) + '/../').slice(0, -1)} });
 	snippet && snippet.settings && configure(snippet.settings);
 	
 	assign(MODULE_PREFIX + 'queue', (queue = new Queue()).add);
@@ -880,33 +880,29 @@
 	 * /demand/storage
 	 */
 	(function(){
-		function definition(settings) {
+		function definition() {
 			var STORAGE_PREFIX       = '[' + DEMAND_ID + ']',
 				STORAGE_SUFFIX_STATE = '[state]',
 				STORAGE_SUFFIX_VALUE = '[value]',
 				regexMatchState      = createRegularExpression('^' + escapeRegularExpression(STORAGE_PREFIX) + '\\[(.+?)\\]' + escapeRegularExpression(STORAGE_SUFFIX_STATE) + '$'),
 				localStorage         = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return false; } }()),
-				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage,
-				pattern              = [],
-				enabled, key;
-			
-			if(isObject(settings)) {
-				for(key in settings) {
-					pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+				hasRemainingSpace    = localStorage && 'remainingSpace' in localStorage;
+
+			function isEnabled(loader) {
+				var key, pointer, match;
+
+				if(loader.cache !== NULL) {
+					return loader.cache;
 				}
-			} else if(isTypeOf(settings, STRING_BOOLEAN)) {
-				enabled = settings;
-			}
-			
-			function isEnabled(path) {
-				var i = 0, pointer, match;
-				
-				for(; (pointer = pattern[i]); i++) {
-					if(path.indexOf(pointer.pattern) === 0 && (!match || pointer.weight > match.weight)) {
+
+				for(key in settings.cache) {
+					pointer = settings.cache[key];
+
+					if(loader.path.indexOf(key) === 0 && (!match || pointer.weight > match.weight)) {
 						match = pointer;
 					}
 				}
-				
+
 				return match ? match.state : false;
 			}
 			
@@ -917,7 +913,7 @@
 					var path = loader.path,
 						id, state, pledge;
 					
-					if(localStorage && (enabled || isEnabled(path))) {
+					if(localStorage && isEnabled(loader)) {
 						id     = STORAGE_PREFIX + '[' + path + ']';
 						state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
 						pledge = loader.deferred.pledge;
@@ -940,10 +936,10 @@
 				set: function(loader) {
 					var path = loader.path,
 						lifetime, id, spaceBefore;
-					
-					if(localStorage && (enabled || isEnabled(path))) {
+
+					if(localStorage && isEnabled(loader)) {
 						emit('preCache', loader);
-						
+
 						lifetime = loader.lifetime;
 						id       = STORAGE_PREFIX + '[' + path + ']';
 						
@@ -1020,7 +1016,7 @@
 			return storage;
 		}
 		
-		provide(MODULE_PREFIX_STORAGE, [ 'settings' ], definition);
+		provide(MODULE_PREFIX_STORAGE, definition);
 	}());
 	
 	if(snippet && snippet.main) {
