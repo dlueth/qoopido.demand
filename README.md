@@ -73,7 +73,7 @@ You may as well use the uglified version:
 The above snippet is very similar to the one Google Analytics uses. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
 
 ## Configuration options
-The last parameter of the above code snippet is a configuration object. Tt just shows the properties you will most frequently set. There are some more options, less frequently used, that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
+The last parameter of the above code snippet is a configuration object. It just shows the properties you will most frequently set. There are some more options, less frequently used, that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
 
 ```javascript
 {
@@ -115,7 +115,7 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 				
 	// optional
 	pattern: {
-		'/qoopido':   '[path/url to Qoopido.js]',
+		'/nucleus':   '[path/url to Qoopido.nucleus]',
 		// just an example, loading jQuery + bundle 
 		// will not work due to the nature of jQuery
 		'/jquery':    '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
@@ -124,7 +124,7 @@ The last parameter of the above code snippet is a configuration object. Tt just 
 
 	// per module configuration (if applicable)
 	modules: {
-		// configure the legacy handlr
+		// configure the legacy handler
 		'/demand/handler/legacy': {
 			'/jquery': {
 				probe: function() { return global.jQuery; }
@@ -258,14 +258,16 @@ demand('css@2.0.4#2000!AnyCssModule').then(
 );
 ```
 
-will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds. If you want to totally suppress caching for a particular module simply prefix the complete path statement with a ```!```, e.g.
+will tell Qoopido.demand to load your ```AnyCssModule``` via the CSS handler and cache it at version ```2.0.4``` for ```2000``` seconds if cache is enabled either globally or for this specific module via ```demand.configure```. You may, in rare cases, want to force a module to either be cached or not overriding any global configuration which can be done by:
 
 ```javascript
-demand('!css!AnyCssModule').then(
+demand('-css!AnyCssModule').then(
 	function() {}
 );
 ```
-As any parameter that are part of the path declaration are optional you gain total control over when and how Qoopido.demand caches your modules!
+Prefixing the module's path with a ```-``` will completely disable any caching for this specific demand call whereas prefixing it with a ```+``` will force it to be cached disregarding any global cache settings.
+
+As any parameter that is part of the path declaration is optional you gain total control over when and how Qoopido.demand caches your modules!
 
 
 ## Providing inline modules
@@ -317,7 +319,7 @@ Path definitions in demand are totally flexible. Relative paths as well as absol
 
 There is on exception to this rule. When providing a module with dependencies these dependencies will get resolved against the modules own path, if the dependencies path is relative.
 
-Absolute URLs starting either with a protocol or ```//``` will not get altered beside removing the protocol, if present.
+Absolute URLs starting either with a protocol or ```//``` will not get altered at all.
 
 As always resolving relative paths against ```base``` might not be desired and you would prefer or need a relative resolution demand provides two special dependencies:
 
@@ -368,3 +370,13 @@ Demand also provides means to get information of the state of modules. Similar t
 	// .. that no valid cache was found but should be cached
 	demand.list('miss');
 ```
+
+
+## Removing loaded modules
+If you need a possibility to remove an already loaded Module and its cache to force a reload (for, e.g., "hot reloading") Qoopido.demand provides a built-in ```demand.remove``` method that accepts a module path as argument. The code snippet
+
+```javascript
+demand.remove('/nucleus/dom/element');
+```
+
+will remove any loaded version of this module from demand and will also clear the module's cache if it exists so that the next call of ```demand('/nucleus/dom/element')``` will fetch a fresh copy via XHR.
