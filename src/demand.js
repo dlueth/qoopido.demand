@@ -42,7 +42,7 @@
 		regexIsAbsolutePath     = /^\//,
 		regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 		regexMatchTrailingSlash = /(.+)\/$/,
-		regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?(!)?/,
+		regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 		regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 		regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Request|Process|Cache)$/,
 		settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
