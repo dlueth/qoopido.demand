@@ -455,16 +455,12 @@
 				self.value = aParameter;
 				
 				listener[aState].forEach(function(pointer) {
-					try {
-						result = pointer.handler.apply(NULL, aParameter);
+					result = pointer.handler.apply(NULL, aParameter);
 
-						if(result && typeof result.then === 'function') {
-							result.then(pointer.defered.resolve, pointer.defered.reject);
-						} else {
-							pointer.defered.resolve(result);
-						}
-					} catch(exception) {
-						pointer.defered.reject(exception);
+					if(result && typeof result.then === 'function') {
+						result.then(pointer.defered.resolve, pointer.defered.reject);
+					} else {
+						pointer.defered.resolve(result);
 					}
 				});
 			}
@@ -479,20 +475,12 @@
 			} else {
 				switch(self.state) {
 					case PLEDGE_RESOLVED:
-						try {
-							defered.resolve(aResolved && aResolved.apply(NULL, self.value));
-						} catch(exception) {
-							defered.reject(exception);
-						}
-						
+						defered.resolve(aResolved && aResolved.apply(NULL, self.value));
+
 						break;
 					case PLEDGE_REJECTED:
-						try {
-							defered.reject(aRejected && aRejected.apply(NULL, self.value));
-						} catch(exception) {
-							defered.reject(exception);
-						}
-						
+						defered.reject(aRejected && aRejected.apply(NULL, self.value));
+
 						break;
 				}
 			}
