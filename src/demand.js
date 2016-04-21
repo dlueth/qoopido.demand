@@ -815,7 +815,7 @@
 				regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
 			
 			return {
-				matchType: /^(application|text)\/javascript/,
+				matchType: /^(application|text)\/(x-)?javascript/,
 				onPreRequest: function() {
 					var self = this,
 						url  = self.url;
