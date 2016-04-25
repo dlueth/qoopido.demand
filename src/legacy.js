@@ -50,32 +50,6 @@
 		};
 	}
 
-	if(!arrayPrototype.forEach) {
-		arrayPrototype.forEach = function(callback, context) {
-			var self = this,
-				object, length, i = 0;
-
-			if(self !== NULL) {
-				object = Object(self);
-				length = object.length >>> 0;
-
-				if(isTypeOf(callback, STRING_FUNCTION)) {
-					while(i < length) {
-						if(i in object) {
-							callback.call(context, object[i], i, object);
-						}
-
-						i++;
-					}
-				} else {
-					throw new TypeError(callback + ' is not a function');
-				}
-			} else {
-				throw new TypeError('this is null or not defined');
-			}
-		};
-	}
-
 	if(!Object.keys) {
 		Object.keys = (function() {
 			var hasOwnProperty = objectPrototype.hasOwnProperty,
