@@ -29,7 +29,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 ## Compatibility
 Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE8+.
 
-To support IE8 an addon is included in the distribution. The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind```, ```Array.prototype.forEach``` as well as ```Object.keys```.
+To support IE8 an addon is included in the distribution. The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
 
 I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
 
