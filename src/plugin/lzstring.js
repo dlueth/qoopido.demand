@@ -17,23 +17,29 @@
 (function() {
 	'use strict';
 
-	function definition(settings, isObject, isTypeOf) {
-		var path                          = '/demand/plugin/lzstring',
-			stringFormCharCode            = String.fromCharCode,
+	function definition(path, settings, isObject, isTypeOf) {
+		var stringFormCharCode            = String.fromCharCode,
 			objectPrototypeHasOwnProperty = Object.prototype.hasOwnProperty,
 			mathPow22                     = Math.pow(2, 2),
 			mathPow28                     = Math.pow(2, 8),
 			mathPow216                    = Math.pow(2, 16),
 			pattern                       = [ { pattern: path, weight: path.length, state: false }],
 			enabled, key;
-
-		if(isObject(settings)) {
-			for(key in settings) {
-				pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+		
+		function onPostConfigure(options) {
+			if(isObject(options)) {
+				pattern.length = 0;
+				
+				for(key in options) {
+					pattern.push({ pattern: key, weight: key.length, state: options[key] });
+				}
+			} else if(isTypeOf(options, 'boolean')) {
+				enabled = options;
 			}
-		} else if(isTypeOf(settings, 'boolean')) {
-			enabled = settings;
 		}
+		
+		demand.on('postConfigure:' + path, onPostConfigure);
+		onPostConfigure(settings);
 
 		function compressUTF16(uncompressed, bitsPerChar) {
 			var context_dictionary         = {},
@@ -552,5 +558,5 @@
 		};
 	}
 
-	provide([ 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }());

@@ -13,17 +13,24 @@
 (function(document) {
 	'use strict';
 
-	function definition(settings, isObject, isTypeOf) {
+	function definition(path, settings, isObject, isTypeOf) {
 		var pattern = [],
 			enabled, key;
-
-		if(isObject(settings)) {
-			for(key in settings) {
-				pattern.push({ pattern: key, weight: key.length, state: settings[key] });
+		
+		function onPostConfigure(options) {
+			if(isObject(options)) {
+				pattern.length = 0;
+				
+				for(key in options) {
+					pattern.push({ pattern: key, weight: key.length, state: options[key] });
+				}
+			} else if(isTypeOf(options, 'boolean')) {
+				enabled = options;
 			}
-		} else if(isTypeOf(settings, 'boolean')) {
-			enabled = settings;
 		}
+		
+		demand.on('postConfigure:' + path, onPostConfigure);
+		onPostConfigure(settings);
 
 		function setCookie(path, value, expiration) {
 			document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
@@ -58,5 +65,5 @@
 		return true;
 	}
 
-	provide([ 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }(document));
