@@ -10,7 +10,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-(function(document, setTimeout) {
+(function(document) {
 	'use strict';
 
 	var target              = document.getElementsByTagName('head')[0],
@@ -78,12 +78,10 @@
 					}
 				}
 
-				setTimeout(function() {
-					provide(function() { return element; });
-				});
+				provide(function() { return element; });
 			}
 		};
 	}
 
 	provide(definition);
-}(document, setTimeout));
+}(document));
