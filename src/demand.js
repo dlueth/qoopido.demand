@@ -105,10 +105,11 @@
 		}
 
 		function resolveDependency(dependency, context) {
-			var path = isTypeOf(dependency, STRING_STRING) ? resolvePath(dependency, context) : NULL,
-				definition, deferred;
-
-			if(path) {
+			var path, definition, deferred;
+			
+			if(isTypeOf(dependency, STRING_STRING)) {
+				path = resolvePath(dependency, context);
+				
 				if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID)) {
 					switch(dependency) {
 						case DEMAND_ID:
@@ -135,7 +136,7 @@
 						case SETTINGS_ID:
 							path       = MODULE_PREFIX_SETTINGS + context;
 							definition = function() {
-								return settings.modules[context] || NULL;
+								return settings.modules[context] || (settings.modules[context] = {});
 							};
 
 							break;
@@ -146,11 +147,15 @@
 
 				return (registry[path] || (registry[path] = new Loader(path, resolveParameter(dependency, context)))).pledge;
 			} else {
-				deferred = Pledge.defer();
-
-				deferred.resolve(dependency);
-
-				return deferred.pledge;
+				if(!isInstanceOf(dependency, Pledge)) {
+					deferred = Pledge.defer();
+					
+					deferred.resolve(dependency);
+					
+					return deferred.pledge;
+				} else {
+					return dependency;
+				}
 			}
 		}
 
@@ -287,20 +292,18 @@
 		function mock(modules) {
 			var pledges = [],
 				i = 0, module, pledge, parameter;
-
+			
 			for(; (module = modules[i]); i++) {
-				parameter     = module.match(regexMatchParameter);
-				module        = module.replace(regexMatchParameter, '');
-				modules[i]    = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-				pledge        = (mocks[module] = Pledge.defer()).pledge;
-
-				pledge.then(function(loader) { delete mocks[loader.path]; });
-
+				parameter  = module.match(regexMatchParameter);
+				module     = module.replace(regexMatchParameter, '');
+				modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
+				pledge     = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
+				
 				pledges.push(pledge);
 			}
-
+			
 			demand.apply(NULL, modules);
-
+			
 			return Pledge.all(pledges);
 		}
 
@@ -692,7 +695,7 @@
 				pattern  = parameter.pattern,
 				modules  = parameter.modules,
 				pointer  = settings.modules,
-				key;
+				key, temp, subkey;
 
 			if(isTypeOf(cache, STRING_BOOLEAN)) {
 				settings.cache[''] = { weight: 0, state: cache };
@@ -723,11 +726,15 @@
 					key !== 'base' && (settings.pattern[key] = new Pattern(key, pattern[key]));
 				}
 			}
-
+			
 			if(isObject(modules)) {
 				for(key in modules) {
 					if(key !== MODULE_PREFIX_STORAGE) {
-						pointer[key] = modules[key];
+						temp = modules[key];
+						
+						for(subkey in temp) {
+							(pointer[key] || (pointer[key] = {}))[subkey] = temp[subkey];
+						}
 					}
 				}
 			}
@@ -1045,8 +1052,8 @@
 		assign(MODULE_PREFIX + 'pledge', Pledge);
 		assign(MODULE_PREFIX + 'reason', Reason);
 
-		global.demand    = demand;
-		global.provide   = provide;
+		global.demand  = demand;
+		global.provide = provide;
 
 		if(snippet && snippet.main) {
 			demand(snippet.main);
