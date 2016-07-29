@@ -3,7 +3,7 @@
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **~4kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **<5kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
 
@@ -19,7 +19,9 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 - only state information needs to be JSON.parsed
 - relative paths can/will be resolved relative to an eventual parent module
 - support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), CSS and JSON included
-- additional custom handlers can be added easily
+- optional support for requesting auto-bundles per module
+- additional custom handlers & plugins can be added easily
+- plugins for cookie support, lzstring compression and SRI included
 - support for "probes" which are similar to require.js "shims", yet more flexible
 - support for "patterns" which are mostly equivalent to require.js "paths"
 - success handlers get passed **all** resolved modules
@@ -116,6 +118,7 @@ The last parameter of the above code snippet is a configuration object. It just 
 	// optional
 	pattern: {
 		'/nucleus':   '[path/url to Qoopido.nucleus]',
+		'/app':       '[path/url to your modules]',
 		// just an example, loading jQuery + bundle 
 		// will not work due to the nature of jQuery
 		'/jquery':    '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
@@ -145,6 +148,31 @@ The last parameter of the above code snippet is a configuration object. It just 
 			// declare which modules are included in the bundle
 			// order is important
 			'/jquery+ui': [ '/jquery', '/jquery/ui' ]
+		},
+		// configure genie plugin
+		'/demand/plugin/genie': {
+			// handle creation of auto-bundle URL for Qoopido.nucleus from jsdelivr
+			'/nucleus/': function(dependencies) {
+				var fragments = [],
+            		i = 0, dependency;
+            								
+            	for(; (dependency = dependencies[i]); i++) {
+            		fragments.push(dependency.id.replace(/^\/nucleus\//, '') + '.js');
+            	}
+            								
+            	return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
+            },
+            // handle creation of auto-bundle URL for your modules from your server
+            '/app/': function(dependencies) {
+            	var fragments = [],
+            		i = 0, dependency;
+            								
+            	for(; (dependency = dependencies[i]); i++) {
+            		fragments.push(dependency.id.replace(/^\/js\//, '') + '.js');
+            	}
+            								
+            	return '/genie/?module[]=' + fragments.join('&module[]=');
+            }
 		}
 	}
 ```
@@ -175,25 +203,9 @@ The demanded ```main``` module from the above script might look like the followi
 ```
 Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
 
-Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```configure``` or the modules path declrataion.
+Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```demand.configure``` or the modules path declaration.
 
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
-
-## More about handlers
-```demand``` comes with handlers for ```modules```, ```legacy```scripts, ```css``` and ```json```. Handlers have four objectives:
-
-- provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
-- provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
-- provide an optional function named ```onPreProcess```
-- provide an optional ```process``` function that will handle DOM injection and final resolution of a module via an anonymous ```provide``` call
-
-Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```module``` which will automatically be used when no other handler is explicitly set.
-
-I mentioned earlier that demand comes with handlers for modules, legacy JavaScript, CSS and JSON. This is technically not quite correct. As handlers are also modules the only built-in handler is for modules. All other handlers are automatically loaded on demand and, as they are modules as well, get cached in localStorage.
-
-As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
-
-All handler methods are called with their context set to the module's instance of ```Loader```.
 
 
 ## Controlling the cache
@@ -270,6 +282,20 @@ Prefixing the module's path with a ```-``` will completely disable any caching f
 As any parameter that is part of the path declaration is optional you gain total control over when and how Qoopido.demand caches your modules!
 
 
+## Auto-bundling with genie
+Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 which does not establish a new connection for every single request but is instead able to handle all requests with a single connection.
+
+While this is absolutely great HTTP/2 is not 100% supported by servers and clients yet and even if it is, requesting many assets may still slow down your overall transfer rate.
+ 
+To handle this Qoopido.demand has a built-in plugin called ```genie``` which can be configured to create auto-bundle requests for all dependencies of a module. To give you a more detailed example think about a module depending on ```/nucleus/dom/element```, ```/nucleus/dom/collection``` and ```/nucleus/component/sense```.
+
+If ```genie``` is enabled for paths prefixed with```/nucleus/``` it will determine if any of the dependencies are already loaded and if there are at least two left for any auto-bundle configured the will get loaded via a single request.
+
+So if none of the dependencies of the aforementioned example are yet loaded all three will be loaded by a single request.
+
+> CDNs like jsdelivr allow to request bundles already. A very simple PHP script is part of this repository and can be found under ```/genie/index.php``` (adjust the BASE path accordingly). To be able to adopt ```genie``` for any kind of bundle URL it uses a callback function which is explained in the section **Configuration options**.
+ 
+
 ## Providing inline modules
 Beside demanding other modules you can as well provide your own, just like in the following example:
 
@@ -295,7 +321,7 @@ When dynamically loading modules ```path``` will have to be omitted and gets int
 ## Developing loadable modules
 You just learnt how to provide inline modules which is only slightly different from building an external, loadable module. Demand will dynamically load any modules that are not already registered.
 
-In addition to inline modules you just need some boilerplate code and an anynymous ```provide``` call without the ```path``` argument like in the following example:
+In addition to inline modules you just need some minimal boilerplate code and an anynymous ```provide``` call without the ```path``` argument like in the following example:
 
 ```javascript
 (function() {
@@ -317,7 +343,7 @@ This example illustrates a module named ```/app/test``` which we already know as
 ## Path resolution
 Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
 
-There is on exception to this rule. When providing a module with dependencies these dependencies will get resolved against the modules own path, if the dependencies path is relative.
+There is only one exception to this rule: when providing a module with dependencies these dependencies will get resolved against the modules own path, if the dependencies path is relative.
 
 Absolute URLs starting either with a protocol or ```//``` will not get altered at all.
 
@@ -345,6 +371,63 @@ Whenever you request ```demand``` and/or ```provide``` as a dependency of a modu
 ```
 
 If you load the above Module from e.g. the directory ```app/``` and name it ```main.js``` it will get passed a localized version of ```demand``` and ```provide``` for the ```app/``` context. So by demanding ```dependency``` you actually demand ```app/dependency``` and by providing ```module``` you really provide ```app/module```.
+
+
+## Available plugins
+Beside the above mentioned handlers ```demand``` offers a variety of plugins with different aims. Currently ```demand``` provides the following loadable plugins:
+ 
+ - Cookie: store module cache states in cookies to make them accessible for the server
+ - LZString: compress/decompress localStorage content to safe space
+ - SRI: adds sub-resource-integrity checks when loading modules
+ 
+ Plugins have to be loaded manually by simply demanding them. They can be configured via ```demand.configure``` just like the bundle handler mentioned above. ```cookie``` as well as ```lzstring``` use the same configuration theme while ```sri```works only slightly different:
+ 
+ ```javascript
+(function(global) {
+	'use strict';
+
+	demand.configure({
+		modules: {
+			'/demand/plugin/cookie': {
+				// enable cookie plugin for modules 
+				// starting with /app/
+				'/app/': true
+			},
+			'/demand/plugin/lzstring': {
+				// enable compression for all modules ...
+				'': true,
+				// ... but disable it for modules 
+				// starting with a certain path
+				'/app/do/not/compress': false
+			},
+			'/demand/plugin/sri': {
+				'/nucleus/dom/element': 'sha256-pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU='
+			}
+		}
+	});
+}(this));
+ ```
+
+The use-cases for ```lzstring``` as well as ```sri``` should be fairly obvious but ```cookie```most likely requires some explanation:
+
+> In some cases you might want to load (e.g.) a CSS resource via ```demand``` if it has previously been cached and simply inline it server-side if it is not. The ```cookie``` plugin will allow you to exchange cache-state between ```demand```and your server to make this scenario possible.
+
+
+## More about handlers
+```demand``` comes with handlers for ```modules```, ```legacy```scripts, ```bundles```, ```css``` and ```json```. Handlers have four objectives:
+
+- provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
+- provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
+- provide an optional function named ```onPreProcess```
+- provide an optional ```process``` function that will handle DOM injection and final resolution of a module via an anonymous ```provide``` call
+
+Handlers can, quite similar to require.js, be explicitly set for a certain module by prefixing the module path by ```[handler]!```. The default handler, e.g., is ```module``` which will automatically be used when no other handler is explicitly set.
+
+I mentioned earlier that demand comes with handlers for modules, legacy JavaScript, bundles, CSS and JSON. This is technically not quite correct. As handlers are also modules the only handlers really built-in are ```module``` and ```bundle```. All other handlers are automatically loaded on demand and, as they are modules as well, get cached in localStorage.
+
+As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
+
+All handler methods are called with their context set to the module's instance of ```Loader```.
 
 
 ## State of modules
