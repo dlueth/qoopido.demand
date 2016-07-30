@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippet, arrayPrototype, objectPrototype, XHR) {
+(function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippet, arrayPrototype, objectPrototype, XHR, undefined) {
 	'use strict';
 	
 	var /** pointer */
@@ -31,6 +31,7 @@
 			MODULE_PREFIX_LOCAL     = MODULE_PREFIX + 'local',
 			MODULE_PREFIX_SETTINGS  = MODULE_PREFIX + 'settings',
 			MODULE_PREFIX_PATHS     = MODULE_PREFIX + 'paths',
+			MODULE_PREFIX_FUNCTION  = MODULE_PREFIX + 'function/',
 			MODULE_PREFIX_VALIDATOR = MODULE_PREFIX + 'validator/',
 			PLEDGE_PENDING          = 'pending',
 			PLEDGE_RESOLVED         = 'resolved',
@@ -81,8 +82,26 @@
 			/* eslint-enable no-console */
 		}
 		
-		function assign(id, factory) {
+		function assignModule(id, factory) {
 			provide(id, function() { return factory; });
+		}
+	
+		function mockModules(modules) {
+			var pledges = [],
+				i = 0, module, pledge, parameter;
+			
+			for(; (module = modules[i]); i++) {
+				parameter  = module.match(regexMatchParameter);
+				module     = module.replace(regexMatchParameter, '');
+				modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
+				pledge     = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
+				
+				pledges.push(pledge);
+			}
+			
+			demand.apply(NULL, modules);
+			
+			return Pledge.all(pledges);
 		}
 		
 		function escapeRegularExpression(value) {
@@ -95,6 +114,12 @@
 		
 		function getTimestamp() {
 			return +new Date();
+		}
+		
+		function resolveUrl(url) {
+			resolver.href = url;
+			
+			return resolver.href;
 		}
 		
 		function resolvePath(path, context) {
@@ -139,7 +164,7 @@
 						case SETTINGS_ID:
 							path       = MODULE_PREFIX_SETTINGS + context;
 							definition = function() {
-								return settings.modules[context] || (settings.modules[context] = {});
+								return settings.modules[context];
 							};
 							
 							break;
@@ -274,47 +299,44 @@
 		function isPositiveInteger(value) {
 			return isTypeOf(value, 'number') && isFinite(value) && Math.floor(value) === value && value >= 0;
 		}
-		
+	
 		/**
-		 * resolveUrl
+		 * merge
 		 *
-		 * Convert a given URL to its resolved absolute representation
+		 * Merge two or more objects into the first one passed in
 		 *
-		 * @param {string} url
+		 * @param {...object} object
 		 *
-		 * @return {string}
+		 * @return {object}
 		 */
-		function resolveUrl(url) {
-			resolver.href = url;
+		function merge() {
+			var target = arguments[0],
+				i = 1, properties, property, targetProperty, targetPropertyIsObject, sourceProperty;
 			
-			return resolver.href;
-		}
-		
-		/**
-		 * mock
-		 *
-		 * Mock an array of module paths
-		 *
-		 * @param {array} modules
-		 *
-		 * @return {Pledge}
-		 */
-		function mock(modules) {
-			var pledges = [],
-				i = 0, module, pledge, parameter;
-			
-			for(; (module = modules[i]); i++) {
-				parameter  = module.match(regexMatchParameter);
-				module     = module.replace(regexMatchParameter, '');
-				modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-				pledge     = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
-				
-				pledges.push(pledge);
+			for(; (properties = arguments[i]) !== undefined; i++) {
+				for(property in properties) {
+					targetProperty = target[property];
+					sourceProperty = properties[property];
+					
+					if(sourceProperty !== undefined) {
+						if(isObject(sourceProperty)) {
+							targetPropertyIsObject = isObject(targetProperty);
+							
+							if(sourceProperty.length !== undefined) {
+								targetProperty = (targetPropertyIsObject && targetProperty.length !== undefined) ? targetProperty : [];
+							} else {
+								targetProperty = (targetPropertyIsObject && targetProperty.length === undefined) ? targetProperty : {};
+							}
+							
+							target[property] = merge(targetProperty, sourceProperty);
+						} else {
+							target[property] = sourceProperty;
+						}
+					}
+				}
 			}
 			
-			demand.apply(NULL, modules);
-			
-			return Pledge.all(pledges);
+			return target;
 		}
 	
 	/**
@@ -710,7 +732,7 @@
 				pattern  = parameter.pattern,
 				modules  = parameter.modules,
 				pointer  = settings.modules,
-				key, temp, subkey;
+				key, temp;
 			
 			if(isTypeOf(cache, STRING_BOOLEAN)) {
 				settings.cache[''] = { weight: 0, state: cache };
@@ -745,16 +767,13 @@
 			if(isObject(modules)) {
 				for(key in modules) {
 					if(key !== MODULE_PREFIX_STORAGE) {
-						pointer[key] = pointer[key] || {};
-						temp         = modules[key];
+						temp = pointer[key] = pointer[key] || {};
 						
-						emit('preConfigure:' + key, pointer[key]);
+						emit('preConfigure:' + key, temp);
 						
-						for(subkey in temp) {
-							pointer[key][subkey] = temp[subkey];
-						}
+						merge(temp, modules[key]);
 						
-						emit('postConfigure:' + key, pointer[key]);
+						emit('postConfigure:' + key, temp);
 					}
 				}
 			}
@@ -1074,7 +1093,7 @@
 							deferred = self.deferred,
 							modules  = settings[self.path];
 						
-						mock(modules)
+						mockModules(modules)
 							.then(
 								function() {
 									queue.add.apply(null, arguments);
@@ -1197,7 +1216,7 @@
 									mocks.push(dependency.id);
 								}
 								
-								mock(mocks);
+								mockModules(mocks);
 								demand.configure(generateConfiguration(bundle));
 								demand('bundle!' + bundle.id);
 							}
@@ -1221,13 +1240,14 @@
 		demand.configure({ cache: true, base: '/', pattern: { '/demand': resolveUrl(((snippet && snippet.url) || location.href) + '/../').slice(0, -1)} });
 		snippet && snippet.settings && demand.configure(snippet.settings);
 		
-		assign(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
-		assign(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
-		assign(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
-		assign(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
-		assign(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
-		assign(MODULE_PREFIX + 'pledge', Pledge);
-		assign(MODULE_PREFIX + 'reason', Reason);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+		assignModule(MODULE_PREFIX_FUNCTION + 'merge', merge);
+		assignModule(MODULE_PREFIX + 'pledge', Pledge);
+		assignModule(MODULE_PREFIX + 'reason', Reason);
 		
 		queue = new Queue();
 		
