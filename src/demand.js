@@ -22,14 +22,12 @@
 		/** constants */
 			DEMAND_ID               = 'demand',
 			PROVIDE_ID              = 'provide',
-			SETTINGS_ID             = 'settings',
 			PATH_ID                 = 'path',
 			MODULE_PREFIX           = '/' + DEMAND_ID + '/',
 			MODULE_PREFIX_STORAGE   = MODULE_PREFIX + 'storage/',
 			MODULE_PREFIX_HANDLER   = MODULE_PREFIX + 'handler/',
 			MODULE_PREFIX_PLUGIN    = MODULE_PREFIX + 'plugin/',
 			MODULE_PREFIX_LOCAL     = MODULE_PREFIX + 'local',
-			MODULE_PREFIX_SETTINGS  = MODULE_PREFIX + 'settings',
 			MODULE_PREFIX_PATHS     = MODULE_PREFIX + 'paths',
 			MODULE_PREFIX_FUNCTION  = MODULE_PREFIX + 'function/',
 			MODULE_PREFIX_VALIDATOR = MODULE_PREFIX + 'validator/',
@@ -138,7 +136,7 @@
 			if(isTypeOf(dependency, STRING_STRING)) {
 				path = resolvePath(dependency, context);
 				
-				if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === SETTINGS_ID || dependency === PATH_ID)) {
+				if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === PATH_ID)) {
 					switch(dependency) {
 						case DEMAND_ID:
 							path       = MODULE_PREFIX_LOCAL + path;
@@ -158,13 +156,6 @@
 							path       = MODULE_PREFIX_LOCAL + path;
 							definition = function() {
 								return provide.bind(context);
-							};
-							
-							break;
-						case SETTINGS_ID:
-							path       = MODULE_PREFIX_SETTINGS + context;
-							definition = function() {
-								return settings.modules[context];
 							};
 							
 							break;
@@ -789,7 +780,7 @@
 		};
 		
 		demand.on = function(events, callback) {
-			var event;
+			var event, pointer;
 			
 			if(isTypeOf(events, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION)) {
 				events = events.split(' ');
@@ -797,6 +788,14 @@
 				while(event = events.shift()) {
 					if(regexMatchEvent.test(event)) {
 						(listener[event] || (listener[event] = [])).push(callback);
+						
+						if(event.indexOf('postConfigure:') === 0) {
+							pointer = settings.modules[event.substr(14)];
+							
+							if(pointer !== undefined) {
+								callback(pointer);
+							}
+						}
 					}
 				}
 			}
@@ -1075,15 +1074,15 @@
 		 * /demand/handler/bundle
 		 */
 		(function() {
-			var path = MODULE_PREFIX_HANDLER + 'bundle';
+			var path = MODULE_PREFIX_HANDLER + 'bundle',
+				settings;
 			
-			function definition(settings, handlerModule) {
+			function definition(handlerModule) {
 				function onPostConfigure(options) {
 					settings = isObject(options) ? options : {};
 				}
 				
 				demand.on('postConfigure:' + path, onPostConfigure);
-				onPostConfigure(settings);
 				
 				return {
 					matchType:     handlerModule.matchType,
@@ -1116,7 +1115,7 @@
 				};
 			}
 			
-			provide(path, [ 'settings', '/demand/handler/module' ], definition);
+			provide(path, [ '/demand/handler/module' ], definition);
 		}());
 		
 		/**
@@ -1125,7 +1124,7 @@
 		(function(){
 			var path = MODULE_PREFIX_PLUGIN + 'genie';
 			
-			function definition(settings) {
+			function definition() {
 				var pattern = [],
 					key;
 				
@@ -1140,7 +1139,6 @@
 				}
 				
 				demand.on('postConfigure:' + path, onPostConfigure);
-				onPostConfigure(settings);
 				
 				function matchPattern(path) {
 					var i = 0, pointer, match;
@@ -1187,14 +1185,14 @@
 				
 				demand.on('preResolve', function(dependencies, context) {
 					var bundles = {},
-						i = 0, dependency, id, parameter, pattern, keys, prefix, bundle, matches, mocks;
+						i = 0, dependency, id, parameter, pattern, keys, prefix, bundle, matches;
 					
 					for(; (dependency = dependencies[i]); i++) {
 						if(isTypeOf(dependency, 'string')) {
 							id = resolvePath(dependency, context);
 							
 							if(!getModule(id) && (parameter = resolveParameter(dependency, context)) && parameter.handler === 'module' && (pattern = matchPattern(id))) {
-								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [], mocks: [] })).matches.push({ id: id, path: dependency, index: i });
+								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i });
 							}
 						}
 					}
@@ -1205,18 +1203,14 @@
 						for(prefix in bundles) {
 							bundle  = bundles[prefix];
 							matches = bundle.matches;
-							mocks   = bundle.mocks;
 							
 							if(matches.length > 1) {
 								bundle.id = path + '/' + generateHash(JSON.stringify(bundle.matches));
 								
 								for(i = 0; (dependency = matches[i]); i++) {
 									dependencies[dependency.index] = 'mock:!' + dependency.id;
-									
-									mocks.push(dependency.id);
 								}
 								
-								mockModules(mocks);
 								demand.configure(generateConfiguration(bundle));
 								demand('bundle!' + bundle.id);
 							}
@@ -1227,7 +1221,7 @@
 				return true;
 			}
 			
-			provide(path, [ 'settings' ], definition);
+			provide(path, definition);
 		}());
 		
 	/**

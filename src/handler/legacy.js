@@ -13,13 +13,14 @@
 (function(setTimeout) {
 	'use strict';
 
-	function definition(path, settings, Reason, handlerModule, isObject) {
+	function definition(path, Reason, handlerModule, isObject) {
+		var settings;
+		
 		function onPostConfigure(options) {
 			settings = isObject(options) ? options : {};
 		}
 		
 		demand.on('postConfigure:' + path, onPostConfigure);
-		onPostConfigure(settings);
 		
 		function finalize() {
 			var self  = this,
@@ -84,5 +85,5 @@
 		};
 	}
 
-	provide([ 'path', 'settings', '/demand/reason', '/demand/handler/module', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/reason', '/demand/handler/module', '/demand/validator/isObject' ], definition);
 }(setTimeout));

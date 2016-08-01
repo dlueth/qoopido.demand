@@ -17,7 +17,7 @@
 (function() {
 	'use strict';
 
-	function definition(path, settings, isObject, isTypeOf) {
+	function definition(path, isObject, isTypeOf) {
 		var stringFormCharCode            = String.fromCharCode,
 			objectPrototypeHasOwnProperty = Object.prototype.hasOwnProperty,
 			mathPow22                     = Math.pow(2, 2),
@@ -39,7 +39,6 @@
 		}
 		
 		demand.on('postConfigure:' + path, onPostConfigure);
-		onPostConfigure(settings);
 
 		function compressUTF16(uncompressed, bitsPerChar) {
 			var context_dictionary         = {},
@@ -558,5 +557,5 @@
 		};
 	}
 
-	provide([ 'path', 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }());

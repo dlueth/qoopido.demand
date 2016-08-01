@@ -13,7 +13,7 @@
 (function(document) {
 	'use strict';
 
-	function definition(path, settings, isObject, isTypeOf) {
+	function definition(path, isObject, isTypeOf) {
 		var pattern = [],
 			enabled, key;
 		
@@ -30,7 +30,6 @@
 		}
 		
 		demand.on('postConfigure:' + path, onPostConfigure);
-		onPostConfigure(settings);
 
 		function setCookie(path, value, expiration) {
 			document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
@@ -65,5 +64,5 @@
 		return true;
 	}
 
-	provide([ 'path', 'settings', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }(document));
