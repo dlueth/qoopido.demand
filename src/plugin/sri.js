@@ -595,9 +595,15 @@
 		return binb2b64(intermediateH);
 	}
 
-	function definition(settings, isObject) {
-		if(!isObject(settings)) {
-			settings = {};
+	function definition(path, isObject) {
+		var settings;
+		
+		demand.on('postConfigure:' + path, onPostConfigure);
+		
+		function onPostConfigure(options) {
+			if(isObject(options)) {
+				settings = options;
+			}
 		}
 
 		function isEnabled(path) {
@@ -629,5 +635,5 @@
 		return true;
 	}
 
-	provide([ 'settings', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/validator/isObject' ], definition);
 }());
