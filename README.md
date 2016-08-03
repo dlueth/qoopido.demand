@@ -1,18 +1,18 @@
-> **If you would like to support this project feel free to star or fork it, or both. By doing so it will be easier to get it into some of the usual CDNs :)**
+> **If you would like to support this project feel free to star or fork it, or both :)**
 
 > And if you like it and want to help even more, spread the word as well!
 
 # Qoopido.demand
 Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **<5kB minified and gzipped**.
 
-Qoopido.demand originated from my daily use of require.js for my Qoopido.js library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring requests. Sadly enough there was no solution combining the advantages of both - until now.
+Qoopido.demand originated from my daily use of require.js for my Qoopido.nucleus library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring loads. Sadly enough there was no solution combining the advantages of both - until now.
 
 You will find a benchmark on the official [site](http://demand.qoopido.com) and some more demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/master/demo/index.html). Just open your developer console and remember to clear your localStorage :)
 
 ## Key features in detail
 - promise like interface (no native promise support required)
 - any loaded module can be cached in localStorage for blazingly fast performance
-- cache will be validated against a version, modules URL and/or an expiration timeout
+- cache will be validated against version number, modules URL and/or an expiration timeout
 - allows per module setting of cache parameters
 - manual cache invalidation (if necessary)
 - state information and actual value are kept separate in localStorage for faster access
@@ -33,17 +33,17 @@ Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE
 
 To support IE8 an addon is included in the distribution. The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
 
-I do test on OSX Yosemite and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
+I do test on OSX El Capitan and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
 
 ## Limitations
-Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set and you should not request modules over a different protocol. Most of the usual CDNs have CORS enabled by default.
+Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set and you should generally not request modules over a different protocol. Rest assured though that most of the usual CDNs have CORS enabled.
 
 ## External dependencies
 None!
 
 
 ## Availability
-Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the moment. CDNJS will follow in the near future.
+Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the moment.
 
 
 ## Loading demand
@@ -203,13 +203,13 @@ The demanded ```main``` module from the above script might look like the followi
 ```
 Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
 
-Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```demand.configure``` or the modules path declaration.
+Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```demand.configure``` or the modules path declaration (more on that later).
 
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
 
 
 ## Controlling the cache
-If caching is enabled, localStorage available and its quota not exceeded chances are good you will never have to manually deal with the caching.
+If caching is enabled, localStorage available and its quota not exceeded chances are good you will never have to manually deal with the cache manually.
 
 By default demand will invalidate a modules cache under the following conditions:
 
@@ -235,7 +235,7 @@ demand.clear.all();
 **Sidenote**
 > Demand does use a prefix for its localStorage keys to prevent conflicts with other scripts. Each cache will consist of two keys, one to store the ```state``` information (as JSON) and one for the actual ```value``` (source) of the module. By separating the two only a very small string will have to get parsed as JSON which could lead to performance constraints if a potentially huge module would have to get parsed this way.
 
-> Demand will also do its best to detect "quota exceeded" errors by putting a try/catch around the actual cache writes. As IE does not throw exceptions currently a workaround to use ```localStorage.remainingSpace```is implemented as well.
+> Demand will also do its best to detect "quota exceeded" errors by putting a try/catch around the actual cache writes. As IE does not throw exceptions currently a workaround to use ```localStorage.remainingSpace``` is implemented as well.
 
 
 ## Demanding modules
@@ -283,13 +283,13 @@ As any parameter that is part of the path declaration is optional you gain total
 
 
 ## Auto-bundling with genie
-Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 which does not establish a new connection for every single request but is instead able to handle all requests with a single connection.
+Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 that do not establish a new connection for each single request but is instead able to handle all requests with a single connection.
 
-While this is absolutely great HTTP/2 is not 100% supported by servers and clients yet and even if it is, requesting many assets may still slow down your overall transfer rate.
+While this is absolutely great HTTP/2 is not 100% supported by servers and clients yet and even if it is, requesting many assets may still slow down your overall transfer.
  
 To handle this Qoopido.demand has a built-in plugin called ```genie``` which can be configured to create auto-bundle requests for all dependencies of a module. To give you a more detailed example think about a module depending on ```/nucleus/dom/element```, ```/nucleus/dom/collection``` and ```/nucleus/component/sense```.
 
-If ```genie``` is enabled for paths prefixed with```/nucleus/``` it will determine if any of the dependencies are already loaded and if there are at least two left for any auto-bundle configured the will get loaded via a single request.
+If ```genie``` is enabled for paths prefixed with```/nucleus/``` it will determine if any of the dependencies are already loaded and if there are at least two left for any auto-bundle configured they will get loaded via a single request.
 
 So if none of the dependencies of the aforementioned example are yet loaded all three will be loaded by a single request.
 
@@ -410,7 +410,7 @@ Beside the above mentioned handlers ```demand``` offers a variety of plugins wit
 
 The use-cases for ```lzstring``` as well as ```sri``` should be fairly obvious but ```cookie```most likely requires some explanation:
 
-> In some cases you might want to load (e.g.) a CSS resource via ```demand``` if it has previously been cached and simply inline it server-side if it is not. The ```cookie``` plugin will allow you to exchange cache-state between ```demand```and your server to make this scenario possible.
+In some cases you might want to load (e.g.) a CSS resource via ```demand``` if it has previously been cached and simply inline it server-side if it is not. The ```cookie``` plugin will allow you to exchange cache-state between ```demand```and your server to make this scenario possible.
 
 
 ## More about handlers
@@ -425,7 +425,7 @@ Handlers can, quite similar to require.js, be explicitly set for a certain modul
 
 I mentioned earlier that demand comes with handlers for modules, legacy JavaScript, bundles, CSS and JSON. This is technically not quite correct. As handlers are also modules the only handlers really built-in are ```module``` and ```bundle```. All other handlers are automatically loaded on demand and, as they are modules as well, get cached in localStorage.
 
-As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype```.
+As stated above handlers will automatically get loaded from demand's original location. So if you want to have a handler that is not present there you simply set your own pattern to change the URL to wherever you like. The default pattern is ```/demand/handler``` so if you, e.g., want a handler for ```mytype``` loaded from a custom location just create a pattern for ```/demand/handler/mytype``` via ```demand.configure```.
 
 All handler methods are called with their context set to the module's instance of ```Loader```.
 
