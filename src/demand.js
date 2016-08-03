@@ -84,20 +84,20 @@
 			provide(id, function() { return factory; });
 		}
 	
-		function mockModules(modules) {
+		function mockModules() {
 			var pledges = [],
 				i = 0, module, pledge, parameter;
 			
-			for(; (module = modules[i]); i++) {
-				parameter  = module.match(regexMatchParameter);
-				module     = module.replace(regexMatchParameter, '');
-				modules[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-				pledge     = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
+			for(; (module = arguments[i]); i++) {
+				parameter    = module.match(regexMatchParameter);
+				module       = module.replace(regexMatchParameter, '');
+				pledge       = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
+				arguments[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
 				
 				pledges.push(pledge);
 			}
 			
-			demand.apply(NULL, modules);
+			demand.apply(NULL, arguments);
 			
 			return Pledge.all(pledges);
 		}
@@ -768,6 +768,8 @@
 					}
 				}
 			}
+			
+			return demand;
 		};
 		
 		demand.remove = function(path) {
@@ -777,6 +779,8 @@
 				delete registry[path];
 				delete mocks[path];
 			}
+			
+			return demand;
 		};
 		
 		demand.on = function(events, callback) {
@@ -1092,7 +1096,7 @@
 							deferred = self.deferred,
 							modules  = settings[self.path];
 						
-						mockModules(modules)
+						mockModules.apply(NULL, modules)
 							.then(
 								function() {
 									queue.add.apply(null, arguments);
@@ -1121,7 +1125,7 @@
 		/**
 		 * /demand/plugin/genie
 		 */
-		(function(){
+		(function() {
 			var path = MODULE_PREFIX_PLUGIN + 'genie';
 			
 			function definition() {
@@ -1152,16 +1156,15 @@
 					return match;
 				}
 				
-				function generateHash(string){
-					var hash = 0,
-						i = 0;
+				function generateHash(value){
+					var hash = 5381,
+						i    = value.length;
 					
-					for(; i < string.length; i++) {
-						hash = ((hash << 5) - hash) + string.charCodeAt(0);
-						hash = hash & hash;
+					while(i) {
+						hash = (hash * 33) ^ value.charCodeAt(--i);
 					}
 					
-					return hash;
+					return hash >>> 0;
 				}
 				
 				function generateConfiguration(bundle) {
@@ -1185,14 +1188,14 @@
 				
 				demand.on('preResolve', function(dependencies, context) {
 					var bundles = {},
-						i = 0, dependency, id, parameter, pattern, keys, prefix, bundle, matches;
+						i, dependency, id, parameter, pattern, keys, prefix, bundle, matches;
 					
-					for(; (dependency = dependencies[i]); i++) {
+					for(i = 0; (dependency = dependencies[i]); i++) {
 						if(isTypeOf(dependency, 'string')) {
 							id = resolvePath(dependency, context);
 							
 							if(!getModule(id) && (parameter = resolveParameter(dependency, context)) && parameter.handler === 'module' && (pattern = matchPattern(id))) {
-								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i });
+								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i, dfd: NULL });
 							}
 						}
 					}
@@ -1201,18 +1204,33 @@
 					
 					if(keys.length) {
 						for(prefix in bundles) {
-							bundle  = bundles[prefix];
-							matches = bundle.matches;
+							bundle    = bundles[prefix];
+							matches   = bundle.matches;
 							
 							if(matches.length > 1) {
-								bundle.id = path + '/' + generateHash(JSON.stringify(bundle.matches));
+								bundle.id = '/genie/' + generateHash(JSON.stringify(bundle.matches));
 								
 								for(i = 0; (dependency = matches[i]); i++) {
-									dependencies[dependency.index] = 'mock:!' + dependency.id;
+									dependency.dfd                 = Pledge.defer();
+									dependencies[dependency.index] = dependency.dfd.pledge;
+									
+									mockModules(dependency.id);
 								}
 								
 								demand.configure(generateConfiguration(bundle));
-								demand('bundle!' + bundle.id);
+								demand('bundle!' + bundle.id)
+									.then(
+										function() {
+											for(i = 0; (dependency = matches[i]); i++) {
+												dependency.dfd.resolve(arguments[i]);
+											}
+										},
+										function() {
+											for(i = 0; (dependency = matches[i]); i++) {
+												dependency.dfd.reject(new Reason('error resolving', dependency.path));
+											}
+										}
+									);
 							}
 						}
 					}
