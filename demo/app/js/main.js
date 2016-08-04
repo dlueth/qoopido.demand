@@ -44,8 +44,7 @@
 			},
 			modules: {
 				'/demand/plugin/lzstring': {
-					'/app/':    true,
-					'/demand/': true
+					'/app/': true
 				},
 				'/demand/plugin/cookie': {
 					'/app/': true
