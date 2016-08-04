@@ -36,11 +36,11 @@
 		// example: configuration
 		demand.configure({
 			pattern: {
-				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
+				'/jquery':           '//cdn.jsdelivr.net/jquery/1.12.4/jquery.min',
 				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
-				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
-				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
+				'/leaflet':          '//cdn.jsdelivr.net/leaflet/1.0.0-rc.2/leaflet.js',
+				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@1.0.0-rc.2'
 			},
 			modules: {
 				'/demand/plugin/lzstring': {
@@ -148,7 +148,7 @@
 									);
 
 								// load JSON data with caching disabled
-								demand('!json!../json/dummy')
+								demand('-json!../json/dummy')
 									.then(
 										function(appJsonDummy) { log('demand', '/app/json/dummy', 'resolved', 'json, no cache'); },
 										function() { log('demand', '/app/json/dummy', 'rejected'); }
