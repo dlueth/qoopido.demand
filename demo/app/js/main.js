@@ -93,13 +93,23 @@
 
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
-		demand('css!../css/default', '/demand/plugin/lzstring', '/demand/plugin/sri')
+		demand('/demand/plugin/lzstring')
 		// loading CSS with demand
 			.then(
-				function(appCssDefault, pluginLzstring, pluginSri) {
-					log('demand', '/app/css/default', 'resolved', 'css');
+				function(pluginLzstring) {
 					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
-					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
+					
+					demand('css!../css/default', '/demand/plugin/sri')
+						.then(
+							function(appCssDefault, pluginSri) {
+								log('demand', '/app/css/default', 'resolved', 'css');
+								log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
+							},
+							function() {
+								log('demand', '/app/css/default', 'rejected');
+								log('demand', '/demand/plugin/sri', 'rejected');
+							}
+						);
 
 					// load cookie plugin to be able to track client
 					// cache on server and eventually inline certain
