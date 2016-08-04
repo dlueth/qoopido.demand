@@ -92,21 +92,20 @@
 
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
-		demand('/demand/plugin/lzstring')
+		demand('/demand/plugin/lzstring', '/demand/plugin/sri')
 		// loading CSS with demand
 			.then(
-				function(pluginLzstring) {
+				function(pluginLzstring, pluginSri) {
 					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
+					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
 					
-					demand('css!../css/default', '/demand/plugin/sri')
+					demand('css!../css/default', )
 						.then(
-							function(appCssDefault, pluginSri) {
+							function(appCssDefault) {
 								log('demand', '/app/css/default', 'resolved', 'css');
-								log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
 							},
 							function() {
 								log('demand', '/app/css/default', 'rejected');
-								log('demand', '/demand/plugin/sri', 'rejected');
 							}
 						);
 
@@ -183,7 +182,6 @@
 						);
 				},
 				function() {
-					log('demand', '/css/default', 'rejected');
 					log('demand', '/demand/plugin/lzstring', 'rejected');
 					log('demand', '/demand/plugin/sri', 'rejected');
 				}
