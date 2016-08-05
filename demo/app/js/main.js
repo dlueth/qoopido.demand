@@ -89,7 +89,7 @@
 			.on('preCache',    function(loader) { console.log('preCache', loader.path); })
 			.on('postCache',   function(loader) { console.log('postCache', loader.path); })
 		*/
-
+		
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
 		demand('/demand/plugin/lzstring', '/demand/plugin/sri')
@@ -161,20 +161,22 @@
 										function(appJsonDummy) { log('demand', '/app/json/dummy', 'resolved', 'json, no cache'); },
 										function() { log('demand', '/app/json/dummy', 'rejected'); }
 									);
-
+								
 								// loading legacy scripts (with further dependencies, see configuration above)
 								demand('legacy!/jquery/ui')
 									.then(
 										function(jQueryUI) { log('demand', '/jquery/ui', 'resolved', 'legacy, with dependency'); },
 										function() { log('demand', '/jquery/ui', 'rejected'); }
 									);
-
+								
 								// loading bundles with demand (see configuration above)
+								
 								demand('bundle!/velocity+leaflet')
 									.then(
 										function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
 										function() { log('demand', '/velocity+leaflet', 'rejected'); }
 									);
+								
 							},
 							function() {
 								log('demand', '/demand/plugin/cookie', 'rejected');
