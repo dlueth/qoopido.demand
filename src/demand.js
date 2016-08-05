@@ -530,7 +530,7 @@
 					}
 				}
 				
-				return deferred.pledge;
+				return self;
 			};
 			
 			executor(resolve, reject);
@@ -1099,11 +1099,11 @@
 						mockModules.apply(NULL, modules)
 							.then(
 								function() {
-									queue.add.apply(null, arguments);
+									queue.add.apply(NULL, arguments);
 									handlerModule.process.call(self);
 									
 									demand
-										.apply(null, modules)
+										.apply(NULL, modules)
 										.then(
 											deferred.resolve,
 											function() {
@@ -1112,7 +1112,7 @@
 										);
 								},
 								function() {
-									deferred.reject(new Reason('error mocking', null, arguments));
+									deferred.reject(new Reason('error mocking', NULL, arguments));
 								}
 							);
 					}
@@ -1195,7 +1195,7 @@
 							id = resolvePath(dependency, context);
 							
 							if(!getModule(id) && (parameter = resolveParameter(dependency, context)) && parameter.handler === 'module' && (pattern = matchPattern(id))) {
-								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i, dfd: NULL });
+								(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i, deferred: NULL });
 							}
 						}
 					}
@@ -1211,8 +1211,8 @@
 								bundle.id = '/genie/' + generateHash(JSON.stringify(bundle.matches));
 								
 								for(i = 0; (dependency = matches[i]); i++) {
-									dependency.dfd                 = Pledge.defer();
-									dependencies[dependency.index] = dependency.dfd.pledge;
+									dependency.deferred            = Pledge.defer();
+									dependencies[dependency.index] = dependency.deferred.pledge;
 									
 									mockModules(dependency.id);
 								}
@@ -1222,12 +1222,12 @@
 									.then(
 										function() {
 											for(i = 0; (dependency = matches[i]); i++) {
-												dependency.dfd.resolve(arguments[i]);
+												dependency.deferred.resolve(arguments[i]);
 											}
 										},
 										function() {
 											for(i = 0; (dependency = matches[i]); i++) {
-												dependency.dfd.reject(new Reason('error resolving', dependency.path));
+												dependency.deferred.reject(new Reason('error resolving', dependency.path));
 											}
 										}
 									);

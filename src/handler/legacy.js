@@ -52,14 +52,12 @@
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					self.dependencies = dependencies = demand
-						.apply(null, dependencies)
-						.then(
-							null,
-							function() {
-								deferred.reject(new Reason('error resolving', self.path, arguments));
-							}
-						);
+					self.dependencies = dependencies = demand.apply(null, dependencies).then(
+						null,
+						function() {
+							deferred.reject(new Reason('error resolving', self.path, arguments));
+						}
+					);
 				}
 
 				if(dependencies && self.mock) {
@@ -72,7 +70,7 @@
 			process: function() {
 				var self    = this,
 					resolve = finalize.bind(self);
-
+				
 				if(self.dependencies) {
 					self.dependencies.then(
 						resolve,
