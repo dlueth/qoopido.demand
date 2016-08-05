@@ -99,7 +99,7 @@
 					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
 					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
 					
-					demand('css!../css/default', )
+					demand('css!../css/default')
 						.then(
 							function(appCssDefault) {
 								log('demand', '/app/css/default', 'resolved', 'css');

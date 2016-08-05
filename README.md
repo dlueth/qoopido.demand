@@ -401,7 +401,7 @@ Beside the above mentioned handlers ```demand``` offers a variety of plugins wit
 				'/app/do/not/compress': false
 			},
 			'/demand/plugin/sri': {
-				'/nucleus/dom/element': 'sha256-pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU='
+				'/nucleus/dom/element': { type: 'sha256', hash: 'pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU=' }
 			}
 		}
 	});
