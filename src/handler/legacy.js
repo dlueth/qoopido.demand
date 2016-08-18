@@ -13,7 +13,7 @@
 (function(setTimeout) {
 	'use strict';
 
-	function definition(path, Reason, handlerModule, isObject) {
+	function definition(path, DemandError, handlerModule, isObject) {
 		var settings;
 		
 		function onPostConfigure(options) {
@@ -37,7 +37,7 @@
 						if(result = probe()) {
 							provide(function() { return result; });
 						} else {
-							deferred.reject(new Reason('error probing', self.path));
+							deferred.reject(new DemandError('error probing', self.path));
 						}
 					}
 				});
@@ -55,7 +55,7 @@
 					self.dependencies = dependencies = demand.apply(null, dependencies).then(
 						null,
 						function() {
-							deferred.reject(new Reason('error resolving', self.path, arguments));
+							deferred.reject(new DemandError('error resolving', self.path, arguments));
 						}
 					);
 				}
@@ -83,5 +83,5 @@
 		};
 	}
 
-	provide([ 'path', '/demand/reason', '/demand/handler/module', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/error', '/demand/handler/module', '/demand/validator/isObject' ], definition);
 }(setTimeout));

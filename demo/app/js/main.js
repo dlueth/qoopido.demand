@@ -36,6 +36,7 @@
 		// example: configuration
 		demand.configure({
 			pattern: {
+				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
 				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
@@ -43,6 +44,18 @@
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
 			},
 			modules: {
+				'/demand/plugin/genie': {
+					'/nucleus/': function(dependencies) {
+						var fragments = [],
+							i = 0, dependency;
+						
+						for(; (dependency = dependencies[i]); i++) {
+							fragments.push(dependency.id.replace(/^\/nucleus\//, '') + '.js');
+						}
+						
+						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
+					}
+				},
 				'/demand/plugin/lzstring': {
 					'/app/': true
 				},
@@ -98,6 +111,18 @@
 				function(pluginLzstring, pluginSri) {
 					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
 					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
+					
+					demand('/nucleus/dom/element', '/nucleus/dom/collection')
+						.then(
+							function(DomElement, DomCollection) {
+								log('demand', '/nucleus/dom/element', 'resolved', 'genie bundle, with dependency');
+								log('demand', '/nucleus/dom/collection', 'resolved', 'genie bundle, with dependency');
+							},
+							function() {
+								log('demand', '/nucleus/dom/element', 'rejected');
+								log('demand', '/nucleus/dom/collection', 'rejected');
+							}
+						);
 					
 					demand('css!../css/default')
 						.then(

@@ -15,11 +15,11 @@
 (function(global, document, JSON, XMLHttpRequest, setTimeout, clearTimeout, snippet, arrayPrototype, objectPrototype, XHR, undefined) {
 	'use strict';
 	
-	var /** pointer */
+	var // pointer
 			arrayPrototypeSlice     = arrayPrototype.slice,
 			arrayPrototypeConcat    = arrayPrototype.concat,
 			objectPrototypeToString = objectPrototype.toString,
-		/** constants */
+		// constants
 			DEMAND_ID               = 'demand',
 			PROVIDE_ID              = 'provide',
 			PATH_ID                 = 'path',
@@ -39,14 +39,14 @@
 			STRING_FUNCTION         = 'function',
 			NULL                    = null,
 			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
-		/** regular expressions */
+		// regular expressions
 			regexIsAbsolutePath     = /^\//,
 			regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 			regexMatchTrailingSlash = /(.+)\/$/,
 			regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 			regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 			regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Configure.*|Resolve|Request|Process|Cache)$/,
-		/** other */
+		// other
 			settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 			resolver                = document.createElement('a'),
 			registry                = {},
@@ -393,7 +393,7 @@
 									
 									xhr.onprogress = function() {};
 									xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
-										deferred.reject(new Reason('timeout requesting', self.path));
+										deferred.reject(new DemandError('timeout requesting', self.path));
 									};
 									xhr.onload = function() {
 										var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
@@ -414,7 +414,7 @@
 												}
 											}
 										} else {
-											deferred.reject(new Reason('error requesting', self.path));
+											deferred.reject(new DemandError('error requesting', self.path));
 										}
 									};
 									
@@ -608,7 +608,7 @@
 		};
 		
 		/**
-		 * Reason
+		 * DemandError
 		 *
 		 * @param message
 		 * @param module
@@ -616,14 +616,14 @@
 		 *
 		 * @constructor
 		 */
-		function Reason(message, module, stack) {
+		function DemandError(message, module, stack) {
 			this.message = message;
 			
 			module && (this.module = module);
 			stack && (this.stack = arrayPrototypeSlice.call(stack));
 		}
-		
-		Reason.prototype = {
+	
+		DemandError.prototype = {
 			/* only for reference
 			 message: NULL,
 			 module:  NULL,
@@ -634,14 +634,14 @@
 					result = DEMAND_ID + ': ' + self.message + ' ' + (self.module ? '"' + self.module + '"' : '');
 				
 				if(self.stack) {
-					result = Reason.traverse(self.stack, result, 1);
+					result = DemandError.traverse(self.stack, result, 1);
 				}
 				
 				return result;
 			}
 		};
-		
-		Reason.traverse = function(stack, value, depth) {
+	
+		DemandError.traverse = function(stack, value, depth) {
 			var indention = new Array(depth + 1).join(' '),
 				i = 0, item;
 			
@@ -649,7 +649,7 @@
 				value += '\n' + indention + '> ' + item.message + ' ' + (item.module ? '"' + item.module + '"' : '');
 				
 				if(item.stack) {
-					value = Reason.traverse(item.stack, value, depth + 1);
+					value = DemandError.traverse(item.stack, value, depth + 1);
 				}
 			}
 			
@@ -860,14 +860,14 @@
 							.apply(path, dependencies)
 							.then(
 								function() { deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-								function() { log(new Reason('error providing', path, arguments)); }
+								function() { log(new DemandError('error providing', path, arguments)); }
 							);
 					} else {
 						deferred.resolve(isFunction ? definition() : definition);
 					}
 				}
 			} else {
-				throw 'unspecified anonymous provide';
+				throw new DemandError('unspecified anonymous provide');
 			}
 		}
 	
@@ -955,7 +955,7 @@
 								
 								// strict equality check with "===" is required due to spaceBefore might be "0"
 								if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-									throw 'QUOTA_EXCEEDED_ERR';
+									throw new DemandError('localStorage quota exceeded');
 								}
 								
 								emit('postCache', loader);
@@ -1107,12 +1107,12 @@
 										.then(
 											deferred.resolve,
 											function() {
-												deferred.reject(new Reason('error resolving', self.path, arguments));
+												deferred.reject(new DemandError('error resolving', self.path, arguments));
 											}
 										);
 								},
 								function() {
-									deferred.reject(new Reason('error mocking', NULL, arguments));
+									deferred.reject(new DemandError('error mocking', NULL, arguments));
 								}
 							);
 					}
@@ -1188,7 +1188,7 @@
 				
 				demand.on('preResolve', function(dependencies, context) {
 					var bundles = {},
-						i, dependency, id, parameter, pattern, keys, prefix, bundle, matches;
+						i, dependency, id, parameter, pattern, prefix, bundle, matches;
 					
 					for(i = 0; (dependency = dependencies[i]); i++) {
 						if(isTypeOf(dependency, 'string')) {
@@ -1200,38 +1200,34 @@
 						}
 					}
 					
-					keys = Object.keys(bundles);
-					
-					if(keys.length) {
-						for(prefix in bundles) {
-							bundle    = bundles[prefix];
-							matches   = bundle.matches;
+					for(prefix in bundles) {
+						bundle    = bundles[prefix];
+						matches   = bundle.matches;
 							
-							if(matches.length > 1) {
-								bundle.id = '/genie/' + generateHash(JSON.stringify(bundle.matches));
+						if(matches.length > 1) {
+							bundle.id = '/genie/' + generateHash(JSON.stringify(bundle.matches));
 								
-								for(i = 0; (dependency = matches[i]); i++) {
-									dependency.deferred            = Pledge.defer();
-									dependencies[dependency.index] = dependency.deferred.pledge;
+							for(i = 0; (dependency = matches[i]); i++) {
+								dependency.deferred            = Pledge.defer();
+								dependencies[dependency.index] = dependency.deferred.pledge;
 									
-									mockModules(dependency.id);
-								}
-								
-								demand.configure(generateConfiguration(bundle));
-								demand('bundle!' + bundle.id)
-									.then(
-										function() {
-											for(i = 0; (dependency = matches[i]); i++) {
-												dependency.deferred.resolve(arguments[i]);
-											}
-										},
-										function() {
-											for(i = 0; (dependency = matches[i]); i++) {
-												dependency.deferred.reject(new Reason('error resolving', dependency.path));
-											}
-										}
-									);
+								mockModules(dependency.id);
 							}
+								
+							demand.configure(generateConfiguration(bundle));
+							demand('bundle!' + bundle.id)
+								.then(
+									function() {
+										for(i = 0; (dependency = matches[i]); i++) {
+											dependency.deferred.resolve(arguments[i]);
+										}
+									},
+									function() {
+										for(i = 0; (dependency = matches[i]); i++) {
+											dependency.deferred.reject(new DemandError('error resolving', dependency.path));
+										}
+									}
+								);
 						}
 					}
 				});
@@ -1259,7 +1255,7 @@
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', merge);
 		assignModule(MODULE_PREFIX + 'pledge', Pledge);
-		assignModule(MODULE_PREFIX + 'reason', Reason);
+		assignModule(MODULE_PREFIX + 'error', DemandError);
 		
 		queue = new Queue();
 		
