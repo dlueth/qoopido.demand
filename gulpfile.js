@@ -115,6 +115,10 @@ module.exports = gulp;
 
 	gulp.task('dist:build', function() {
 		return gulp.src(config.tasks.dist.build || config.tasks.dist.watch)
+			.pipe(plugins.include({
+				hardFail: true,
+				includePaths: __dirname + '/include'
+			}))
 			.pipe(plugins.sourcemaps.init())
 			.pipe(plugins.plumber({ errorHandler: handleError}))
 			.pipe(plugins.uglify({ preserveComments: 'none' }))

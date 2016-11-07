@@ -14,6 +14,8 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
+/* global demand provide */
+
 (function() {
 	'use strict';
 
@@ -82,9 +84,9 @@
 		];
 
 
-	function Int64(msint_32, lsint_32) {
-		this.h = msint_32;
-		this.l  = lsint_32;
+	function Int64(msint32, lsint32) {
+		this.h = msint32;
+		this.l  = lsint32;
 	}
 
 	function add322(a, b) {
@@ -595,7 +597,7 @@
 		return binb2b64(intermediateH);
 	}
 
-	function definition(path, isObject) {
+	function definition(path, iterate, isObject) {
 		var settings;
 		
 		demand.on('postConfigure:' + path, onPostConfigure);
@@ -607,15 +609,15 @@
 		}
 
 		function isEnabled(path) {
-			var key, match;
-
-			for(key in settings) {
+			var match;
+			
+			iterate(settings, function(key, value) {
 				if(key === path) {
-					match = settings[key];
-
-					break;
+					match = value;
+					
+					return false;
 				}
-			}
+			});
 
 			return match || false;
 		}
@@ -635,5 +637,5 @@
 		return true;
 	}
 
-	provide([ 'path', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
 }());

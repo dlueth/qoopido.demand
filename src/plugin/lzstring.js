@@ -14,25 +14,27 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
+/* global demand provide */
+
 (function() {
 	'use strict';
 
-	function definition(path, isObject, isTypeOf) {
+	function definition(path, iterate, isObject, isTypeOf) {
 		var stringFormCharCode            = String.fromCharCode,
 			objectPrototypeHasOwnProperty = Object.prototype.hasOwnProperty,
 			mathPow22                     = Math.pow(2, 2),
 			mathPow28                     = Math.pow(2, 8),
 			mathPow216                    = Math.pow(2, 16),
 			pattern                       = [ { pattern: path, weight: path.length, state: false }],
-			enabled, key;
+			enabled;
 		
 		function onPostConfigure(options) {
 			if(isObject(options)) {
 				pattern.length = 0;
 				
-				for(key in options) {
-					pattern.push({ pattern: key, weight: key.length, state: options[key] });
-				}
+				iterate(options, function(key, value) {
+					pattern.push({ pattern: key, weight: key.length, state: value });
+				});
 			} else if(isTypeOf(options, 'boolean')) {
 				enabled = options;
 			}
@@ -41,61 +43,61 @@
 		demand.on('postConfigure:' + path, onPostConfigure);
 
 		function compressUTF16(uncompressed, bitsPerChar) {
-			var context_dictionary         = {},
-				context_dictionaryToCreate = {},
-				context_c                  = '',
-				context_wc                 = '',
-				context_w                  = '',
-				context_enlargeIn          = 2,
-				context_dictSize           = 3,
-				context_numBits            = 2,
-				context_data               = [],
-				context_data_val           = 0,
-				context_data_position      = 0,
+			var contextDictionary         = {},
+				contextDictionaryToCreate = {},
+				contextC                  = '',
+				contextWc                 = '',
+				contextW                  = '',
+				contextEnlargeIn          = 2,
+				contextDictSize           = 3,
+				contextNumBits            = 2,
+				contextData               = [],
+				contextDataVal            = 0,
+				contextDataPosition       = 0,
 				ii = 0, i, value;
 
 			bitsPerChar -= 1;
 
 			for(; uncompressed[ii]; ii++) {
-				context_c = uncompressed.charAt(ii);
+				contextC = uncompressed.charAt(ii);
 
-				if(!objectPrototypeHasOwnProperty.call(context_dictionary, context_c)) {
-					context_dictionary[context_c]         = context_dictSize++;
-					context_dictionaryToCreate[context_c] = true;
+				if(!objectPrototypeHasOwnProperty.call(contextDictionary, contextC)) {
+					contextDictionary[contextC]         = contextDictSize++;
+					contextDictionaryToCreate[contextC] = true;
 				}
 
-				context_wc = context_w + context_c;
+				contextWc = contextW + contextC;
 
-				if(objectPrototypeHasOwnProperty.call(context_dictionary, context_wc)) {
-					context_w = context_wc;
+				if(objectPrototypeHasOwnProperty.call(contextDictionary, contextWc)) {
+					contextW = contextWc;
 				} else {
-					if(objectPrototypeHasOwnProperty.call(context_dictionaryToCreate, context_w)) {
-						if(context_w.charCodeAt(0) < 256) {
-							for(i = 0 ; i < context_numBits ; i++) {
-								context_data_val = (context_data_val << 1);
+					if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
+						if(contextW.charCodeAt(0) < 256) {
+							for(i = 0 ; i < contextNumBits ; i++) {
+								contextDataVal = (contextDataVal << 1);
 
-								if(context_data_position === bitsPerChar) {
-									context_data.push(getCharFromInt(context_data_val));
+								if(contextDataPosition === bitsPerChar) {
+									contextData.push(getCharFromInt(contextDataVal));
 
-									context_data_position = 0;
-									context_data_val      = 0;
+									contextDataPosition = 0;
+									contextDataVal      = 0;
 								} else {
-									context_data_position++;
+									contextDataPosition++;
 								}
 							}
 
-							value = context_w.charCodeAt(0);
+							value = contextW.charCodeAt(0);
 
 							for(i = 0 ; i < 8 ; i++) {
-								context_data_val = (context_data_val << 1) | (value&1);
+								contextDataVal = (contextDataVal << 1) | (value&1);
 
-								if(context_data_position === bitsPerChar) {
-									context_data.push(getCharFromInt(context_data_val));
+								if(contextDataPosition === bitsPerChar) {
+									contextData.push(getCharFromInt(contextDataVal));
 
-									context_data_position = 0;
-									context_data_val      = 0;
+									contextDataPosition = 0;
+									contextDataVal      = 0;
 								} else {
-									context_data_position++;
+									contextDataPosition++;
 								}
 
 								value = value >> 1;
@@ -103,108 +105,108 @@
 						} else {
 							value = 1;
 
-							for(i = 0 ; i < context_numBits ; i++) {
-								context_data_val = (context_data_val << 1) | value;
+							for(i = 0 ; i < contextNumBits ; i++) {
+								contextDataVal = (contextDataVal << 1) | value;
 
-								if(context_data_position === bitsPerChar) {
-									context_data.push(getCharFromInt(context_data_val));
+								if(contextDataPosition === bitsPerChar) {
+									contextData.push(getCharFromInt(contextDataVal));
 
-									context_data_position = 0;
-									context_data_val      = 0;
+									contextDataPosition = 0;
+									contextDataVal      = 0;
 								} else {
-									context_data_position++;
+									contextDataPosition++;
 								}
 
 								value = 0;
 							}
 
-							value = context_w.charCodeAt(0);
+							value = contextW.charCodeAt(0);
 
 							for(i = 0 ; i < 16 ; i++) {
-								context_data_val = (context_data_val << 1) | (value&1);
+								contextDataVal = (contextDataVal << 1) | (value&1);
 
-								if(context_data_position === bitsPerChar) {
-									context_data.push(getCharFromInt(context_data_val));
+								if(contextDataPosition === bitsPerChar) {
+									contextData.push(getCharFromInt(contextDataVal));
 
-									context_data_position = 0;
-									context_data_val      = 0;
+									contextDataPosition = 0;
+									contextDataVal      = 0;
 								} else {
-									context_data_position++;
+									contextDataPosition++;
 								}
 
 								value = value >> 1;
 							}
 						}
 
-						context_enlargeIn--;
+						contextEnlargeIn--;
 
-						if(context_enlargeIn === 0) {
-							context_enlargeIn = Math.pow(2, context_numBits);
+						if(contextEnlargeIn === 0) {
+							contextEnlargeIn = Math.pow(2, contextNumBits);
 
-							context_numBits++;
+							contextNumBits++;
 						}
 
-						delete context_dictionaryToCreate[context_w];
+						delete contextDictionaryToCreate[contextW];
 					} else {
-						value = context_dictionary[context_w];
+						value = contextDictionary[contextW];
 
-						for(i = 0 ; i < context_numBits ; i++) {
-							context_data_val = (context_data_val << 1) | (value&1);
+						for(i = 0 ; i < contextNumBits ; i++) {
+							contextDataVal = (contextDataVal << 1) | (value&1);
 
-							if(context_data_position === bitsPerChar) {
-								context_data.push(getCharFromInt(context_data_val));
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-								context_data_position = 0;
-								context_data_val      = 0;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
 							} else {
-								context_data_position++;
+								contextDataPosition++;
 							}
 
 							value = value >> 1;
 						}
 					}
 
-					context_enlargeIn--;
+					contextEnlargeIn--;
 
-					if(context_enlargeIn === 0) {
-						context_enlargeIn = Math.pow(2, context_numBits);
+					if(contextEnlargeIn === 0) {
+						contextEnlargeIn = Math.pow(2, contextNumBits);
 
-						context_numBits++;
+						contextNumBits++;
 					}
 
-					context_dictionary[context_wc] = context_dictSize++;
-					context_w                      = String(context_c);
+					contextDictionary[contextWc] = contextDictSize++;
+					contextW                      = String(contextC);
 				}
 			}
 
-			if (context_w !== '') {
-				if(objectPrototypeHasOwnProperty.call(context_dictionaryToCreate, context_w)) {
-					if(context_w.charCodeAt(0) < 256) {
-						for(i = 0 ; i < context_numBits ; i++) {
-							context_data_val = (context_data_val << 1);
+			if (contextW !== '') {
+				if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
+					if(contextW.charCodeAt(0) < 256) {
+						for(i = 0 ; i < contextNumBits ; i++) {
+							contextDataVal = (contextDataVal << 1);
 
-							if(context_data_position === bitsPerChar) {
-								context_data.push(getCharFromInt(context_data_val));
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-								context_data_position = 0;
-								context_data_val      = 0;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
 							} else {
-								context_data_position++;
+								contextDataPosition++;
 							}
 						}
 
-						value = context_w.charCodeAt(0);
+						value = contextW.charCodeAt(0);
 
 						for(i = 0 ; i < 8 ; i++) {
-							context_data_val = (context_data_val << 1) | (value&1);
+							contextDataVal = (contextDataVal << 1) | (value&1);
 
-							if(context_data_position === bitsPerChar) {
-								context_data.push(getCharFromInt(context_data_val));
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-								context_data_position = 0;
-								context_data_val      = 0;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
 							} else {
-								context_data_position++;
+								contextDataPosition++;
 							}
 
 							value = value >> 1;
@@ -212,104 +214,104 @@
 					} else {
 						value = 1;
 
-						for(i = 0 ; i < context_numBits ; i++) {
-							context_data_val = (context_data_val << 1) | value;
+						for(i = 0 ; i < contextNumBits ; i++) {
+							contextDataVal = (contextDataVal << 1) | value;
 
-							if(context_data_position === bitsPerChar) {
-								context_data.push(getCharFromInt(context_data_val));
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-								context_data_position = 0;
-								context_data_val      = 0;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
 							} else {
-								context_data_position++;
+								contextDataPosition++;
 							}
 
 							value = 0;
 						}
 
-						value = context_w.charCodeAt(0);
+						value = contextW.charCodeAt(0);
 
 						for(i = 0 ; i < 16 ; i++) {
-							context_data_val = (context_data_val << 1) | (value&1);
+							contextDataVal = (contextDataVal << 1) | (value&1);
 
-							if(context_data_position === bitsPerChar) {
-								context_data.push(getCharFromInt(context_data_val));
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-								context_data_position = 0;
-								context_data_val      = 0;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
 							} else {
-								context_data_position++;
+								contextDataPosition++;
 							}
 
 							value = value >> 1;
 						}
 					}
 
-					context_enlargeIn--;
+					contextEnlargeIn--;
 
-					if(context_enlargeIn === 0) {
-						context_enlargeIn = Math.pow(2, context_numBits);
+					if(contextEnlargeIn === 0) {
+						contextEnlargeIn = Math.pow(2, contextNumBits);
 
-						context_numBits++;
+						contextNumBits++;
 					}
 
-					delete context_dictionaryToCreate[context_w];
+					delete contextDictionaryToCreate[contextW];
 				} else {
-					value = context_dictionary[context_w];
+					value = contextDictionary[contextW];
 
-					for(i = 0 ; i < context_numBits ; i++) {
-						context_data_val = (context_data_val << 1) | (value&1);
+					for(i = 0 ; i < contextNumBits ; i++) {
+						contextDataVal = (contextDataVal << 1) | (value&1);
 
-						if(context_data_position === bitsPerChar) {
-							context_data.push(getCharFromInt(context_data_val));
+						if(contextDataPosition === bitsPerChar) {
+							contextData.push(getCharFromInt(contextDataVal));
 
-							context_data_position = 0;
-							context_data_val      = 0;
+							contextDataPosition = 0;
+							contextDataVal      = 0;
 						} else {
-							context_data_position++;
+							contextDataPosition++;
 						}
 
 						value = value >> 1;
 					}
 				}
 
-				context_enlargeIn--;
+				contextEnlargeIn--;
 
-				if(context_enlargeIn === 0) {
-					context_numBits++;
+				if(contextEnlargeIn === 0) {
+					contextNumBits++;
 				}
 			}
 
 			value = 2;
 
-			for(i = 0 ; i < context_numBits ; i++) {
-				context_data_val = (context_data_val << 1) | (value&1);
+			for(i = 0 ; i < contextNumBits ; i++) {
+				contextDataVal = (contextDataVal << 1) | (value&1);
 
-				if(context_data_position === bitsPerChar) {
-					context_data.push(getCharFromInt(context_data_val));
+				if(contextDataPosition === bitsPerChar) {
+					contextData.push(getCharFromInt(contextDataVal));
 
-					context_data_position = 0;
-					context_data_val      = 0;
+					contextDataPosition = 0;
+					contextDataVal      = 0;
 				} else {
-					context_data_position++;
+					contextDataPosition++;
 				}
 
 				value = value >> 1;
 			}
 
 			while(true) { // eslint-disable-line no-constant-condition
-				context_data_val = (context_data_val << 1);
+				contextDataVal = (contextDataVal << 1);
 
-				if(context_data_position === bitsPerChar) {
-					context_data.push(getCharFromInt(context_data_val));
+				if(contextDataPosition === bitsPerChar) {
+					contextData.push(getCharFromInt(contextDataVal));
 
 					break;
 				} else {
-					context_data_position++;
+					contextDataPosition++;
 				}
 			}
 
-			return context_data.join('');
+			return contextData.join('');
 		}
 
 		function decompressUTF16(compressed, length, resetValue) {
@@ -557,5 +559,5 @@
 		};
 	}
 
-	provide([ 'path', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }());

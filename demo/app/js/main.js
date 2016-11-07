@@ -38,12 +38,12 @@
 			pattern: {
 				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
-				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
 				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
 			},
 			modules: {
+				/*
 				'/demand/plugin/genie': {
 					'/nucleus/': function(dependencies) {
 						var fragments = [],
@@ -56,6 +56,7 @@
 						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
 					}
 				},
+				*/
 				'/demand/plugin/lzstring': {
 					'/app/': true
 				},
@@ -70,10 +71,6 @@
 					'/jquery': {
 						probe: function() { return global.jQuery; }
 					},
-					'/jquery/ui': {
-						probe:        function() { return global.jQuery.ui; },
-						dependencies: [ 'legacy!/jquery' ]
-					},
 					'/velocity': {
 						probe:        function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); },
 						dependencies: [ 'legacy!/jquery' ]
@@ -87,6 +84,40 @@
 				}
 			}
 		});
+		
+		demand('/nucleus/dom/element', '/nucleus/dom/collection')
+			.then(
+				function(DomElement, DomCollection) {
+					log('demand', '/nucleus/dom/element', 'resolved', 'genie bundle, with dependency');
+					log('demand', '/nucleus/dom/collection', 'resolved', 'genie bundle, with dependency');
+				},
+				function() {
+					log('demand', '/nucleus/dom/element', 'rejected');
+					log('demand', '/nucleus/dom/collection', 'rejected');
+				}
+			);
+		
+		demand('css!../css/default')
+			.then(
+				function(appCssDefault) {
+					log('demand', '/app/css/default', 'resolved', 'css');
+				},
+				function() {
+					log('demand', '/app/css/default', 'rejected');
+				}
+			);
+		
+		demand('legacy!/jquery')
+			.then(
+				function(jQuery) { log('demand', '/jQuery', 'resolved', 'legacy'); },
+				function() { log('demand', '/jQuery', 'rejected'); }
+			);
+		
+		demand('bundle!/velocity+leaflet')
+			.then(
+				function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
+				function() { log('demand', '/velocity+leaflet', 'rejected'); }
+			);
 
 		// listening to demand events
 		/*
@@ -103,15 +134,16 @@
 			.on('postCache',   function(loader) { console.log('postCache', loader.path); })
 		*/
 		
+		/*
 		// load lzstring plugin to compress localStorage
 		// content (see configuration above)
-		demand('/demand/plugin/lzstring', '/demand/plugin/sri')
+		//demand('/demand/plugin/lzstring', '/demand/plugin/sri')
 		// loading CSS with demand
-			.then(
-				function(pluginLzstring, pluginSri) {
-					log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
-					log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
-					
+			//.then(
+			//	function(pluginLzstring, pluginSri) {
+			//		log('demand', '/demand/plugin/lzstring', 'resolved', 'module, plugin');
+			//		log('demand', '/demand/plugin/sri', 'resolved', 'module, plugin');
+		
 					demand('/nucleus/dom/element', '/nucleus/dom/collection')
 						.then(
 							function(DomElement, DomCollection) {
@@ -167,7 +199,7 @@
 
 								// loading a single module without further dependencies
 								// with a specific version and lifetime
-								demand('@1.0.3#60!simple')
+								var temp = demand('@1.0.3#60!simple')
 									.then(
 										function(appJsSimple) { log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri'); },
 										function() { log('demand', '/app/js/simple', 'rejected'); }
@@ -187,34 +219,32 @@
 										function() { log('demand', '/app/json/dummy', 'rejected'); }
 									);
 								
-								// loading legacy scripts (with further dependencies, see configuration above)
-								demand('legacy!/jquery/ui')
+								demand('legacy!/jquery')
 									.then(
-										function(jQueryUI) { log('demand', '/jquery/ui', 'resolved', 'legacy, with dependency'); },
-										function() { log('demand', '/jquery/ui', 'rejected'); }
+										function(jQUery) { log('demand', '/jQuery', 'resolved', 'legacy'); },
+										function() { log('demand', '/jQuery', 'rejected'); }
 									);
 								
 								// loading bundles with demand (see configuration above)
-								
-								demand('bundle!/velocity+leaflet')
-									.then(
-										function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
-										function() { log('demand', '/velocity+leaflet', 'rejected'); }
-									);
-								
+								// demand('bundle!/velocity+leaflet')
+								//	.then(
+								//		function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
+								//		function() { log('demand', '/velocity+leaflet', 'rejected'); }
+								//	);
 							},
 							function() {
 								log('demand', '/demand/plugin/cookie', 'rejected');
 							}
 						);
-				},
-				function() {
-					log('demand', '/demand/plugin/lzstring', 'rejected');
-					log('demand', '/demand/plugin/sri', 'rejected');
-				}
-			);
+			//	},
+			//	function() {
+			//		log('demand', '/demand/plugin/lzstring', 'rejected');
+			//		log('demand', '/demand/plugin/sri', 'rejected');
+			//	}
+			//);
 
 		return true;
+		*/
 	}
 
 	provide([ 'demand', 'provide' ], definition);

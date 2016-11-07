@@ -10,10 +10,12 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
+/* global demand provide */
+
 (function(setTimeout) {
 	'use strict';
 
-	function definition(path, DemandError, handlerModule, isObject) {
+	function definition(path, Failure, handlerModule, isObject) {
 		var settings;
 		
 		function onPostConfigure(options) {
@@ -37,7 +39,7 @@
 						if(result = probe()) {
 							provide(function() { return result; });
 						} else {
-							deferred.reject(new DemandError('error probing', self.path));
+							deferred.reject(new Failure('error probing', self.path));
 						}
 					}
 				});
@@ -55,7 +57,7 @@
 					self.dependencies = dependencies = demand.apply(null, dependencies).then(
 						null,
 						function() {
-							deferred.reject(new DemandError('error resolving', self.path, arguments));
+							deferred.reject(new Failure('error resolving', self.path, arguments));
 						}
 					);
 				}
@@ -83,5 +85,5 @@
 		};
 	}
 
-	provide([ 'path', '/demand/error', '/demand/handler/module', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject' ], definition);
 }(setTimeout));
