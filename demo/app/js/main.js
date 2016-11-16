@@ -3,9 +3,11 @@
 (function(global, document) {
 	'use strict';
 
-	var target  = document.getElementById('target'),
-		content = target.textContent ? 'textContent' : 'innerText';
+	var target  = document.getElementById('target')//,
+		//content = target.textContent ? 'textContent' : 'innerText'
+		;
 
+	/*
 	function log(action, module, state, details) {
 		var row = document.createElement('tr'),
 			cell;
@@ -29,6 +31,9 @@
 
 		target.appendChild(row);
 	}
+	*/
+
+	var log = console.log;
 
 	function definition(demand, provide) {
 		log('demand', '/app/js/main', 'resolved', 'module');
@@ -84,7 +89,26 @@
 				}
 			}
 		});
-		
+
+		demand('bundle!/velocity+leaflet')
+			.then(
+				function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
+				function() { log('demand', '/velocity+leaflet', 'rejected'); }
+			);
+
+		demand('/nucleus/dom/element', '/nucleus/dom/collection')
+			.then(
+				function(DomElement, DomCollection) {
+					log('demand', '/nucleus/dom/element', 'resolved', 'module');
+					log('demand', '/nucleus/dom/collection', 'resolved', 'module');
+				},
+				function() {
+					log('demand', '/nucleus/dom/element', 'rejected');
+					log('demand', '/nucleus/dom/collection', 'rejected');
+				}
+			);
+
+		/*
 		demand('/nucleus/dom/element', '/nucleus/dom/collection')
 			.then(
 				function(DomElement, DomCollection) {
@@ -96,6 +120,7 @@
 					log('demand', '/nucleus/dom/collection', 'rejected');
 				}
 			);
+		*/
 		
 		demand('css!../css/default')
 			.then(
@@ -112,12 +137,14 @@
 				function(jQuery) { log('demand', '/jQuery', 'resolved', 'legacy'); },
 				function() { log('demand', '/jQuery', 'rejected'); }
 			);
-		
+
+		/*
 		demand('bundle!/velocity+leaflet')
 			.then(
 				function(velocity, leaflet) { log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency'); },
 				function() { log('demand', '/velocity+leaflet', 'rejected'); }
 			);
+		*/
 
 		// listening to demand events
 		/*

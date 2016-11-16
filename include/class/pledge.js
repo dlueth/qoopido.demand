@@ -1,8 +1,8 @@
 var Pledge = (function() {
-	var PLEDGE_PENDING       = 'pending',
-		PLEDGE_RESOLVED      = 'resolved',
-		PLEDGE_REJECTED      = 'rejected',
-		storage              = {};
+	var PLEDGE_PENDING  = 'pending',
+		PLEDGE_RESOLVED = 'resolved',
+		PLEDGE_REJECTED = 'rejected',
+		storage         = {};
 	
 	function resolve() {
 		storage[this.uuid].handle(PLEDGE_RESOLVED, arguments);
@@ -104,7 +104,7 @@ var Pledge = (function() {
 			return this.state === PLEDGE_REJECTED;
 		}
 	};
-	
+
 	Pledge.defer = function() {
 		var self = {};
 		

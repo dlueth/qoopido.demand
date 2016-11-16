@@ -1,44 +1,38 @@
+var currentQueueItem = NULL;
+
+function processQueue() {
+	if(queue.length) {
+		currentQueueItem = queue.dequeue();
+
+		currentQueueItem.handler.process.call(currentQueueItem);
+		emit('postProcess', currentQueueItem);
+	}
+}
+
 var Queue = (function() {
 	var storage = {};
-	
+
 	function Queue() {
 		Uuid.set(this);
-		
-		global.stack = storage[this.uuid] = { stack: [], current: NULL };
+
+		storage[this.uuid] = [];
 	}
 	
 	Queue.prototype = {
 		/* only for reference
-		 uuid:    NULL,
-		 current: NULL,
+		 uuid: NULL,
 		 */
-		add: function() {
-			var properties = storage[this.uuid];
-			
-			properties.stack = properties.stack.concat(arrayPrototypeSlice.call(arguments));
-			
-			!properties.current && this.process();
+		enqueue: function() {
+			storage[this.uuid] = storage[this.uuid].concat(arrayPrototypeSlice.call(arguments));
 		},
-		process: function() {
-			var properties = storage[this.uuid],
-				current;
-			
-			if(properties.stack.length) {
-				current = properties.current = properties.stack.shift();
-				
-				current.handler.process.call(current);
-				emit('postProcess', current);
-			}
+		dequeue: function() {
+			return storage[this.uuid].shift();
 		},
 		get current() {
-			return storage[this.uuid].current;
+			return storage[this.uuid][0];
 		},
-		set current(value) {
-			console.log('hier', value);
-			storage[this.uuid].current = value;
-		},
-		get items() {
-			return storage[this.uuid].stack.length;
+		get length() {
+			return storage[this.uuid].length;
 		}
 	};
 	

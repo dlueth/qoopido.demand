@@ -26,18 +26,18 @@ function assignModule(id, factory) {
 function mockModules() {
 	var pledges = [],
 		i = 0, module, pledge, parameter;
-	
+
 	for(; (module = arguments[i]); i++) {
 		parameter    = module.match(regexMatchParameter);
 		module       = module.replace(regexMatchParameter, '');
 		pledge       = (mocks[module] || (mocks[module] = Pledge.defer())).pledge;
 		arguments[i] = (parameter ? 'mock:' + parameter.slice(1).join('')  : 'mock:') + '!' + module;
-		
+
 		pledges.push(pledge);
 	}
-	
+
 	demand.apply(NULL, arguments);
-	
+
 	return Pledge.all(pledges);
 }
 
@@ -153,7 +153,8 @@ function resolveLoader(loader) {
 	
 	if(loader.deferred.pledge.isPending()) {
 		handler.onPreProcess && handler.onPreProcess.call(loader);
-		handler.process && queue.add(loader);
+		handler.process && queue.enqueue(loader);
+		!currentQueueItem && processQueue();
 	}
 }
 

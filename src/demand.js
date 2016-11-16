@@ -51,8 +51,8 @@
 			registry                = {},
 			mocks                   = {},
 			listener                = {},
-			regexMatchBaseUrl, queue, storage;
-	
+			regexMatchBaseUrl, queue, storage;s
+
 	/**
 	 * --------------------------------
 	 * Functions
@@ -220,17 +220,15 @@
 				dependencies = isArray(parameter[path ? 1 : 0]) ? parameter[path ? 1 : 0] : NULL,
 				definition   = dependencies ? parameter[path ? 2 : 1] : parameter[path ? 1 : 0],
 				deferred, pledge, isFunction;
-			
-			if(!path && queue.current) {
-				path = queue.current.path;
-				
-				//queue.process();
-				
-				queue.current = NULL;
-				
-				queue.items > 0 && queue.process();
+
+			if(!path && currentQueueItem) {
+				path = currentQueueItem.path;
+
+				currentQueueItem = processQueue();
+
+				queue.length > 0 && (currentQueueItem = queue.dequeue()) && processQueue();
 			}
-			
+
 			if(path) {
 				path       = resolvePath(path, this);
 				deferred   = registry[path] || (registry[path] = Pledge.defer());

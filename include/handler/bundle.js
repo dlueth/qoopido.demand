@@ -11,7 +11,7 @@
 		}
 		
 		demand.on('postConfigure:' + path, onPostConfigure);
-		
+
 		return {
 			matchType:     handlerModule.matchType,
 			onPostRequest: handlerModule.onPostRequest,
@@ -19,13 +19,15 @@
 				var self     = this,
 					deferred = self.deferred,
 					modules  = settings[self.path];
-				
+
+				console.log(self);
+
 				mockModules.apply(NULL, modules)
 					.then(
 						function() {
-							queue.add.apply(queue, arguments);
+							queue.enqueue.apply(queue, arguments);
 							handlerModule.process.call(self);
-							
+
 							demand
 								.apply(NULL, modules)
 								.then(
