@@ -12,7 +12,7 @@
 
 /* global demand provide */
 
-(function(setTimeout) {
+(function() {
 	'use strict';
 
 	function definition(path, Failure, handlerModule, isObject) {
@@ -32,17 +32,15 @@
 			handlerModule.process.call(self);
 
 			if(probe) {
-				setTimeout(function() {
-					deferred = self.deferred;
+				deferred = self.deferred;
 
-					if(deferred.pledge.state === 'pending') {
-						if(result = probe()) {
-							provide(function() { return result; });
-						} else {
-							deferred.reject(new Failure('error probing', self.path));
-						}
+				if(deferred.pledge.isPending()) {
+					if(result = probe()) {
+						provide(function() { return result; });
+					} else {
+						deferred.reject(new Failure('error probing', self.path));
 					}
-				});
+				}
 			}
 		}
 
@@ -54,8 +52,7 @@
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					self.dependencies = dependencies = demand.apply(null, dependencies).then(
-						null,
+					self.dependencies = dependencies = demand.apply(null, dependencies).catch(
 						function() {
 							deferred.reject(new Failure('error resolving', self.path, arguments));
 						}
@@ -86,4 +83,4 @@
 	}
 
 	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject' ], definition);
-}(setTimeout));
+}());
