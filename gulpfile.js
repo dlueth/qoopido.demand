@@ -121,7 +121,7 @@ module.exports = gulp;
 			.pipe(plugins.header(config.strings.banner.min.join('\n')))
 			.pipe(plugins.frep(patterns))
 			.pipe(plugins.frep(getDatePatterns()))
-			.pipe(chmod(644))
+			.pipe(chmod(0o644))
 			.pipe(plugins.size({ showFiles: true, gzip: true }))
 			.pipe(plugins.sourcemaps.write('./', {
 				sourceMappingURL: function(file) {
@@ -141,21 +141,21 @@ module.exports = gulp;
 	gulp.task('bump:patch', function() {
 		return gulp.src(config.tasks.bump.watch)
 			.pipe(plugins.bump({ type: 'patch' }))
-			.pipe(chmod(644))
+			.pipe(chmod(0o644))
 			.pipe(gulp.dest(config.tasks.bump.destination));
 	});
 
 	gulp.task('bump:minor', function() {
 		return gulp.src(config.tasks.bump.watch)
 			.pipe(plugins.bump({ type: 'minor' }))
-			.pipe(chmod(644))
+			.pipe(chmod(0o644))
 			.pipe(gulp.dest(config.tasks.bump.destination));
 	});
 
 	gulp.task('bump:major', function() {
 		return gulp.src(config.tasks.bump.watch)
 			.pipe(plugins.bump({ type: 'major' }))
-			.pipe(chmod(644))
+			.pipe(chmod(0o644))
 			.pipe(gulp.dest(config.tasks.bump.destination));
 	});
 

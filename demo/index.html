@@ -8,6 +8,7 @@
 	<!-- <script src="/src/legacy.js"></script> -->
 </head>
 <body>
+
 <table cellspacing="0" cellpadding="0">
 	<thead>
 		<tr>
@@ -19,6 +20,7 @@
 	</thead>
 	<tbody id="target"></tbody>
 </table>
+
 <script>
 	(function(url, main, settings) {
 		(function(window, document, type, target, script){
@@ -32,7 +34,7 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	}('../src/demand.js', 'app/js/main', { base: './', version: '3.0.1' }));
+	}('../dist/demand.js', 'app/js/main', { base: './', version: '3.0.1', cache: false }));
 </script>
 </body>
 </html>

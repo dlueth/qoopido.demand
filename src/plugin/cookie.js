@@ -10,20 +10,22 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
+/* global demand provide */
+
 (function(document) {
 	'use strict';
 
-	function definition(path, isObject, isTypeOf) {
+	function definition(path, iterate, isObject, isTypeOf) {
 		var pattern = [],
-			enabled, key;
+			enabled;
 		
 		function onPostConfigure(options) {
 			if(isObject(options)) {
 				pattern.length = 0;
 				
-				for(key in options) {
-					pattern.push({ pattern: key, weight: key.length, state: options[key] });
-				}
+				iterate(options, function(key, value) {
+					pattern.push({ pattern: key, weight: key.length, state: value });
+				});
 			} else if(isTypeOf(options, 'boolean')) {
 				enabled = options;
 			}
@@ -64,5 +66,5 @@
 		return true;
 	}
 
-	provide([ 'path', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
+	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
 }(document));

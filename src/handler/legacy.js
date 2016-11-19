@@ -10,10 +10,12 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-(function(setTimeout) {
+/* global demand provide */
+
+(function() {
 	'use strict';
 
-	function definition(path, DemandError, handlerModule, isObject) {
+	function definition(path, Failure, handlerModule, isObject) {
 		var settings;
 		
 		function onPostConfigure(options) {
@@ -30,17 +32,15 @@
 			handlerModule.process.call(self);
 
 			if(probe) {
-				setTimeout(function() {
-					deferred = self.deferred;
+				deferred = self.deferred;
 
-					if(deferred.pledge.state === 'pending') {
-						if(result = probe()) {
-							provide(function() { return result; });
-						} else {
-							deferred.reject(new DemandError('error probing', self.path));
-						}
+				if(deferred.pledge.isPending()) {
+					if(result = probe()) {
+						provide(function() { return result; });
+					} else {
+						deferred.reject(new Failure('error probing', self.path));
 					}
-				});
+				}
 			}
 		}
 
@@ -52,10 +52,9 @@
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					self.dependencies = dependencies = demand.apply(null, dependencies).then(
-						null,
+					self.dependencies = dependencies = demand.apply(null, dependencies).catch(
 						function() {
-							deferred.reject(new DemandError('error resolving', self.path, arguments));
+							deferred.reject(new Failure('error resolving', self.path, arguments));
 						}
 					);
 				}
@@ -83,5 +82,5 @@
 		};
 	}
 
-	provide([ 'path', '/demand/error', '/demand/handler/module', '/demand/validator/isObject' ], definition);
-}(setTimeout));
+	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject' ], definition);
+}());
