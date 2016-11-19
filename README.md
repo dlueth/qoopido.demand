@@ -1,7 +1,4 @@
-> **If you would like to support this project feel free to star or fork it, or both :)**
-
-> And if you like it and want to help even more, spread the word as well!
-
+# Qoopido.demand
 
 [![GitHub version](https://img.shields.io/github/tag/dlueth/qoopido.demand.svg?style=flat-square&label=github)](https://github.com/dlueth/qoopido.demand)
 [![NPM version](https://img.shields.io/npm/v/qoopido.demand.svg?style=flat-square&label=npm)](https://www.npmjs.com/package/qoopido.demand)
@@ -10,50 +7,41 @@
 [![David dependencies](https://img.shields.io/david/dlueth/qoopido.demand.svg?style=flat-square)](https://david-dm.org/dlueth/qoopido.demand)
 [![David dev dependencies](https://img.shields.io/david/dev/dlueth/qoopido.demand.svg?style=flat-square&label=dev%20dependencies)](https://david-dm.org/dlueth/qoopido.demand)
 
+Qoopido.demand is a modular, flexible, localStorage caching and 100% async JavaScript module loader with a promise like interface. All these features come in a tiny package of **<6kB minified and gzipped**.
 
-# Qoopido.demand
-Qoopido.demand is a modular, flexible, localStorage caching and totally async JavaScript module loader with a promise like interface. All these features come in a tiny package of **<5kB minified and gzipped**.
-
-Qoopido.demand originated from my daily use of require.js for my Qoopido.nucleus library. Caused by the nature of the library (modular/atomic modules, no concatenation) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring loads. Sadly enough there was no solution combining the advantages of both - until now.
+Qoopido.demand originated from daily use of require.js for my Qoopido.nucleus library. Caused by the nature of the library (modular/atomic modules, no concatenation or bundling) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring loads. Sadly enough there was no solution combining the advantages of both - until Qoopido.demand.
 
 You will find a benchmark on the official [site](http://demand.qoopido.com) and some more demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/master/demo/index.html). Just open your developer console and remember to clear your localStorage :)
 
 ## Key features in detail
 - promise like interface (no native promise support required)
-- any loaded module can be cached in localStorage for blazingly fast performance
+- loaded modules can be cached in localStorage for blazingly fast performance
 - cache will be validated against version number, modules URL and/or an expiration timeout
-- allows per module setting of cache parameters
-- manual cache invalidation (if necessary)
-- state information and actual value are kept separate in localStorage for faster access
-- only state information needs to be JSON.parsed
-- relative paths can/will be resolved relative to an eventual parent module
+- per module/path/subpath setting of cache parameters
+- relative and absolute module path resolution supported
 - support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), CSS and JSON included
-- optional support for requesting auto-bundles per module
-- additional custom handlers & plugins can be added easily
+- optional support for auto-bundles included
 - plugins for cookie support, lzstring compression and SRI included
-- support for "probes" which are similar to require.js "shims", yet more flexible
-- support for "patterns" which are mostly equivalent to require.js "paths"
-- success handlers get passed **all** resolved modules
-- error handlers receive **all** rejected modules
+- support for custom handlers & plugins built in
+- support for "probes", similar to require.js "shims", yet more flexible
+- support for "patterns",mostly equivalent to require.js "paths"
 
 
 ## Compatibility
 Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE8+.
 
-To support IE8 an addon is included in the distribution. The addon can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
+To support IE8 a standalone script is included in the distribution. It can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
 
-I do test on OSX El Capitan and demand is fully working on Chrome, Firefox, Safari and Opera there. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
+I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
 
-## Limitations
-Due to the fact that modules are being loaded via XHR/XDR a remote server will have to have CORS headers set and you should generally not request modules over a different protocol. Rest assured though that most of the usual CDNs have CORS enabled.
+## Requirements
+Due to the fact that modules are being loaded via XHR/XDR a remote server has to be CORS enabled and you should generally not request modules over a different protocol. Rest assured though that most of the usual CDNs have CORS enabled by default.
 
 ## External dependencies
 None!
 
-
 ## Availability
 Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the moment.
-
 
 ## Loading demand
 Use the following code snippet in a standalone script tag before the closing body tag to include demand:
@@ -81,10 +69,10 @@ You may as well use the uglified version:
 ("/src/demand.js","app/main",{base:"/demo"});
 ```
 
-The above snippet is very similar to the one Google Analytics uses. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
+The above snippet is very similar to the one Google Analytics utilizes. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
 
 ## Configuration options
-The last parameter of the above code snippet is a configuration object. It just shows the properties you will most frequently set. There are some more options, less frequently used, that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
+The last parameter of the above code snippet is a configuration object. It just shows the properties you will most frequently set. There are some more, less frequently used, options that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
 
 ```javascript
 {
@@ -212,13 +200,13 @@ The demanded ```main``` module from the above script might look like the followi
 ```
 Qoopido.demand consists of two components ```demand``` and ```provide``` just like require.js ```require``` and ```define```.
 
-Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL and an optional ```version``` and ```lifetime``` set via ```demand.configure``` or the modules path declaration (more on that later).
+Once demand is loaded anything that is either explicitly requested via ```demand``` or as a dependency of a ```provide``` call will be loaded via XHR as well as modified and injected into the DOM with the help of a ```handler```. The result will be cached in ```localStorage``` (if caching is enabled and localStorage is available) and will get validated against the modules URL, an optional ```version``` and ```lifetime``` set via ```demand.configure``` or the modules path declaration (more on that later).
 
 As you might have guessed already ```main``` itself is also loaded as a module and therefore will also get cached in localStorage.
 
 
 ## Controlling the cache
-If caching is enabled, localStorage available and its quota not exceeded chances are good you will never have to manually deal with the cache manually.
+If caching is enabled, localStorage available and its quota not exceeded chances are good you will never have to manually deal with the cache.
 
 By default demand will invalidate a modules cache under the following conditions:
 
@@ -228,7 +216,7 @@ By default demand will invalidate a modules cache under the following conditions
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a cache if it gets requested and is found to be invalid for any reason.
 
-Beside this demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following emthods to control the cache:
+Beside this demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following methods to control the cache:
 
 ```javascript
 // only clear a single module's cache
@@ -264,14 +252,16 @@ demand('app/test', '/qoopido/component/iterator')
 	);
 ```
 
-Relative module paths will be resolved relative to the base path or the path of an eventual parent module (see section **Path resolution**). The resulting path will afterwards get matched to patterns defined via ```demand.configure``` which will finally lead to an absolute URL to fetch the module from.
+Relative module paths will be resolved relative to the base path or the path of an eventual parent module (see section **Path resolution**). The resulting path will afterwards get matched against patterns defined via ```demand.configure``` which will finally lead to an absolute URL to fetch the module from.
 
 **Sidenote**
 > The error callback function will be passed **all** rejected dependencies as arguments, not only the first one rejected.
 
 If no handler is specified it will default to the module handler. If you would like to load e.g. CSS simply prefix your path with ```css!```.
 
-Beside its global configuration Qoopido.demand also allows per module configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration. You already learnt that a prefix of ```css!``` tells Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
+Beside its global configuration Qoopido.demand also allows per module or subpath configuration for general cacheability, versioning and lifetime. All per module settings are optional parts of its path declaration.
+
+You already learnt that a prefix of ```css!``` tells Qoopido.demand to use the CSS handler for the module. All other possible options are also part of the path prefix, for example
 
 ```javascript
 demand('css@2.0.4#2000!AnyCssModule').then(
@@ -292,11 +282,11 @@ As any parameter that is part of the path declaration is optional you gain total
 
 
 ## Auto-bundling with genie
-Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 that do not establish a new connection for each single request but is instead able to handle all requests with a single connection.
+Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 that do not establish a new connection for each single request but instead are able to handle all requests with a single connection.
 
 While this is absolutely great HTTP/2 is not 100% supported by servers and clients yet and even if it is, requesting many assets may still slow down your overall transfer.
  
-To handle this Qoopido.demand has a built-in plugin called ```genie``` which can be configured to create auto-bundle requests for all dependencies of a module. To give you a more detailed example think about a module depending on ```/nucleus/dom/element```, ```/nucleus/dom/collection``` and ```/nucleus/component/sense```.
+To handle this Qoopido.demand has a built-in plugin called ```genie``` which can be configured to create auto-bundle requests for all direct dependencies of a module. To give you a more detailed example think about a module depending on ```/nucleus/dom/element```, ```/nucleus/dom/collection``` and ```/nucleus/component/sense```.
 
 If ```genie``` is enabled for paths prefixed with```/nucleus/``` it will determine if any of the dependencies are already loaded and if there are at least two left for any auto-bundle configured they will get loaded via a single request.
 
@@ -352,7 +342,7 @@ This example illustrates a module named ```/app/test``` which we already know as
 ## Path resolution
 Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
 
-There is only one exception to this rule: when providing a module with dependencies these dependencies will get resolved against the modules own path, if the dependencies path is relative.
+There is only one exception to this rule: when providing a module with dependencies these dependencies will always get resolved against the modules own path, if the dependencies path is relative.
 
 Absolute URLs starting either with a protocol or ```//``` will not get altered at all.
 
@@ -385,7 +375,7 @@ If you load the above Module from e.g. the directory ```app/``` and name it ```m
 ## Available plugins
 Beside the above mentioned handlers ```demand``` offers a variety of plugins with different aims. Currently ```demand``` provides the following loadable plugins:
  
- - Cookie: store module cache states in cookies to make them accessible for the server
+ - Cookie: store module cache states in cookies to exchange cache states with the server
  - LZString: compress/decompress localStorage content to safe space
  - SRI: adds sub-resource-integrity checks when loading modules
  
