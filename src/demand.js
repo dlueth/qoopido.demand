@@ -361,6 +361,26 @@
 			}
 
 			/**
+			 * hash
+			 *
+			 * Generate a hash for a given string
+			 *
+			 * @param {string} input
+			 *
+			 * @return {number}
+			 */
+			function hash(input){
+				var value = 5381,
+					i     = input.length;
+
+				while(i) {
+					value = (value * 33) ^ input.charCodeAt(--i);
+				}
+
+				return value >>> 0;
+			}
+
+			/**
 			 * defer
 			 *
 			 * delay function execution like setImmediate does
@@ -1347,17 +1367,6 @@
 						return match;
 					}
 
-					function generateHash(value){
-						var hash = 5381,
-							i    = value.length;
-
-						while(i) {
-							hash = (hash * 33) ^ value.charCodeAt(--i);
-						}
-
-						return hash >>> 0;
-					}
-
 					function generateConfiguration(bundle) {
 						var matches       = bundle.matches,
 							configuration = { pattern: {}, modules: { '/demand/handler/bundle': {} } },
@@ -1411,7 +1420,7 @@
 							matches = value.matches;
 
 							if(matches.length > 1) {
-								value.id = '/genie/' + generateHash(JSON.stringify(value.matches));
+								value.id = '/genie/' + hash(JSON.stringify(value.matches));
 
 								for(i = 0; (dependency = matches[i]); i++) {
 									dependency.deferred            = Pledge.defer();
@@ -1453,6 +1462,7 @@
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', merge);
 		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', iterate);
+		assignModule(MODULE_PREFIX_FUNCTION + 'hash', hash);
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', defer);
 		assignModule(MODULE_PREFIX + 'uuid', Uuid);
 		assignModule(MODULE_PREFIX + 'pledge', Pledge);
