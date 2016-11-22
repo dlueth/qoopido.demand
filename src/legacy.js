@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-/* eslint no-restricted-syntax: ["error", "DebuggerStatement", "LabeledStatement", "WithStatement"] */
+/* eslint no-restricted-syntax: [2, "DebuggerStatement", "LabeledStatement", "WithStatement"] */
 
 (function(functionPrototype, objectPrototype, arrayPrototype, undefined) {
 	'use strict';
