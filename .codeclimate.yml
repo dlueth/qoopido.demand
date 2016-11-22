@@ -1,0 +1,20 @@
+---
+engines:
+  csslint:
+    enabled: false
+  duplication:
+    enabled: false
+    config:
+      languages:
+      - javascript
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+  phpmd:
+    enabled: false
+ratings:
+  paths:
+  - "src/**.js"
+exclude_paths:
+- dist/
