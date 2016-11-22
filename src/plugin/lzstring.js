@@ -14,8 +14,6 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-/* global demand provide */
-
 (function() {
 	'use strict';
 

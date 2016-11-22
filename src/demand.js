@@ -12,15 +12,13 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-/* global demand */
-
 (function(global, document, configuration, JSON, XHR, arrayPrototype, objectPrototype, undefined) {
 	'use strict';
 
-	var /** pointer */
+	var /** shortcuts */
 			arrayPrototypeSlice     = arrayPrototype.slice,
-			objectPrototypeToString = objectPrototype.toString,
 			arrayPrototypeConcat    = arrayPrototype.concat,
+			objectPrototypeToString = objectPrototype.toString,
 		/** constants */
 			DEMAND_ID               = 'demand',
 			PROVIDE_ID              = 'provide',
@@ -45,17 +43,20 @@
 			regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 			regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 			regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Configure.*|Resolve|Request|Process|Cache)$/,
-		/** Classes */
+			regexMatchBaseUrl,
+		/** classes */
 			Uuid, Pledge, Queue, QueueHandler, Pattern, Loader, Failure,
-		/** Conditional functions */
+		/** instances */
+			queue, queueHandler, storage,
+		/** conditional functions */
 			defer,
 		/** other */
 			settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 			resolver                = document.createElement('a'),
 			registry                = {},
 			mocks                   = {},
-			listener                = {},
-			regexMatchBaseUrl, queue, queueHandler, storage;
+			listener                = {}
+			;
 
 	/**
 	 * --------------------------------
@@ -84,10 +85,6 @@
 					console.error(error.toString());
 				}
 				/* eslint-enable no-console */
-			}
-
-			function assignModule(id, factory) {
-				provide(id, function() { return factory; });
 			}
 
 			function mockModules() {
@@ -211,18 +208,6 @@
 					lifetime: (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime,
 					url:      match ? resolveUrl(match.process(path)) : path
 				};
-			}
-
-			function resolveLoader(loader) {
-				var handler = loader.handler;
-
-				emit('preProcess', loader);
-
-				if(loader.deferred.pledge.isPending()) {
-					handler.onPreProcess && handler.onPreProcess.call(loader);
-					handler.process && queue.enqueue(loader);
-					!queueHandler.current && queueHandler.process();
-				}
 			}
 
 			function mergeProperties(property, value) {
@@ -758,6 +743,18 @@
 		 * Loader
 		 */
 			Loader = (function() {
+				function resolveLoader(loader) {
+					var handler = loader.handler;
+
+					emit('preProcess', loader);
+
+					if(loader.deferred.pledge.isPending()) {
+						handler.onPreProcess && handler.onPreProcess.call(loader);
+						handler.process && queue.enqueue(loader);
+						!queueHandler.current && queueHandler.process();
+					}
+				}
+
 				function Loader(path, parameter) {
 					var self     = this,
 						deferred = Pledge.defer(),
@@ -1450,32 +1447,38 @@
 	 * Initialization
 	 * --------------------------------
 	 */
-		regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolveUrl('/')));
-		
-		demand.configure({ cache: true, base: '/', pattern: { '/demand': resolveUrl(((configuration && configuration.url) || location.href) + '/../').slice(0, -1)} });
-		configuration && configuration.settings && demand.configure(configuration.settings);
-		
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
-		assignModule(MODULE_PREFIX_FUNCTION + 'merge', merge);
-		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', iterate);
-		assignModule(MODULE_PREFIX_FUNCTION + 'hash', hash);
-		assignModule(MODULE_PREFIX_FUNCTION + 'defer', defer);
-		assignModule(MODULE_PREFIX + 'uuid', Uuid);
-		assignModule(MODULE_PREFIX + 'pledge', Pledge);
-		assignModule(MODULE_PREFIX + 'queue', Queue);
-		assignModule(MODULE_PREFIX + 'failure', Failure);
-		
-		queue        = new Queue();
-		queueHandler = new QueueHandler(queue);
-		
-		global.demand  = demand;
-		global.provide = provide;
-		
-		if(configuration && configuration.main) {
-			demand(configuration.main);
-		}
+		(function() {
+			function assignModule(id, factory) {
+				provide(id, function() { return factory; });
+			}
+
+			regexMatchBaseUrl = createRegularExpression('^' + escapeRegularExpression(resolveUrl('/')));
+
+			demand.configure({ cache: true, base: '/', pattern: { '/demand': resolveUrl(((configuration && configuration.url) || location.href) + '/../').slice(0, -1)} });
+			configuration && configuration.settings && demand.configure(configuration.settings);
+
+			assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', isArray);
+			assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', isObject);
+			assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', isTypeOf);
+			assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', isInstanceOf);
+			assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+			assignModule(MODULE_PREFIX_FUNCTION + 'merge', merge);
+			assignModule(MODULE_PREFIX_FUNCTION + 'iterate', iterate);
+			assignModule(MODULE_PREFIX_FUNCTION + 'hash', hash);
+			assignModule(MODULE_PREFIX_FUNCTION + 'defer', defer);
+			assignModule(MODULE_PREFIX + 'uuid', Uuid);
+			assignModule(MODULE_PREFIX + 'pledge', Pledge);
+			assignModule(MODULE_PREFIX + 'queue', Queue);
+			assignModule(MODULE_PREFIX + 'failure', Failure);
+
+			queue        = new Queue();
+			queueHandler = new QueueHandler(queue);
+
+			global.demand  = demand;
+			global.provide = provide;
+
+			if(configuration && configuration.main) {
+				demand(configuration.main);
+			}
+		}());
 }(this, document, 'demand' in this && demand, JSON, XMLHttpRequest, Array.prototype, Object.prototype));

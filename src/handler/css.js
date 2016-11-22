@@ -10,8 +10,6 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-/* global provide */
-
 (function(document) {
 	'use strict';
 
