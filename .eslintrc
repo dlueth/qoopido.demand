@@ -1,0 +1,23 @@
+{
+  "extends": "eslint:recommended",
+  "rules": {
+    "no-cond-assign": 0,
+    "camelcase": [
+      2
+    ],
+    "no-restricted-syntax": [
+      2,
+      "ForInStatement",
+      "DebuggerStatement",
+      "LabeledStatement",
+      "WithStatement"
+    ]
+  },
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "demand": true,
+    "provide": true
+  }
+}

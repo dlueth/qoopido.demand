@@ -9,19 +9,19 @@ engines:
       - javascript
   eslint:
     enabled: true
-    checks:
-      no-shadow-restricted-names:
-        enabled: false
-      max-statements:
-        enabled: false
-      no-cond-assign:
-        enabled: false
-      no-unused-expressions:
-        enabled: false
-      callback-return:
-        enabled: false
-      complexity:
-        enabled: false
+#    checks:
+#      no-shadow-restricted-names:
+#        enabled: false
+#      max-statements:
+#        enabled: false
+#      no-cond-assign:
+#        enabled: false
+#      no-unused-expressions:
+#        enabled: false
+#      callback-return:
+#        enabled: false
+#      complexity:
+#        enabled: false
   fixme:
     enabled: true
   phpmd:
