@@ -3,6 +3,7 @@
 [![GitHub version](https://img.shields.io/github/tag/dlueth/qoopido.demand.svg?style=flat-square&label=github)](https://github.com/dlueth/qoopido.demand)
 [![NPM version](https://img.shields.io/npm/v/qoopido.demand.svg?style=flat-square&label=npm)](https://www.npmjs.com/package/qoopido.demand)
 [![License](https://img.shields.io/npm/l/qoopido.demand.svg?style=flat-square)](https://github.com/dlueth/qoopido.demand)
+[![Code Climate](https://img.shields.io/codeclimate/github/dlueth/qoopido.demand.svg?style=flat-square)](https://codeclimate.com/github/dlueth/qoopido.demand)
 [![NPM downloads](https://img.shields.io/npm/dt/qoopido.demand.svg?style=flat-square&label=npm%20downloads)](https://www.npmjs.org/package/qoopido.demand)
 [![David dependencies](https://img.shields.io/david/dlueth/qoopido.demand.svg?style=flat-square)](https://david-dm.org/dlueth/qoopido.demand)
 [![David dev dependencies](https://img.shields.io/david/dev/dlueth/qoopido.demand.svg?style=flat-square&label=dev%20dependencies)](https://david-dm.org/dlueth/qoopido.demand)
