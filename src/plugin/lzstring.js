@@ -263,80 +263,6 @@
 				power      = 1,
 				next, i, w, resb, c;
 
-			for(i = 0; i < 3; i++) {
-				dictionary[i] = i;
-			}
-
-			while(power !== maxpower) {
-				resb = data.val & data.position;
-
-				data.position >>= 1;
-
-				if(data.position === 0) {
-					data.position = resetValue;
-					data.val      = getNextValue(compressed, data.index++);
-				}
-
-				bits |= (resb > 0 ? 1 : 0) * power;
-				power <<= 1;
-			}
-
-			next = bits;
-
-			switch(next) {
-				case 0:
-					bits     = 0;
-					maxpower = mathPow28;
-					power    = 1;
-
-					while(power !== maxpower) {
-						resb = data.val & data.position;
-
-						data.position >>= 1;
-
-						if(data.position === 0) {
-							data.position = resetValue;
-							data.val      = getNextValue(compressed, data.index++);
-						}
-
-						bits |= (resb>0 ? 1 : 0) * power;
-						power <<= 1;
-					}
-
-					c = stringFormCharCode(bits);
-
-					break;
-				case 1:
-					bits     = 0;
-					maxpower = mathPow216;
-					power    = 1;
-
-					while(power !== maxpower) {
-						resb = data.val & data.position;
-
-						data.position >>= 1;
-
-						if(data.position === 0) {
-							data.position = resetValue;
-							data.val      = getNextValue(compressed, data.index++);
-						}
-
-						bits |= (resb>0 ? 1 : 0) * power;
-						power <<= 1;
-					}
-
-					c = stringFormCharCode(bits);
-
-					break;
-				case 2:
-					return '';
-			}
-
-			dictionary[3] = c;
-			w             = c;
-
-			result.push(c);
-
 			function process(maxpower) {
 				bits  = 0;
 				power = 1;
@@ -354,43 +280,62 @@
 					bits |= (resb > 0 ? 1 : 0) * power;
 					power <<= 1;
 				}
-
-				dictionary[dictSize++] = stringFormCharCode(bits);
-				c                      = dictSize - 1;
-
-				enlargeIn--;
 			}
+
+			for(i = 0; i < 3; i++) {
+				dictionary[i] = i;
+			}
+
+			process(maxpower);
+
+			next = bits;
+
+			switch(next) {
+				case 0:
+					process(mathPow28);
+
+					c = stringFormCharCode(bits);
+
+					break;
+				case 1:
+					process(mathPow216);
+
+					c = stringFormCharCode(bits);
+
+					break;
+				case 2:
+					return '';
+			}
+
+			dictionary[3] = c;
+			w             = c;
+
+			result.push(c);
 
 			while(true) { // eslint-disable-line no-constant-condition
 				if(data.index > length) {
 					return '';
 				}
 
-				bits     = 0;
-				maxpower = Math.pow(2, numBits);
-				power    = 1;
-
-				while(power !== maxpower) {
-					resb = data.val & data.position;
-
-					data.position >>= 1;
-
-					if(data.position === 0) {
-						data.position = resetValue;
-						data.val      = getNextValue(compressed, data.index++);
-					}
-
-					bits |= (resb>0 ? 1 : 0) * power;
-					power <<= 1;
-				}
+				process(Math.pow(2, numBits));
 
 				switch(c = bits) {
 					case 0:
 						process(mathPow28);
 
+						dictionary[dictSize++] = stringFormCharCode(bits);
+						c                      = dictSize - 1;
+
+						enlargeIn--;
+
 						break;
 					case 1:
 						process(mathPow216);
+
+						dictionary[dictSize++] = stringFormCharCode(bits);
+						c                      = dictSize - 1;
+
+						enlargeIn--;
 
 						break;
 					case 2:
