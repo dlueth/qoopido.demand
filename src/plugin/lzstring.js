@@ -182,36 +182,7 @@
 			}
 
 			if (contextW !== '') {
-				if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
-					process();
-
-					if(contextEnlargeIn === 0) {
-						contextEnlargeIn = Math.pow(2, contextNumBits);
-
-						contextNumBits++;
-					}
-
-					delete contextDictionaryToCreate[contextW];
-				} else {
-					value = contextDictionary[contextW];
-
-					for(i = 0 ; i < contextNumBits ; i++) {
-						contextDataVal = (contextDataVal << 1) | (value&1);
-
-						if(contextDataPosition === bitsPerChar) {
-							contextData.push(getCharFromInt(contextDataVal));
-
-							contextDataPosition = 0;
-							contextDataVal      = 0;
-						} else {
-							contextDataPosition++;
-						}
-
-						value = value >> 1;
-					}
-				}
-
-				contextEnlargeIn--;
+				process();
 
 				if(contextEnlargeIn === 0) {
 					contextNumBits++;
