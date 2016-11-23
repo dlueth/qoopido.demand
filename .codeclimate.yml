@@ -19,7 +19,9 @@ ratings:
   - "src/**.js"
 exclude_paths:
 - "gulpfile.js"
+- "README.md"
 - "**.json"
 - "dist/"
 - "demo/"
 - "gulp/"
+- "genie/"
