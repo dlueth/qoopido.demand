@@ -56,20 +56,24 @@
 
 			bitsPerChar -= 1;
 
+			function subprocess() {
+				if(contextDataPosition === bitsPerChar) {
+					contextData.push(getCharFromInt(contextDataVal));
+
+					contextDataPosition = 0;
+					contextDataVal      = 0;
+				} else {
+					contextDataPosition++;
+				}
+			}
+
 			function process() {
 				if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
 					if(contextW.charCodeAt(0) < 256) {
 						for(i = 0; i < contextNumBits; i++) {
 							contextDataVal = (contextDataVal << 1);
 
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
+							subprocess();
 						}
 
 						value = contextW.charCodeAt(0);
@@ -77,14 +81,7 @@
 						for(i = 0; i < 8; i++) {
 							contextDataVal = (contextDataVal << 1) | (value & 1);
 
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
+							subprocess();
 
 							value = value >> 1;
 						}
@@ -94,14 +91,7 @@
 						for(i = 0; i < contextNumBits; i++) {
 							contextDataVal = (contextDataVal << 1) | value;
 
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
+							subprocess();
 
 							value = 0;
 						}
@@ -111,14 +101,7 @@
 						for(i = 0; i < 16; i++) {
 							contextDataVal = (contextDataVal << 1) | (value & 1);
 
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
+							subprocess();
 
 							value = value >> 1;
 						}
@@ -139,14 +122,7 @@
 					for(i = 0; i < contextNumBits; i++) {
 						contextDataVal = (contextDataVal << 1) | (value & 1);
 
-						if(contextDataPosition === bitsPerChar) {
-							contextData.push(getCharFromInt(contextDataVal));
-
-							contextDataPosition = 0;
-							contextDataVal      = 0;
-						} else {
-							contextDataPosition++;
-						}
+						subprocess();
 
 						value = value >> 1;
 					}
@@ -194,14 +170,7 @@
 			for(i = 0 ; i < contextNumBits ; i++) {
 				contextDataVal = (contextDataVal << 1) | (value&1);
 
-				if(contextDataPosition === bitsPerChar) {
-					contextData.push(getCharFromInt(contextDataVal));
-
-					contextDataPosition = 0;
-					contextDataVal      = 0;
-				} else {
-					contextDataPosition++;
-				}
+				subprocess();
 
 				value = value >> 1;
 			}
