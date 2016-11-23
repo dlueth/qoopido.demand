@@ -337,6 +337,30 @@
 
 			result.push(c);
 
+			function process(maxpower) {
+				bits  = 0;
+				power = 1;
+
+				while(power !== maxpower) {
+					resb = data.val & data.position;
+
+					data.position >>= 1;
+
+					if(data.position === 0) {
+						data.position = resetValue;
+						data.val      = getNextValue(compressed, data.index++);
+					}
+
+					bits |= (resb > 0 ? 1 : 0) * power;
+					power <<= 1;
+				}
+
+				dictionary[dictSize++] = stringFormCharCode(bits);
+				c                      = dictSize - 1;
+
+				enlargeIn--;
+			}
+
 			while(true) { // eslint-disable-line no-constant-condition
 				if(data.index > length) {
 					return '';
@@ -362,54 +386,11 @@
 
 				switch(c = bits) {
 					case 0:
-						bits     = 0;
-						maxpower = mathPow28;
-						power    = 1;
-
-						while(power !== maxpower) {
-							resb = data.val & data.position;
-
-							data.position >>= 1;
-
-							if(data.position === 0) {
-								data.position = resetValue;
-								data.val      = getNextValue(compressed, data.index++);
-							}
-
-							bits |= (resb>0 ? 1 : 0) * power;
-							power <<= 1;
-						}
-
-						dictionary[dictSize++] = stringFormCharCode(bits);
-						c                      = dictSize - 1;
-
-						enlargeIn--;
+						process(mathPow28);
 
 						break;
 					case 1:
-						bits     = 0;
-						maxpower = mathPow216;
-						power    = 1;
-
-						while(power !== maxpower) {
-							resb = data.val & data.position;
-
-							data.position >>= 1;
-
-							if(data.position === 0) {
-								data.position = resetValue;
-								data.val      = getNextValue(compressed, data.index++);
-							}
-
-							bits |= (resb>0 ? 1 : 0) * power;
-
-							power <<= 1;
-						}
-
-						dictionary[dictSize++] = stringFormCharCode(bits);
-						c                      = dictSize - 1;
-
-						enlargeIn--;
+						process(mathPow216);
 
 						break;
 					case 2:
