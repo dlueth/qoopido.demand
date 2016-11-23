@@ -3,7 +3,7 @@ engines:
   csslint:
     enabled: false
   duplication:
-    enabled: false
+    enabled: true
     config:
       languages:
       - javascript
@@ -21,7 +21,7 @@ engines:
       callback-return:
         enabled: false
       complexity:
-        enabled: false
+        enabled: true
   fixme:
     enabled: true
   phpmd:
