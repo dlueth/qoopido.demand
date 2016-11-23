@@ -56,100 +56,60 @@
 
 			bitsPerChar -= 1;
 
-			for(; uncompressed[ii]; ii++) {
-				contextC = uncompressed.charAt(ii);
+			function process() {
+				if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
+					if(contextW.charCodeAt(0) < 256) {
+						for(i = 0; i < contextNumBits; i++) {
+							contextDataVal = (contextDataVal << 1);
 
-				if(!objectPrototypeHasOwnProperty.call(contextDictionary, contextC)) {
-					contextDictionary[contextC]         = contextDictSize++;
-					contextDictionaryToCreate[contextC] = true;
-				}
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
 
-				contextWc = contextW + contextC;
-
-				if(objectPrototypeHasOwnProperty.call(contextDictionary, contextWc)) {
-					contextW = contextWc;
-				} else {
-					if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
-						if(contextW.charCodeAt(0) < 256) {
-							for(i = 0 ; i < contextNumBits ; i++) {
-								contextDataVal = (contextDataVal << 1);
-
-								if(contextDataPosition === bitsPerChar) {
-									contextData.push(getCharFromInt(contextDataVal));
-
-									contextDataPosition = 0;
-									contextDataVal      = 0;
-								} else {
-									contextDataPosition++;
-								}
-							}
-
-							value = contextW.charCodeAt(0);
-
-							for(i = 0 ; i < 8 ; i++) {
-								contextDataVal = (contextDataVal << 1) | (value&1);
-
-								if(contextDataPosition === bitsPerChar) {
-									contextData.push(getCharFromInt(contextDataVal));
-
-									contextDataPosition = 0;
-									contextDataVal      = 0;
-								} else {
-									contextDataPosition++;
-								}
-
-								value = value >> 1;
-							}
-						} else {
-							value = 1;
-
-							for(i = 0 ; i < contextNumBits ; i++) {
-								contextDataVal = (contextDataVal << 1) | value;
-
-								if(contextDataPosition === bitsPerChar) {
-									contextData.push(getCharFromInt(contextDataVal));
-
-									contextDataPosition = 0;
-									contextDataVal      = 0;
-								} else {
-									contextDataPosition++;
-								}
-
-								value = 0;
-							}
-
-							value = contextW.charCodeAt(0);
-
-							for(i = 0 ; i < 16 ; i++) {
-								contextDataVal = (contextDataVal << 1) | (value&1);
-
-								if(contextDataPosition === bitsPerChar) {
-									contextData.push(getCharFromInt(contextDataVal));
-
-									contextDataPosition = 0;
-									contextDataVal      = 0;
-								} else {
-									contextDataPosition++;
-								}
-
-								value = value >> 1;
+								contextDataPosition = 0;
+								contextDataVal      = 0;
+							} else {
+								contextDataPosition++;
 							}
 						}
 
-						contextEnlargeIn--;
+						value = contextW.charCodeAt(0);
 
-						if(contextEnlargeIn === 0) {
-							contextEnlargeIn = Math.pow(2, contextNumBits);
+						for(i = 0; i < 8; i++) {
+							contextDataVal = (contextDataVal << 1) | (value & 1);
 
-							contextNumBits++;
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
+
+								contextDataPosition = 0;
+								contextDataVal      = 0;
+							} else {
+								contextDataPosition++;
+							}
+
+							value = value >> 1;
 						}
-
-						delete contextDictionaryToCreate[contextW];
 					} else {
-						value = contextDictionary[contextW];
+						value = 1;
 
-						for(i = 0 ; i < contextNumBits ; i++) {
-							contextDataVal = (contextDataVal << 1) | (value&1);
+						for(i = 0; i < contextNumBits; i++) {
+							contextDataVal = (contextDataVal << 1) | value;
+
+							if(contextDataPosition === bitsPerChar) {
+								contextData.push(getCharFromInt(contextDataVal));
+
+								contextDataPosition = 0;
+								contextDataVal      = 0;
+							} else {
+								contextDataPosition++;
+							}
+
+							value = 0;
+						}
+
+						value = contextW.charCodeAt(0);
+
+						for(i = 0; i < 16; i++) {
+							contextDataVal = (contextDataVal << 1) | (value & 1);
 
 							if(contextDataPosition === bitsPerChar) {
 								contextData.push(getCharFromInt(contextDataVal));
@@ -172,6 +132,50 @@
 						contextNumBits++;
 					}
 
+					delete contextDictionaryToCreate[contextW];
+				} else {
+					value = contextDictionary[contextW];
+
+					for(i = 0; i < contextNumBits; i++) {
+						contextDataVal = (contextDataVal << 1) | (value & 1);
+
+						if(contextDataPosition === bitsPerChar) {
+							contextData.push(getCharFromInt(contextDataVal));
+
+							contextDataPosition = 0;
+							contextDataVal      = 0;
+						} else {
+							contextDataPosition++;
+						}
+
+						value = value >> 1;
+					}
+				}
+
+				contextEnlargeIn--;
+			}
+
+			for(; uncompressed[ii]; ii++) {
+				contextC = uncompressed.charAt(ii);
+
+				if(!objectPrototypeHasOwnProperty.call(contextDictionary, contextC)) {
+					contextDictionary[contextC]         = contextDictSize++;
+					contextDictionaryToCreate[contextC] = true;
+				}
+
+				contextWc = contextW + contextC;
+
+				if(objectPrototypeHasOwnProperty.call(contextDictionary, contextWc)) {
+					contextW = contextWc;
+				} else {
+					process();
+
+					if(contextEnlargeIn === 0) {
+						contextEnlargeIn = Math.pow(2, contextNumBits);
+
+						contextNumBits++;
+					}
+
 					contextDictionary[contextWc] = contextDictSize++;
 					contextW                      = String(contextC);
 				}
@@ -179,73 +183,7 @@
 
 			if (contextW !== '') {
 				if(objectPrototypeHasOwnProperty.call(contextDictionaryToCreate, contextW)) {
-					if(contextW.charCodeAt(0) < 256) {
-						for(i = 0 ; i < contextNumBits ; i++) {
-							contextDataVal = (contextDataVal << 1);
-
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
-						}
-
-						value = contextW.charCodeAt(0);
-
-						for(i = 0 ; i < 8 ; i++) {
-							contextDataVal = (contextDataVal << 1) | (value&1);
-
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
-
-							value = value >> 1;
-						}
-					} else {
-						value = 1;
-
-						for(i = 0 ; i < contextNumBits ; i++) {
-							contextDataVal = (contextDataVal << 1) | value;
-
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
-
-							value = 0;
-						}
-
-						value = contextW.charCodeAt(0);
-
-						for(i = 0 ; i < 16 ; i++) {
-							contextDataVal = (contextDataVal << 1) | (value&1);
-
-							if(contextDataPosition === bitsPerChar) {
-								contextData.push(getCharFromInt(contextDataVal));
-
-								contextDataPosition = 0;
-								contextDataVal      = 0;
-							} else {
-								contextDataPosition++;
-							}
-
-							value = value >> 1;
-						}
-					}
-
-					contextEnlargeIn--;
+					process();
 
 					if(contextEnlargeIn === 0) {
 						contextEnlargeIn = Math.pow(2, contextNumBits);
