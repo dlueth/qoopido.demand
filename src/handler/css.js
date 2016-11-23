@@ -26,6 +26,14 @@
 		return resolver;
 	}
 
+	function replaceUri(source, match, replacement) {
+		if(!regexIsAbsoluteUri.test(match[1])) {
+			source = source.replace(match[0], replacement);
+		}
+
+		return source;
+	}
+
 	function definition() {
 		return {
 			matchType: /^text\/css/,
@@ -44,15 +52,11 @@
 					match;
 
 				while((match = regexMatchUrl.exec(source))) {
-					if(!regexIsAbsoluteUri.test(match[1])) {
-						source = source.replace(match[0], 'url("' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '")');
-					}
+					source = replaceUri(source, match, 'url("' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '")');
 				}
 
 				while((match = regexMatchImport.exec(source))) {
-					if(!regexIsAbsoluteUri.test(match[1])) {
-						source = source.replace(match[0], '@import "' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '"');
-					}
+					source = replaceUri(source, match, '@import "' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '"');
 				}
 
 				self.source = source;
