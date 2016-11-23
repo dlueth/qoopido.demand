@@ -6,7 +6,9 @@ engines:
     enabled: true
     config:
       languages:
-      - javascript
+        javascript:
+          mass_treshold: 110
+
   eslint:
     enabled: true
   fixme:

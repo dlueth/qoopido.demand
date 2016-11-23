@@ -17,6 +17,7 @@
     "browser": true
   },
   "globals": {
+    "require": true,
     "demand": true,
     "provide": true
   }
