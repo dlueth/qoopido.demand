@@ -18,8 +18,8 @@ ratings:
   paths:
   - "src/**.js"
 exclude_paths:
-- gulpfile.js
-- **.json
-- dist/
-- demo/
-- gulp/
+- "gulpfile.js"
+- "**.json"
+- "dist/"
+- "demo/"
+- "gulp/"
