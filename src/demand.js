@@ -781,45 +781,41 @@
 									if(self.cache === false || !storage.get(self)) {
 										emit('preRequest', self);
 
-										if(pledge.isPending()) {
-											xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
+										xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
 
-											xhr.onprogress = function() {};
-											xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
-												deferred.reject(new Failure('timeout requesting', self.path));
-											};
-											xhr.onload = function() {
-												var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
+										xhr.onprogress = function() {};
+										xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+											deferred.reject(new Failure('timeout requesting', self.path));
+										};
+										xhr.onload = function() {
+											var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
 
-												timeout = clearTimeout(timeout);
+											timeout = clearTimeout(timeout);
 
-												if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
-													self.source = xhr.responseText;
+											if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
+												self.source = xhr.responseText;
 
-													emit('postRequest', self);
+												emit('postRequest', self);
 
-													if(pledge.isPending()) {
-														handler.onPostRequest && handler.onPostRequest.call(self);
-														resolveLoader(self);
+												handler.onPostRequest && handler.onPostRequest.call(self);
+												resolveLoader(self);
 
-														if(self.cache !== false) {
-															pledge.then(function() { storage.set(self); });
-														}
-													}
-												} else {
-													deferred.reject(new Failure('error requesting', self.path));
+												if(self.cache !== false) {
+													pledge.then(function() { storage.set(self); });
 												}
-											};
+											} else {
+												deferred.reject(new Failure('error requesting', self.path));
+											}
+										};
 
-											xhr.open('GET', self.url, true);
-											xhr.send();
+										xhr.open('GET', self.url, true);
+										xhr.send();
 
-											timeout = setTimeout(function() {
-												if(xhr.readyState < 4) {
-													xhr.abort();
-												}
-											}, settings.timeout);
-										}
+										timeout = setTimeout(function() {
+											if(xhr.readyState < 4) {
+												xhr.abort();
+											}
+										}, settings.timeout);
 									} else {
 										resolveLoader(self);
 									}
