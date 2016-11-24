@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-(function(global, document, configuration, JSON, XHR, arrayPrototype, objectPrototype, undefined) {
+(function(global, document, configuration, JSON, arrayPrototype, objectPrototype, undefined) {
 	'use strict';
 
 	var /** shortcuts */
@@ -35,17 +35,15 @@
 			STRING_BOOLEAN          = 'boolean',
 			STRING_FUNCTION         = 'function',
 			NULL                    = null,
-			XDR                     = 'XDomainRequest' in global &&  global.XDomainRequest || XHR,
 		/** regular expressions */
 			regexIsAbsolutePath     = /^\//,
 			regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
-			regexMatchTrailingSlash = /(.+)\/$/,
 			regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 			regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 			regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Configure.*|Resolve|Request|Process|Cache)$/,
 			regexMatchBaseUrl,
 		/** classes */
-			Uuid, Pledge, Queue, QueueHandler, Pattern, Loader, Failure,
+			Uuid, Pledge, Queue, QueueHandler, Pattern, Xhr, Loader, Failure,
 		/** instances */
 			queue, queueHandler, storage,
 		/** conditional functions */
@@ -53,6 +51,7 @@
 		/** other */
 			settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 			resolver                = document.createElement('a'),
+			fn                      = function() {},
 			registry                = {},
 			mocks                   = {},
 			listener                = {}
@@ -494,7 +493,6 @@
 				var PLEDGE_PENDING  = 'pending',
 					PLEDGE_RESOLVED = 'resolved',
 					PLEDGE_REJECTED = 'rejected',
-					fn              = function() {},
 					storage         = {};
 
 				function resolve() {
@@ -709,6 +707,8 @@
 		 * Pattern
 		 */
 			Pattern = (function() {
+				var regexMatchTrailingSlash = /(.+)\/$/;
+
 				function Pattern(pattern, url) {
 					var self = this;
 
@@ -740,6 +740,53 @@
 			}());
 
 		/**
+		 * Xhr
+		 */
+		Xhr = (function(XMLHttpRequest) {
+			var XDomainRequest = 'XDomainRequest' in global && global.XDomainRequest || XMLHttpRequest;
+
+			function checkState() {
+				if(this.readyState < 4) {
+					this.abort();
+				}
+			}
+
+			return function Xhr(url) {
+				var boundCheckState = checkState.bind(this),
+					deferred        = Pledge.defer(),
+					xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
+					timeout         = settings.timeout,
+					pointer;
+
+				xhr.onprogress = fn;
+				xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
+					deferred.reject(xhr.status);
+				};
+				xhr.onreadystatechange = function() {
+					clearTimeout(pointer);
+
+					pointer = setTimeout(boundCheckState, settings.timeout);
+				};
+				xhr.onload = function() {
+					timeout = clearTimeout(timeout);
+
+					if(!('status' in xhr) || xhr.status === 200) {
+						deferred.resolve(xhr.responseText, xhr.getResponseHeader && xhr.getResponseHeader('content-type'));
+					} else {
+						deferred.reject(xhr.status);
+					}
+				};
+
+				xhr.open('GET', url, true);
+				xhr.send();
+
+				pointer = setTimeout(boundCheckState, settings.timeout);
+
+				return deferred.pledge;
+			}
+		}(XMLHttpRequest));
+
+		/**
 		 * Loader
 		 */
 			Loader = (function() {
@@ -759,8 +806,7 @@
 					var self     = this,
 						deferred = Pledge.defer(),
 						pledge   = deferred.pledge,
-						handler  = parameter.handler,
-						xhr, timeout;
+						handler  = parameter.handler;
 
 					self.deferred = deferred;
 					self.path     = path;
@@ -781,41 +827,28 @@
 									if(self.cache === false || !storage.get(self)) {
 										emit('preRequest', self);
 
-										xhr = regexMatchBaseUrl.test(self.url) ? new XHR() : new XDR();
+										new Xhr(self.url).then(
+											function(response, type) {
+												if(!type || !handler.matchType || handler.matchType.test(type)) {
+													self.source = response;
 
-										xhr.onprogress = function() {};
-										xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
-											deferred.reject(new Failure('timeout requesting', self.path));
-										};
-										xhr.onload = function() {
-											var type = xhr.getResponseHeader && xhr.getResponseHeader('content-type');
+													emit('postRequest', self);
 
-											timeout = clearTimeout(timeout);
+													handler.onPostRequest && handler.onPostRequest.call(self);
+													resolveLoader(self);
 
-											if((!('status' in xhr) || xhr.status === 200) && (!type || !handler.matchType || handler.matchType.test(type))) {
-												self.source = xhr.responseText;
-
-												emit('postRequest', self);
-
-												handler.onPostRequest && handler.onPostRequest.call(self);
-												resolveLoader(self);
-
-												if(self.cache !== false) {
-													pledge.then(function() { storage.set(self); });
+													if(self.cache !== false) {
+														pledge.then(function() { storage.set(self); });
+													}
+												} else {
+													deferred.reject(new Failure('error loading (content-type)', self.path));
 												}
-											} else {
-												deferred.reject(new Failure('error requesting', self.path));
+											},
+											function(status) {
+												deferred.reject(new Failure('error loading' + (status ? ' (status)' : ''), self.path));
 											}
-										};
+										);
 
-										xhr.open('GET', self.url, true);
-										xhr.send();
-
-										timeout = setTimeout(function() {
-											if(xhr.readyState < 4) {
-												xhr.abort();
-											}
-										}, settings.timeout);
 									} else {
 										resolveLoader(self);
 									}
@@ -1067,7 +1100,7 @@
 							.apply(path, dependencies)
 							.then(
 								function() { deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-								function() { log(new Failure('error providing ' + path)); }
+								function() { log(new Failure('error providing', path)); }
 							);
 					} else {
 						deferred.resolve(isFunction ? definition() : definition);
@@ -1464,6 +1497,7 @@
 			assignModule(MODULE_PREFIX + 'uuid', Uuid);
 			assignModule(MODULE_PREFIX + 'pledge', Pledge);
 			assignModule(MODULE_PREFIX + 'queue', Queue);
+			assignModule(MODULE_PREFIX + 'xhr', Xhr);
 			assignModule(MODULE_PREFIX + 'failure', Failure);
 
 			queue        = new Queue();
@@ -1476,4 +1510,4 @@
 				demand(configuration.main);
 			}
 		}());
-}(this, document, 'demand' in this && demand, JSON, XMLHttpRequest, Array.prototype, Object.prototype));
+}(this, document, 'demand' in this && demand, JSON, Array.prototype, Object.prototype));
