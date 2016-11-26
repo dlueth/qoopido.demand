@@ -12,7 +12,7 @@
  * @author Dirk Lueth <info@qoopido.com>
  */
 
-(function(global, document, configuration, JSON, arrayPrototype, objectPrototype, undefined) {
+(function(global, document, configuration, JSON, arrayPrototype, objectPrototype, setTimeout, undefined) {
 	'use strict';
 
 	var /** shortcuts */
@@ -51,7 +51,6 @@
 		/** other */
 			settings                = { cache: {}, timeout: 8 * 1000, pattern: {}, modules: {}, handler: 'module' },
 			resolver                = document.createElement('a'),
-			fn                      = function() {},
 			registry                = {},
 			mocks                   = {},
 			listener                = {}
@@ -386,18 +385,15 @@
 					};
 				}
 
-				if(!hasSetImmediate && 'postMessage' in global && 'addEventListener' in global) {
+				if(!hasSetImmediate && 'postMessage' in global && !('importScripts' in global) && 'addEventListener' in global) {
 					return (function() {
-						var prefix  = 'com.async',
-							regex   = new RegExp('^com\\.async\\[([a-f0-9]{8,8}-[a-f0-9]{4,4}-4[a-f0-9]{3,3}-[a-f0-9]{4,4}-[a-f0-9]{12,12})\\]$', 'g'),
-							storage = {},
-							matches;
+						var storage = {};
 
 						function onMessage(event) {
-							if(event.source === global && (matches = regex.exec(event.data))) {
-								storage[matches[1]]();
-
-								delete storage[matches[1]];
+							if(event.source === global && event.data && storage[event.data]) {
+								storage[event.data]();
+								
+								delete storage[event.data];
 							}
 						}
 
@@ -408,7 +404,7 @@
 
 							storage[uuid] = fn;
 
-							global.postMessage(prefix + '[' + uuid + ']', '*');
+							global.postMessage(uuid, '*');
 						}
 					}());
 				}
@@ -493,6 +489,7 @@
 				var PLEDGE_PENDING  = 'pending',
 					PLEDGE_RESOLVED = 'resolved',
 					PLEDGE_REJECTED = 'rejected',
+					fn              = function() {},
 					storage         = {};
 
 				function resolve() {
@@ -645,6 +642,8 @@
 					Uuid.set(this);
 
 					storage[this.uuid] = [];
+					
+					global.queue = storage[this.uuid];
 				}
 
 				Queue.prototype = {
@@ -757,12 +756,11 @@
 					xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
 					timeout         = settings.timeout,
 					pointer;
-
-				xhr.onprogress = fn;
+				
 				xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
 					deferred.reject(xhr.status);
 				};
-				xhr.onreadystatechange = function() {
+				xhr.onprogress = xhr.onreadystatechange = function() {
 					clearTimeout(pointer);
 
 					pointer = setTimeout(boundCheckState, settings.timeout);
@@ -778,7 +776,9 @@
 				};
 
 				xhr.open('GET', url, true);
-				xhr.send();
+				setTimeout(function() {
+					xhr.send();
+				});
 
 				pointer = setTimeout(boundCheckState, settings.timeout);
 
@@ -798,6 +798,7 @@
 					if(loader.deferred.pledge.isPending()) {
 						handler.onPreProcess && handler.onPreProcess.call(loader);
 						handler.process && queue.enqueue(loader);
+						
 						!queueHandler.current && queueHandler.process();
 					}
 				}
@@ -1510,4 +1511,4 @@
 				demand(configuration.main);
 			}
 		}());
-}(this, document, 'demand' in this && demand, JSON, Array.prototype, Object.prototype));
+}(this, document, 'demand' in this && demand, JSON, Array.prototype, Object.prototype, setTimeout));
