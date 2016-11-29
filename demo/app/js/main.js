@@ -3,8 +3,8 @@
 (function(global, document) {
 	'use strict';
 
-	var target  = document.getElementById('target'),
-		content = target.textContent ? 'textContent' : 'innerText'
+	var target  = document.getElementById('target')//,
+		//content = target.textContent ? 'textContent' : 'innerText'
 		;
 
 	function log(action, module, state, details) {
@@ -31,6 +31,8 @@
 		target.appendChild(row);
 	}
 
+	var log = console.log;
+
 	function definition(demand, provide, Pledge) {
 		log('demand', '/app/js/main', 'resolved', 'module');
 
@@ -45,12 +47,22 @@
 			},
 			modules: {
 				'/demand/plugin/genie': {
+					'/app/': function(dependencies) {
+						var fragments = [],
+							i = 0, dependency;
+
+						for(; (dependency = dependencies[i]); i++) {
+							fragments.push(dependency.path);
+						}
+
+						return '/genie/index.php?module[]=' + fragments.join('&module[]=');
+					},
 					'/nucleus/': function(dependencies) {
 						var fragments = [],
 							i = 0, dependency;
 						
 						for(; (dependency = dependencies[i]); i++) {
-							fragments.push(dependency.id.replace(/^\/nucleus\//, '') + '.js');
+							fragments.push(dependency.path.replace(/^\/nucleus\//, '') + '.js');
 						}
 						
 						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
@@ -137,6 +149,19 @@
 								},
 								function() {
 									log('demand', '/app/js/simple', 'rejected');
+								}
+							),
+
+						// load modules via genie PHP-script
+						demand('@1.0.5!one', 'two')
+							.then(
+								function(appJsOne, appJsTwo) {
+									log('demand', '/app/js/one', 'resolved', 'genie bundle');
+									log('demand', '/app/js/two', 'resolved', 'genie bundle');
+								},
+								function() {
+									log('demand', '/app/js/one', 'rejected');
+									log('demand', '/app/js/two', 'rejected');
 								}
 							),
 

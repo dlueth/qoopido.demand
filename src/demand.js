@@ -10,6 +10,9 @@
  *  - http://www.gnu.org/copyleft/gpl.html
  *
  * @author Dirk Lueth <info@qoopido.com>
+ *
+ * @todo add garbage collection to storage (based on "last access")
+ * @todo check genie for what happens if a single module is in cache, but not yet requested
  */
 
 (function(global, document, configuration, JSON, arrayPrototype, objectPrototype, setTimeout, undefined) {
@@ -40,7 +43,9 @@
 			regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
 			regexMatchParameter     = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
 			regexMatchRegex         = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+			regexMatchSourcemap     = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g,
 			regexMatchEvent         = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Configure.*|Resolve|Request|Process|Cache)$/,
+			regexMatchInternal      = new RegExp('^' + DEMAND_ID + '|' + PROVIDE_ID + '|' + PATH_ID + '$'),
 			regexMatchBaseUrl,
 		/** classes */
 			Uuid, Pledge, Queue, QueueHandler, Pattern, Xhr, Loader, Failure,
@@ -85,7 +90,7 @@
 				/* eslint-enable no-console */
 			}
 
-			function mockModules() {
+			function mock() {
 				var pledges = [],
 					i = 0, module, pledge, parameter;
 
@@ -121,23 +126,15 @@
 				return resolver.href;
 			}
 
-			function resolvePath(path, context) {
-				path = path.replace(regexMatchParameter, '');
-
-				if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
-					path = '/' + resolveUrl(((context && resolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
-				}
-
-				return path;
-			}
-
 			function resolveDependency(dependency, context) {
 				var path, definition, deferred;
 
 				if(isTypeOf(dependency, STRING_STRING)) {
 					path = resolvePath(dependency, context);
 
-					if(context && (dependency === DEMAND_ID || dependency === PROVIDE_ID || dependency === PATH_ID)) {
+					new Module(dependency, context);
+
+					if(context && regexMatchInternal.test(dependency)) {
 						switch(dependency) {
 							case DEMAND_ID:
 								path       = MODULE_PREFIX_LOCAL + path;
@@ -185,6 +182,16 @@
 				}
 			}
 
+			function resolvePath(path, context) {
+				path = path.replace(regexMatchParameter, '');
+
+				if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
+					path = '/' + resolveUrl(((context && resolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
+				}
+
+				return path;
+			}
+
 			function resolveParameter(path, context) {
 				var parameter = path.match(regexMatchParameter),
 					pattern   = settings.pattern,
@@ -199,6 +206,7 @@
 				}
 
 				return {
+					path:     path,
 					mock:     (parameter && parameter[1]) ? true : false,
 					cache:    (parameter && parameter[2]) ? parameter[2] === '+' : NULL,
 					handler:  (parameter && parameter[3]) || settings.handler,
@@ -437,6 +445,34 @@
 	 * --------------------------------
 	 */
 		/**
+		 * Module
+		 */
+			function Module(path, context) {
+				var self      = this,
+					parameter = path.match(regexMatchParameter);
+
+				path = resolvePath(path, context);
+
+				self.path     = path;
+				self.mock     = (parameter && parameter[1]) ? true : false;
+				self.cache    = (parameter && parameter[2]) ? parameter[2] === '+' : NULL;
+				self.handler  = (parameter && parameter[3]) || settings.handler;
+				self.version  = (parameter && parameter[4]) || settings.version;
+				self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
+			}
+
+			Module.prototype = {
+				/* only for reference
+				 path:     NULL,
+				 mock:     NULL,
+				 cache:    NULL,
+				 handler:  NULL,
+				 version:  NULL,
+				 lifetime: NULL
+				 */
+			};
+
+		/**
 		 * Uuid
 		 */
 			Uuid = (function() {
@@ -642,8 +678,6 @@
 					Uuid.set(this);
 
 					storage[this.uuid] = [];
-					
-					global.queue = storage[this.uuid];
 				}
 
 				Queue.prototype = {
@@ -795,12 +829,10 @@
 
 					emit('preProcess', loader);
 
-					if(loader.deferred.pledge.isPending()) {
-						handler.onPreProcess && handler.onPreProcess.call(loader);
-						handler.process && queue.enqueue(loader);
-						
-						!queueHandler.current && queueHandler.process();
-					}
+					handler.onPreProcess && handler.onPreProcess.call(loader);
+					handler.process && queue.enqueue(loader);
+
+					!queueHandler.current && queueHandler.process();
 				}
 
 				function Loader(path, parameter) {
@@ -849,7 +881,6 @@
 												deferred.reject(new Failure('error loading' + (status ? ' (status)' : ''), self.path));
 											}
 										);
-
 									} else {
 										resolveLoader(self);
 									}
@@ -883,9 +914,14 @@
 					 cache:    NULL,
 					 lifetime: NULL,
 					 version:  NULL,
+					 storage:  NULL, // will only be set by storage
 					 state:    { version: NULL, expires: NULL, url: NULL } // will only be set by storage
 				 };
 				 */
+
+				Loader.prototype             = Object.create(Module.prototype);
+				Loader.prototype.constructor = Loader;
+				Loader.prototype.parent      = Module.prototype;
 
 				return Loader;
 			}());
@@ -1094,7 +1130,7 @@
 				deferred   = registry[path] || (registry[path] = Pledge.defer());
 				pledge     = deferred.pledge;
 				isFunction = isTypeOf(definition, STRING_FUNCTION);
-				
+
 				if(pledge.isPending()) {
 					if(dependencies) {
 						demand
@@ -1150,28 +1186,36 @@
 					}
 
 					Storage.prototype = {
-						get: function(loader) {
+						exists: function(loader) {
 							var path = loader.path,
-								id, state, pledge;
+								state;
+
+							loader.storage = STORAGE_PREFIX + '[' + path + ']';
 
 							if(localStorage && isEnabled(loader)) {
-								id     = STORAGE_PREFIX + '[' + path + ']';
-								state  = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
-								pledge = loader.deferred.pledge;
+								state  = JSON.parse(localStorage.getItem(loader.storage + STORAGE_SUFFIX_STATE));
 
 								if(state && state.version === loader.version && state.url === loader.url && ((!state.expires && !loader.lifetime) || state.expires > getTimestamp())) {
-									pledge.cache  = 'hit';
-									loader.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
-
-									emit('cacheHit', loader);
-
-									return loader.source;
+									return true;
 								} else {
-									pledge.cache = 'miss';
-
-									emit('cacheMiss', loader);
 									this.clear.path(path);
 								}
+							}
+						},
+						get: function(loader) {
+							var pledge = loader.deferred.pledge;
+
+							if(this.exists(loader)) {
+								pledge.cache  = 'hit';
+								loader.source = localStorage.getItem(loader.storage + STORAGE_SUFFIX_VALUE);
+
+								emit('cacheHit', loader);
+
+								return loader.source;
+							} else {
+								pledge.cache = 'miss';
+
+								emit('cacheMiss', loader);
 							}
 						},
 						set: function(loader) {
@@ -1260,8 +1304,7 @@
 		 */
 			(function() {
 				function definition() {
-					var target              = document.getElementsByTagName('head')[0],
-						regexMatchSourcemap = /\/\/#\s+sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map/g;
+					var target = document.getElementsByTagName('head')[0];
 
 					return {
 						matchType: /^(application|text)\/(x-)?javascript/,
@@ -1319,21 +1362,31 @@
 					settings;
 
 				function definition(handlerModule) {
-					function onPostConfigure(options) {
+					demand.on('postConfigure:' + path, function(options) {
 						settings = isObject(options) ? options : {};
-					}
-
-					demand.on('postConfigure:' + path, onPostConfigure);
+					});
 
 					return {
 						matchType:     handlerModule.matchType,
-						onPostRequest: handlerModule.onPostRequest,
+						onPostRequest: function() {
+							var self   = this,
+								source = self.source,
+								match;
+
+							if(source) {
+								while(match = regexMatchSourcemap.exec(source)) {
+									source = source.replace(match[0], '');
+								}
+
+								self.source = source;
+							}
+						},
 						onPreProcess: function() {
 							var self     = this,
 								deferred = self.deferred,
 								modules  = settings[self.path];
 
-							mockModules.apply(NULL, modules)
+							mock.apply(NULL, modules)
 								.then(
 									function() {
 										queue.enqueue.apply(queue, arguments);
@@ -1369,18 +1422,6 @@
 				function definition() {
 					var pattern = [];
 
-					function onPostConfigure(options) {
-						if(isObject(options)) {
-							pattern.length = 0;
-
-							iterate(options, function(property, value) {
-								pattern.push({ prefix: property, weight: property.length, fn: value });
-							});
-						}
-					}
-
-					demand.on('postConfigure:' + path, onPostConfigure);
-
 					function matchPattern(path) {
 						var i = 0, pointer, match;
 
@@ -1402,7 +1443,7 @@
 						configuration.modules['/demand/handler/bundle'][bundle.id] = pointer = [];
 
 						for(; (dependency = matches[i]); i++) {
-							pointer.push(dependency.id);
+							pointer.push(dependency.path);
 						}
 
 						return configuration;
@@ -1428,42 +1469,56 @@
 						}
 					}
 
-					demand.on('preResolve', function(dependencies, context) {
-						var bundles = {},
-							i, dependency, id, parameter, pattern, matches;
+					demand
+						.on('postConfigure:' + path, function(options) {
+							if(isObject(options)) {
+								pattern.length = 0;
 
-						for(i = 0; (dependency = dependencies[i]); i++) {
-							if(isTypeOf(dependency, 'string')) {
-								id = resolvePath(dependency, context);
+								iterate(options, function(property, value) {
+									pattern.push({ prefix: property, weight: property.length, fn: value });
+								});
+							}
+						})
+						.on('preResolve', function(dependencies, context) {
+							var bundles = {},
+								i, dependency, path, parameter, pattern, matches;
 
-								if(!getModule(id) && (parameter = resolveParameter(dependency, context)) && parameter.handler === 'module' && (pattern = matchPattern(id))) {
-									(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ id: id, path: dependency, index: i, deferred: NULL });
+							for(i = 0; (dependency = dependencies[i]); i++) {
+								if(isTypeOf(dependency, STRING_STRING) && !regexMatchInternal.test(dependency)) {
+									path      = resolvePath(dependency, context);
+									parameter = resolveParameter(dependency, context);
+
+									parameter.path = path;
+									parameter.url  = parameter.url.slice(-3) !== '.js' ? parameter.url + '.js' : parameter.url;
+
+									if((pattern = matchPattern(path)) && parameter.handler === 'module' && !getModule(path) && !storage.exists(parameter)) {
+										(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push({ path: path, index: i });
+									}
 								}
 							}
-						}
 
-						iterate(bundles, function(property, value) {
-							matches = value.matches;
+							iterate(bundles, function(property, value) {
+								matches = value.matches;
 
-							if(matches.length > 1) {
-								value.id = '/genie/' + hash(JSON.stringify(value.matches));
+								if(matches.length > 1) {
+									value.id = '/genie/' + hash(JSON.stringify(value.matches));
 
-								for(i = 0; (dependency = matches[i]); i++) {
-									dependency.deferred            = Pledge.defer();
-									dependencies[dependency.index] = dependency.deferred.pledge;
+									for(i = 0; (dependency = matches[i]); i++) {
+										dependency.deferred            = Pledge.defer();
+										dependencies[dependency.index] = dependency.deferred.pledge;
 
-									mockModules(dependency.id);
+										mock(dependency.id);
+									}
+
+									demand.configure(generateConfiguration(value));
+									demand('bundle!' + value.id)
+										.then(
+											resolveDependencies.bind(matches),
+											rejectDependencies.bind(matches)
+										);
 								}
-
-								demand.configure(generateConfiguration(value));
-								demand('bundle!' + value.id)
-									.then(
-										resolveDependencies.bind(matches),
-										rejectDependencies.bind(matches)
-									);
-							}
+							});
 						});
-					});
 
 					return true;
 				}
