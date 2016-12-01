@@ -134,6 +134,11 @@ module.exports = gulp;
 		return gulp.src(config.tasks.dist.build || config.tasks.dist.watch)
 			.pipe(plugins.sourcemaps.init())
 			.pipe(plugins.plumber({ errorHandler: handleError}))
+			.pipe(plugins.include({
+				extensions: "js",
+				hardFail: true,
+				includePaths: [ __dirname + "/src/include" ]
+			}))
 			.pipe(plugins.uglify({ preserveComments: 'none' }))
 			.pipe(plugins.header(config.strings.banner.min.join('\n')))
 			.pipe(plugins.frep(patterns))

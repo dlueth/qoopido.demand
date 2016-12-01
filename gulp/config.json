@@ -13,6 +13,10 @@
       "watch": [
         "src/**/*.js"
       ],
+      "build": [
+        "src/**/*.js",
+        "!src/include/**/*.js"
+      ],
       "destination": "dist/"
     }
   },

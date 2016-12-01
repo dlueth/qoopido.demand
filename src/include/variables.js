@@ -1,0 +1,1 @@
+var regexIsAbsoluteUri  = /^(http(s?):)?\/\//i;

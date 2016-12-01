@@ -11,13 +11,18 @@
       "DebuggerStatement",
       "LabeledStatement",
       "WithStatement"
+    ],
+    "no-unused-vars": [
+      2,
+      {
+        "vars": "local"
+      }
     ]
   },
   "env": {
     "browser": true
   },
   "globals": {
-    "require": true,
     "demand": true,
     "provide": true
   }

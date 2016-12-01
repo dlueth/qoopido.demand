@@ -63,5 +63,8 @@
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.6",
     "run-sequence": "^1.1.4"
+  },
+  "dependencies": {
+    "gulp-include": "^2.3.1"
   }
 }
