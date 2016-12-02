@@ -1,6 +1,10 @@
 /* global global, document, settings */
 
 /* variables */
+	//=require constants.js
+	/* global MODULE_PREFIX_HANDLER */
+
+/* variables */
 	//=require variables.js
 	/* global regexIsAbsoluteUri */
 
@@ -24,7 +28,15 @@ var Loader = (function() {
 		self.pattern    = pattern;
 		self.url        = pattern ? resolveUrl(pattern.process(dependency.path)) : dependency.path;
 
-		console.log('hier', self);
+		demand(MODULE_PREFIX_HANDLER + dependency.handler)
+			.then(
+				function() {
+
+				},
+				function() {
+
+				}
+			);
 	}
 
 	/* only for reference
