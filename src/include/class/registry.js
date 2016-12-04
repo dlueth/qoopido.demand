@@ -1,8 +1,8 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* classes */
-	//=require class/uuid.js
-	/* global Uuid */
+	//=require class/singleton/uuid.js
+	/* global uuid */
 
 var Registry = (function() {
 	var storage = {};
@@ -10,7 +10,7 @@ var Registry = (function() {
 	function Registry() {
 		var self = this;
 
-		storage[Uuid.set(self)] = {};
+		storage[uuid.set(self)] = {};
 	}
 
 	Registry.prototype = {

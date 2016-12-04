@@ -1,6 +1,6 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -8,7 +8,7 @@
 
 /* variables */
 	//=require variables.js
-	/* global regexIsAbsoluteUri */
+	/* global regexIsAbsoluteUri, regexMatchBaseUrl */
 
 /* functions */
 	//=require function/isPositiveInteger.js
@@ -19,13 +19,12 @@
 /* classes */
 	//=require class/registry.js
 	//=require class/pledge.js
-	//=require class/cache.js
+	//=require class/singleton/cache.js
 	/* global Registry, Pledge, cache */
 
 var Dependency = (function() {
 	var registry            = new Registry(),
 		regexMatchParameter = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/,
-		regexMatchBaseUrl   = new RegExp('^' + escapeRegularExpression(resolveUrl('/'))),
 		regexIsAbsolutePath = /^\//;
 
 	function resolvePath(uri, context) {
@@ -51,9 +50,9 @@ var Dependency = (function() {
 		self.version  = (parameter && parameter[4]) || settings.version;
 		self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.uri      = (self.mock ? 'mock:' : '') + self.handler + '@' + self.version + (isPositiveInteger(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
-
-		cache.get(self);
-
+		
+		registry.set(self.path, self);
+		
 		return self;
 	}
 
@@ -74,12 +73,14 @@ var Dependency = (function() {
 	Dependency.resolve = function(uri, context) {
 		var path       = resolvePath(uri, context),
 			dependency = registry.get(path);
-
+		
 		if(!dependency) {
 			dependency = new Dependency(uri, context);
+			
+			cache.get(dependency);
 		}
 
-		return dependency.pledge;
+		return dependency;
 	};
 
 	return Dependency;

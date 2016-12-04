@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -12,14 +12,10 @@
 //=require function/isTypeOf.js
 /* global isTypeOf */
 
-var log = (function() {
-	function log(error) {
-		/* eslint-disable no-console */
-		if(!isTypeOf(console, STRING_UNDEFINED)) {
-			console.error(error.toString());
-		}
-		/* eslint-enable no-console */
+function log(error) {
+	/* eslint-disable no-console */
+	if(!isTypeOf(console, STRING_UNDEFINED)) {
+		console.error(error.toString());
 	}
-
-	return log;
-}());
+	/* eslint-enable no-console */
+}

@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -13,8 +13,8 @@
 	/* global defer */
 
 /* classes */
-	//=require class/uuid.js
-	/* global Uuid */
+	//=require class/singleton/uuid.js
+	/* global uuid */
 
 var Pledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
@@ -82,7 +82,7 @@ var Pledge = (function() {
 	function Pledge(executor) {
 		var self = this;
 
-		storage[Uuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
+		storage[uuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
 
 		executor(resolve.bind(self), reject.bind(self));
 	}
@@ -138,7 +138,7 @@ var Pledge = (function() {
 
 	Pledge.all = function(pledges) {
 		var deferred   = Pledge.defer(),
-			properties = (storage[Uuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
+			properties = (storage[uuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
 			i = 0, pledge;
 
 		for(; pledge = pledges[i]; i++) {

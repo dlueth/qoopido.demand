@@ -6,15 +6,19 @@
  * @param {function} function
  */
 
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
 	/* global NULL, TRUE, FALSE */
 
+/* shortcuts */
+	//=require shortcuts.js
+	/* global setTimeout */
+
 /* classes */
-	//=require class/uuid.js
-	/* global Uuid */
+	//=require class/singleton/uuid.js
+	/* global uuid */
 
 var defer = (function() {
 	var hasSetImmediate = 'setImmediate' in global,
@@ -46,7 +50,7 @@ var defer = (function() {
 			global.addEventListener('message', onMessage, FALSE);
 
 			return function(fn) {
-				var uuid = Uuid.generate();
+				var uuid = uuid.generate();
 
 				storage[uuid] = fn;
 

@@ -852,8 +852,6 @@
 					self.deferred = deferred;
 					self.url      = match ? resolveUrl(match.process(self.path)) : self.path;
 
-					console.log(path, self.url, self);
-
 					demand(MODULE_PREFIX_HANDLER + self.handler)
 						.then(
 							function(handler) {

@@ -1,8 +1,9 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
+/* global options */
 
 /* constants */
 	//=require constants.js
-	/* global STRING_BOOLEAN, STRING_STRING, STRING_FUNCTION, NULL, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS */
+	/* global TRUE, STRING_BOOLEAN, STRING_STRING, STRING_FUNCTION, NULL, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS */
 
 /* shortcuts */
 	//=require shortcuts.js
@@ -14,24 +15,25 @@
 	//=require function/isPositiveInteger.js
 	//=require function/iterate.js
 	//=require function/merge.js
-	/* global isTypeOf, isObject, isPositiveInteger, iterate, merge */
+	//=require function/resolveUrl.js
+	/* global isTypeOf, isObject, isPositiveInteger, iterate, merge, resolveUrl */
 
 /* classes */
 	//=require class/pledge.js
 	//=require class/dependency.js
 	//=require class/pattern.js
 	//=require class/loader.js
-	//=require class/event.js
+	//=require class/singleton/event.js
 	/* global Pledge, Dependency, Pattern, Loader, event */
 
-var demand = (function() {
+var demand = global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,
 			i = 0, uri;
 
 		for(; (uri = dependencies[i]); i++) {
-			dependencies[i] = Dependency.resolve(uri, context);
+			dependencies[i] = Dependency.resolve(uri, context).pledge;
 		}
 
 		return Pledge.all(dependencies);
@@ -103,6 +105,9 @@ var demand = (function() {
 		.on(EVENT_CACHE_MISS, function(dependency) {
 			new Loader(dependency);
 		});
-
+	
+	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': resolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+	options && options.settings && demand.configure(options.settings);
+	
 	return demand;
 }());

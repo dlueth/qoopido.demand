@@ -9,7 +9,7 @@
  * @return {boolean}
  */
 
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 function isTypeOf(object, type) {
 	return typeof object === type;

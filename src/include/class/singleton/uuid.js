@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -12,7 +12,7 @@
 	//=require class/descriptor.js
 	/* global Descriptor */
 
-var Uuid = (function() {
+var uuid = (function() {
 	var objectDefineProperty = Object.defineProperty,
 		regex                = new RegExp('[xy]', 'g'),
 		storage              = {};

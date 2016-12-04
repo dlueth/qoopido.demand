@@ -1,9 +1,4 @@
 /**
- * @todo eventually convert settings to class
- * @todo add garbage collection to storage (based on "last access")
- */
-
-/**
  * Qoopido demand
  *
  * Promise like module loader (XHR) with localStorage caching
@@ -31,20 +26,10 @@
 	//=require shortcuts.js
 	//=require function/resolveUrl.js
 	//=require demand.js
-
-	/**
-	 * --------------------------------
-	 * Initialization
-	 * --------------------------------
-	 */
-		(function() {
-			global.demand  = demand;
-
-			demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': resolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
-			options && options.settings && demand.configure(options.settings);
-
-			if(options && options.main) {
-				demand(options.main);
-			}
-		}());
+	//=require provide.js
+	//=require handler/module.js
+	
+	if(options && options.main) {
+		demand(options.main);
+	}
 }(this, document, 'demand' in this && demand));

@@ -8,7 +8,7 @@
  * @return {object}
  */
 
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js

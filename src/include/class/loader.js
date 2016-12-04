@@ -1,8 +1,8 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
-/* variables */
+/* constants */
 	//=require constants.js
-	/* global MODULE_PREFIX_HANDLER */
+	/* global MODULE_PREFIX_HANDLER, NULL, EVENT_PRE_REQUEST, EVENT_POST_REQUEST */
 
 /* variables */
 	//=require variables.js
@@ -12,6 +12,12 @@
 	//=require function/iterate.js
 	//=require function/resolveUrl.js
 	/* global iterate, resolveUrl */
+
+/* classes */
+	//=require class/xhr.js
+	//=require class/failure.js
+	//=require class/singleton/event.js
+	/* global Xhr, Failure, event */
 
 var Loader = (function() {
 	function Loader(dependency) {
@@ -25,13 +31,32 @@ var Loader = (function() {
 		}
 
 		self.dependency = dependency;
-		self.pattern    = pattern;
 		self.url        = pattern ? resolveUrl(pattern.process(dependency.path)) : dependency.path;
-
+		
 		demand(MODULE_PREFIX_HANDLER + dependency.handler)
 			.then(
-				function() {
-
+				function(handler) {
+					//dependency.handler = handler;
+					//dependency.mock    = self.mock && mocks[dependency.path];
+					
+					if(!self.mock) {
+						event.emit(EVENT_PRE_REQUEST, dependency.handler, self);
+						
+						new Xhr(self.url).then(
+							function(response, type) {
+								if(handler.validate(type)) {
+									self.source = response;
+									
+									event.emit(EVENT_POST_REQUEST, dependency.handler, self);
+								} else {
+									dependency.deferred.reject(new Failure('error loading (content-type)', self.path));
+								}
+							},
+							function(status) {
+								dependency.deferred.reject(new Failure('error loading' + (status ? ' (status)' : ''), self.path));
+							}
+						);
+					}
 				},
 				function() {
 
@@ -42,7 +67,8 @@ var Loader = (function() {
 	/* only for reference
 	Loader.prototype = {
 		dependency: NULL,
-	 	pattern:    NULL
+	 	url:        NULL,
+	 	source:     NULL
 	};
 	*/
 

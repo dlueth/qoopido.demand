@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 var resolveUrl = (function() {
 	var resolver = document.createElement('a');

@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -15,10 +15,10 @@
 	/* global getTimestamp, escapeRegularExpression, iterate */
 
 /* classes */
-	//=require class/event.js
+	//=require class/singleton/event.js
 	/* global event */
 
-var cache = (function() {
+var cache = (function(JSON) {
 	var STORAGE_PREFIX         = '[' + DEMAND_ID + ']',
 		STORAGE_SUFFIX_STATE   = '[state]',
 		STORAGE_SUFFIX_VALUE   = '[value]',
@@ -159,4 +159,4 @@ var cache = (function() {
 	};
 
 	return new Cache();
-}());
+}(JSON));

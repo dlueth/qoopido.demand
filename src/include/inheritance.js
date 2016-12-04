@@ -1,6 +1,6 @@
 /* global Descriptor, objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype */
 
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* classes */
 	//=require class/descriptor.js

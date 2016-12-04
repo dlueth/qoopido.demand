@@ -1,4 +1,4 @@
-/* global global, document, settings */
+/* global global, document, demand, provide, settings */
 
 /* constants */
 	//=require constants.js
@@ -42,7 +42,7 @@ var event = (function() {
 				while(event = events.shift()) {
 					event = event.split(':');
 
-					if(regexMatchEvent.test(event)) {
+					if(regexMatchEvent.test(event[0])) {
 						(listener[event[0]] || (listener[event[0]] = [])).push({ callback: callback, filter: event[1] });
 					}
 				}
