@@ -27,7 +27,7 @@ gulp.task(id + ':clean', function(callback) {
 
 gulp.task(id + ':build', function() {
 	return gulp.src(task.build || task.watch)
-		//.pipe(plugins.sourcemaps.init())
+		.pipe(plugins.sourcemaps.init())
 		.pipe(plugins.plumber({ errorHandler: shared.handleError}))
 		.pipe(plugins.include({
 			extensions: "js",
@@ -39,6 +39,6 @@ gulp.task(id + ':build', function() {
 		.pipe(plugins.insert.transform(shared.transform))
 		.pipe(plugins.chmod(shared.rights))
 		.pipe(plugins.size({ showFiles: true, gzip: true }))
-		//.pipe(plugins.sourcemaps.write('.'))
+		.pipe(plugins.sourcemaps.write('.'))
 		.pipe(gulp.dest(task.dest));
 });

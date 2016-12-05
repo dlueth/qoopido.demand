@@ -2,7 +2,7 @@
 
 /* constants */
 	//=require constants.js
-	/* global MODULE_PREFIX_HANDLER, EVENT_PRE_REQUEST, EVENT_POST_REQUEST */
+	/* global MODULE_PREFIX_HANDLER, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL */
 
 /* variables */
 	//=require variables.js
@@ -11,6 +11,10 @@
 /* functions */
 	//=require function/resolveUrl.js
 	/* global resolveUrl */
+
+/* classes */
+	//=require class/singleton/event.js
+	/* global event */
 	
 (function() {
 	function definition() {
@@ -38,6 +42,8 @@
 					
 					loader.source = loader.source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
 				}
+
+				event.emit(EVENT_PRE_PROCESS, NULL, loader);
 			});
 		
 		return {

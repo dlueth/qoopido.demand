@@ -101,13 +101,16 @@ var demand = global.demand = (function() {
 		return demand;
 	};
 
+	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': resolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+	options && options.settings && demand.configure(options.settings);
+
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
 			new Loader(dependency);
+		})
+		.on(EVENT_PRE_PROCESS, function(loader) {
+			console.log(loader);
 		});
-	
-	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': resolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
-	options && options.settings && demand.configure(options.settings);
 	
 	return demand;
 }());

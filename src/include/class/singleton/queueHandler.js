@@ -2,40 +2,32 @@
 
 /* constants */
 	//=require constants.js
-	/* global NULL */
+	/* global EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL */
 
 /* classes */
-	//=require class/singleton/uuid.js
+	//=require class/queue.js
 	//=require class/singleton/event.js
-	/* global uuid, event */
+	/* global Queue, uuid, event */
 
 var queueHandler = (function() {
-	var storage = {};
-	
-	function QueueHandler(queue) {
-		storage[uuid.set(this)] = { queue: queue, current: NULL };
-	}
-	
+	var queue   = new Queue(),
+		current = NULL;
+
+	function QueueHandler() {}
+
 	QueueHandler.prototype = {
-		/* only for reference
-		 uuid: NULL,
-		 */
 		process: function() {
-			var properties = storage[this.uuid],
-				queue      = properties.queue,
-				current;
-			
 			if(queue.length) {
-				current = properties.current = queue.dequeue();
+				current = queue.dequeue();
 				
 				current.handler.process.call(current);
-				event.emit('postProcess', current);
+				event.emit(EVENT_POST_PROCESS, current);
 			} else {
-				properties.current = NULL;
+				current = NULL;
 			}
 		},
 		get current() {
-			return storage[this.uuid].current;
+			return current;
 		}
 	};
 	
