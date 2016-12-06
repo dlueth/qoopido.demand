@@ -1,3 +1,10 @@
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	NULL, TRUE, FALSE,
+	setTimeout,
+	singletonUuid
+*/
+
 /**
  * defer
  *
@@ -5,27 +12,12 @@
  *
  * @param {function} function
  */
-
-/* global global, document, demand, provide, settings */
-
-/* constants */
-	//=require constants.js
-	/* global NULL, TRUE, FALSE */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global setTimeout */
-
-/* classes */
-	//=require class/singleton/uuid.js
-	/* global uuid */
-
-var defer = (function() {
+var functionDefer = (function() {
 	var hasSetImmediate = 'setImmediate' in global,
 		element, fallback;
 
 	if('MutationObserver' in global) {
-		return function(fn) {
+		return function defer(fn) {
 			element = document.createElement('div');
 
 			new MutationObserver(function() { fn(); })
@@ -49,8 +41,8 @@ var defer = (function() {
 
 			global.addEventListener('message', onMessage, FALSE);
 
-			return function(fn) {
-				var uuid = uuid.generate();
+			return function defer(fn) {
+				var uuid = singletonUuid.generate();
 
 				storage[uuid] = fn;
 
@@ -60,7 +52,7 @@ var defer = (function() {
 	}
 
 	if(!hasSetImmediate && 'onreadystatechange' in (element = document.createElement('script'))) {
-		return function(fn) {
+		return function defer(fn) {
 			element.onreadystatechange = function onreadystatechange() {
 				element.onreadystatechange = NULL;
 				element.parentNode.removeChild(element);
@@ -76,7 +68,7 @@ var defer = (function() {
 	fallback = hasSetImmediate ? setImmediate : setTimeout;
 	/* eslint-enable no-undef */
 
-	return function(fn) {
+	return function defer(fn) {
 		fallback(fn);
 	}
 }());

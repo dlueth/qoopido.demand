@@ -1,3 +1,9 @@
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	UNDEFINED,
+	validatorIsObject, functionIterate
+*/
+
 /**
  * merge
  *
@@ -7,26 +13,14 @@
  *
  * @return {object}
  */
-
-/* global global, document, demand, provide, settings */
-
-/* constants */
-	//=require constants.js
-	/* global UNDEFINED */
-
-/* functions */
-	//=require function/isObject.js
-	//=require function/iterate.js
-	/* global isObject, iterate */
-
-var merge = (function() {
+var functionMerge = (function() {
 	function mergeProperties(property, value) {
 		var targetProperty = this[property],
 			targetPropertyIsObject;
 
 		if(value !== UNDEFINED) {
-			if(isObject(value)) {
-				targetPropertyIsObject = isObject(targetProperty);
+			if(validatorIsObject(value)) {
+				targetPropertyIsObject = validatorIsObject(targetProperty);
 
 				if(value.length !== UNDEFINED) {
 					targetProperty = (targetPropertyIsObject && targetProperty.length !== UNDEFINED) ? targetProperty : [];
@@ -46,7 +40,7 @@ var merge = (function() {
 			i = 1, properties;
 
 		for(; (properties = arguments[i]) !== UNDEFINED; i++) {
-			iterate(properties, mergeProperties, target);
+			functionIterate(properties, mergeProperties, target);
 		}
 
 		return target;

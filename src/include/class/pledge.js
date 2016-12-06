@@ -1,22 +1,12 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+ 	FUNCTION_EMPTY, NULL,
+	arrayPrototypeSlice, arrayPrototypeConcat,
+	functionDefer,
+	singletonUuid
+*/
 
-/* constants */
-	//=require constants.js
-	/* global FUNCTION_EMPTY, NULL */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global arrayPrototypeSlice, arrayPrototypeConcat */
-
-/* functions */
-	//=require function/defer.js
-	/* global defer */
-
-/* classes */
-	//=require class/singleton/uuid.js
-	/* global uuid */
-
-var Pledge = (function() {
+var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
 		PLEDGE_RESOLVED = 'resolved',
 		PLEDGE_REJECTED = 'rejected',
@@ -82,7 +72,7 @@ var Pledge = (function() {
 	function Pledge(executor) {
 		var self = this;
 
-		storage[uuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
+		storage[singletonUuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
 
 		executor(resolve.bind(self), reject.bind(self));
 	}
@@ -109,7 +99,7 @@ var Pledge = (function() {
 			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, deferred: deferred });
 
 			if(self.state !== PLEDGE_PENDING) {
-				defer(properties.handle);
+				functionDefer(properties.handle);
 			}
 
 			return deferred.pledge;
@@ -138,7 +128,7 @@ var Pledge = (function() {
 
 	Pledge.all = function(pledges) {
 		var deferred   = Pledge.defer(),
-			properties = (storage[uuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
+			properties = (storage[singletonUuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
 			i = 0, pledge;
 
 		for(; pledge = pledges[i]; i++) {

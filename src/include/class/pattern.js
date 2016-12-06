@@ -1,28 +1,18 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	functionResolveUrl, functionEscapeRegex
+*/
 
-/* constants */
-	//=require constants.js
-	/* global STRING_BOOLEAN, STRING_STRING, NULL */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global arrayPrototypeSlice */
-
-/* functions */
-	//=require function/resolveUrl.js
-	//=require function/escapeRegularExpression.js
-	/* global resolveUrl, escapeRegularExpression */
-
-var Pattern = (function() {
+var ClassPattern = (function() {
 	var regexMatchTrailingSlash = /(.+)\/$/;
 
 	function Pattern(pattern, url) {
 		var self = this;
 
 		self.weight       = pattern.length;
-		self.url          = resolveUrl(url).replace(regexMatchTrailingSlash, '$1');
-		self.matchPattern = new RegExp('^' + escapeRegularExpression(pattern));
-		self.matchUrl     = new RegExp('^' + escapeRegularExpression(url));
+		self.url          = functionResolveUrl(url).replace(regexMatchTrailingSlash, '$1');
+		self.matchPattern = new RegExp('^' + functionEscapeRegex(pattern));
+		self.matchUrl     = new RegExp('^' + functionEscapeRegex(url));
 	}
 
 	Pattern.prototype = {

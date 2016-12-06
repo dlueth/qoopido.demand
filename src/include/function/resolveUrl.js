@@ -1,6 +1,8 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings
+*/
 
-var resolveUrl = (function() {
+var functionResolveUrl = (function() {
 	var resolver = document.createElement('a');
 
 	function resolveUrl(url) {

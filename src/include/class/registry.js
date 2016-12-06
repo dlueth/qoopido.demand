@@ -1,21 +1,20 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	singletonUuid
+*/
 
-/* classes */
-	//=require class/singleton/uuid.js
-	/* global uuid */
-
-var Registry = (function() {
+var ClassRegistry = (function() {
 	var storage = {};
 
 	function Registry() {
 		var self = this;
 
-		storage[uuid.set(self)] = {};
+		storage[singletonUuid.set(self)] = {};
 	}
 
 	Registry.prototype = {
 		get: function(key) {
-			return storage[this.uuid][key];
+			return key ? storage[this.uuid][key] : storage[this.uuid];
 		},
 		set: function(key, value) {
 			storage[this.uuid][key] = value;

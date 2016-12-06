@@ -1,18 +1,11 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	regexMatchBaseUrl,
+	setTimeout, clearTimeout,
+	ClassPledge
+*/
 
-/* variables */
-	//=require variables.js
-	/* global regexMatchBaseUrl */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global setTimeout, clearTimeout */
-
-/* classes */
-	//=require class/pledge.js
-	/* global Pledge */
-
-var Xhr = (function(XMLHttpRequest) {
+var ClassXhr = (function(XMLHttpRequest) {
 	var XDomainRequest = 'XDomainRequest' in global && global.XDomainRequest || XMLHttpRequest;
 	
 	function checkState() {
@@ -23,7 +16,7 @@ var Xhr = (function(XMLHttpRequest) {
 	
 	return function Xhr(url) {
 		var boundCheckState = checkState.bind(this),
-			deferred        = Pledge.defer(),
+			deferred        = ClassPledge.defer(),
 			xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
 			timeout         = settings.timeout,
 			pointer;

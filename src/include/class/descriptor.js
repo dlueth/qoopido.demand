@@ -1,15 +1,16 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	NULL
+*/
 
-/* constants */
-	//=require constants.js
-	/* global NULL */
-
-function Descriptor(value, writable, configurable, enumerable) {
-	return {
-		__proto__:    NULL,
-		value:        value,
-		enumerable:   !!enumerable,
-		configurable: !!configurable,
-		writable:     !!writable
-	};
-}
+var ClassDescriptor = (function() {
+	return function Descriptor(value, writable, configurable, enumerable) {
+		return {
+			__proto__:    NULL,
+			value:        value,
+			enumerable:   !!enumerable,
+			configurable: !!configurable,
+			writable:     !!writable
+		};
+	}
+}());

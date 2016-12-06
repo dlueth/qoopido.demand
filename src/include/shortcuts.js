@@ -1,4 +1,6 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings
+*/
 
 var arrayPrototype                 = Array.prototype,
 	arrayPrototypeSlice            = arrayPrototype.slice,

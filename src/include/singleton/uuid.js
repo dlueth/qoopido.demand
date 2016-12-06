@@ -1,18 +1,11 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	STRING_UNDEFINED,
+	validatorIsTypeOf,
+	ClassDescriptor
+*/
 
-/* constants */
-	//=require constants.js
-	/* global STRING_UNDEFINED */
-
-/* functions */
-	//=require function/isTypeOf.js
-	/* global isTypeOf */
-
-/* classes */
-	//=require class/descriptor.js
-	/* global Descriptor */
-
-var uuid = (function() {
+var singletonUuid = (function() {
 	var objectDefineProperty = Object.defineProperty,
 		regex                = new RegExp('[xy]', 'g'),
 		storage              = {};
@@ -38,8 +31,8 @@ var uuid = (function() {
 			return result;
 		},
 		set: function(target) {
-			if(isTypeOf(target.uuid, STRING_UNDEFINED)) {
-				objectDefineProperty(target, 'uuid', new Descriptor(this.generate()));
+			if(validatorIsTypeOf(target.uuid, STRING_UNDEFINED)) {
+				objectDefineProperty(target, 'uuid', new ClassDescriptor(this.generate()));
 			}
 
 			return target.uuid;

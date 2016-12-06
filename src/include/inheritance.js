@@ -1,10 +1,8 @@
-/* global Descriptor, objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype */
-
-/* global global, document, demand, provide, settings */
-
-/* classes */
-	//=require class/descriptor.js
-	/* global Descriptor */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype,
+	ClassDescriptor
+*/
 
 (function() {
 	function extend(parent) {
@@ -18,11 +16,11 @@
 			properties[property] = objectGetOwnPropertyDescriptor(prototype, property);
 		});
 
-		properties.constructor = new Descriptor(self);
-		properties.parent      = new Descriptor(parent);
+		properties.constructor = new ClassDescriptor(self);
+		properties.parent      = new ClassDescriptor(parent);
 
 		self.prototype = objectCreate(parent, properties);
 	}
 
-	objectDefineProperty(functionPrototype, 'extends', new Descriptor(extend));
+	objectDefineProperty(functionPrototype, 'extends', new ClassDescriptor(extend));
 }());

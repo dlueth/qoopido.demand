@@ -1,19 +1,12 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	NULL, STRING_STRING, STRING_FUNCTION,
+	arrayPrototypeSlice,
+	validatorIsTypeOf
+*/
 
-/* constants */
-	//=require constants.js
-	/* global NULL, STRING_STRING, STRING_FUNCTION */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global arrayPrototypeSlice */
-
-/* functions */
-	//=require function/isTypeOf.js
-	/* global isTypeOf */
-
-var event = (function() {
-	var regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|(pre|post)(Configure.*|Resolve|Request|Process|Cache)$/,
+var singletonEvent = (function() {
+	var regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Configure|Request|Process|Cache)$/,
 		listener        = {};
 
 	function Event() {}
@@ -36,7 +29,7 @@ var event = (function() {
 		on: function(events, callback) {
 			var event;
 
-			if(isTypeOf(events, STRING_STRING) && isTypeOf(callback, STRING_FUNCTION)) {
+			if(validatorIsTypeOf(events, STRING_STRING) && validatorIsTypeOf(callback, STRING_FUNCTION)) {
 				events = events.split(' ');
 
 				while(event = events.shift()) {

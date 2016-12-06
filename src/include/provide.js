@@ -1,51 +1,44 @@
-/* global global, document, demand, provide, settings */
+/* global 
+	global, document, demand, provide, queue, processor, settings,
+	STRING_STRING, STRING_FUNCTION, NULL,
+	validatorIsTypeOf, validatorIsArray, functionLog,
+	ClassDependency, ClassFailure
+*/
 
-/* variables */
-	//=require constants.js
-	/* global NULL, STRING_STRING, STRING_FUNCTION */
-
-/* variables */
-	//=require variables.js
-	/* global */
-
-/* functions */
-	//=require function/isTypeOf.js
-	//=require function/isArray.js
-	//=require function/log.js
-	/* global isTypeOf, isArray, log */
-
-/* classes */
-	//=require class/dependency.js
-	//=require class/failure.js
-	/* global Dependency, Failure */
-
-function provide() {
-	var uri          = isTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
-		dependencies = isArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
+global.provide = function provide() {
+	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
+		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
 		definition   = dependencies ? arguments[uri ? 2 : 1] : arguments[uri ? 1 : 0],
-		module, deferred, pledge, isFunction;
-	
-	/*
-	if(!path && queueHandler.current) {
-		path = queueHandler.current.path;
-		
-		queueHandler.process();
+		module, isFunction;
+
+	if(!uri && processor.current) {
+		uri = processor.current.uri;
+
+		processor.process();
 	}
-	*/
 	
 	if(uri) {
-		module     = new Dependency(uri);
-		isFunction = isTypeOf(definition, STRING_FUNCTION);
-		
+		module     = new ClassDependency(uri);
+		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
+
 		if(module.pledge.isPending()) {
-			module.deferred.resolve(isFunction ? definition() : definition);
+			if(dependencies) {
+				demand
+					.apply(module.path, dependencies)
+					.then(
+						function() { functionLog('success'); },
+						function() { functionLog('error'); }
+					);
+			} else {
+				module.deferred.resolve(isFunction ? definition() : definition);
+			}
 		}
 		
 		/*
 		path       = resolvePath(path, this);
 		deferred   = registry[path] || (registry[path] = Pledge.defer());
 		pledge     = deferred.pledge;
-		isFunction = isTypeOf(definition, STRING_FUNCTION);
+		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
 		
 		if(pledge.isPending()) {
 			if(dependencies) {
@@ -53,7 +46,7 @@ function provide() {
 					.apply(path, dependencies)
 					.then(
 						function() { deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-						function() { log(new Failure('error providing', path)); }
+						function() { functionLog(new ClassFailure('error providing', path)); }
 					);
 			} else {
 				deferred.resolve(isFunction ? definition() : definition);
@@ -61,6 +54,6 @@ function provide() {
 		}
 		*/
 	} else {
-		throw new Failure('unspecified anonymous provide');
+		throw new ClassFailure('unspecified anonymous provide');
 	}
 }

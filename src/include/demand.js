@@ -1,30 +1,11 @@
-/* global global, document, demand, provide, settings */
-/* global options */
-
-/* constants */
-	//=require constants.js
-	/* global TRUE, STRING_BOOLEAN, STRING_STRING, STRING_FUNCTION, NULL, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global arrayPrototypeSlice */
-
-/* functions */
-	//=require function/isTypeOf.js
-	//=require function/isObject.js
-	//=require function/isPositiveInteger.js
-	//=require function/iterate.js
-	//=require function/merge.js
-	//=require function/resolveUrl.js
-	/* global isTypeOf, isObject, isPositiveInteger, iterate, merge, resolveUrl */
-
-/* classes */
-	//=require class/pledge.js
-	//=require class/dependency.js
-	//=require class/pattern.js
-	//=require class/loader.js
-	//=require class/singleton/event.js
-	/* global Pledge, Dependency, Pattern, Loader, event */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
+	arrayPrototypeSlice,
+	validatorIsTypeOf, validatorIsObject, validatorIsPositive, functionIterate, functionMerge, functionDefer,
+	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
+	singletonEvent
+*/
 
 var demand = global.demand = (function() {
 	function demand() {
@@ -33,10 +14,10 @@ var demand = global.demand = (function() {
 			i = 0, uri;
 
 		for(; (uri = dependencies[i]); i++) {
-			dependencies[i] = Dependency.resolve(uri, context).pledge;
+			dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 		}
 
-		return Pledge.all(dependencies);
+		return ClassPledge.all(dependencies);
 	}
 
 	demand.configure = function(options) {
@@ -50,45 +31,45 @@ var demand = global.demand = (function() {
 			pointer  = settings.modules,
 			temp;
 
-		if(isTypeOf(cache, STRING_BOOLEAN)) {
+		if(validatorIsTypeOf(cache, STRING_BOOLEAN)) {
 			settings.cache[''] = { weight: 0, state: cache };
-		} else if(isObject(cache)) {
-			iterate(cache, function(property, value) {
+		} else if(validatorIsObject(cache)) {
+			functionIterate(cache, function(property, value) {
 				settings.cache[property] = { weight: property.length, state: value };
 			});
 		}
 
-		if(isTypeOf(version, STRING_STRING)) {
+		if(validatorIsTypeOf(version, STRING_STRING)) {
 			settings.version = version;
 		}
 
-		if(isPositiveInteger(timeout)) {
+		if(validatorIsPositive(timeout)) {
 			settings.timeout = Math.min(Math.max(timeout, 2), 12) * 1000;
 		}
 
-		if(isPositiveInteger(lifetime) && lifetime > 0) {
+		if(validatorIsPositive(lifetime) && lifetime > 0) {
 			settings.lifetime = lifetime * 1000;
 		}
 
-		if(isTypeOf(base, STRING_STRING) && base !== '') {
-			settings.pattern.base = new Pattern('', base);
+		if(validatorIsTypeOf(base, STRING_STRING) && base !== '') {
+			settings.pattern.base = new ClassPattern('', base);
 		}
 
-		if(isObject(pattern)) {
-			iterate(pattern, function(property, value) {
-				property !== 'base' && (settings.pattern[property] = new Pattern(property, value));
+		if(validatorIsObject(pattern)) {
+			functionIterate(pattern, function(property, value) {
+				property !== 'base' && (settings.pattern[property] = new ClassPattern(property, value));
 			});
 		}
 
-		if(isObject(modules)) {
-			iterate(modules, function(property, value) {
+		if(validatorIsObject(modules)) {
+			functionIterate(modules, function(property, value) {
 				temp = pointer[property] = pointer[property] || {};
 
-				event.emit(EVENT_PRE_CONFIGURE, property, temp);
+				singletonEvent.emit(EVENT_PRE_CONFIGURE, property, temp);
 
-				merge(temp, value);
+				functionMerge(temp, value);
 
-				event.emit(EVENT_POST_CONFIGURE, property, temp);
+				singletonEvent.emit(EVENT_POST_CONFIGURE, property, temp);
 			});
 		}
 
@@ -96,21 +77,24 @@ var demand = global.demand = (function() {
 	};
 
 	demand.on = function(events, callback) {
-		event.on(events, callback);
+		singletonEvent.on(events, callback);
 
 		return demand;
 	};
 
-	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': resolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
-	options && options.settings && demand.configure(options.settings);
-
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			new Loader(dependency);
+			new ClassLoader(dependency);
 		})
-		.on(EVENT_PRE_PROCESS, function(loader) {
-			console.log(loader);
+		.on(EVENT_POST_REQUEST, function(dependency) {
+			// needs to be functionDeferred to make sure any module listeners are complete
+			functionDefer(function() {
+				singletonEvent.emit(EVENT_PRE_PROCESS, NULL, dependency)
+			});
+		})
+		.on(EVENT_PRE_PROCESS, function(dependency) {
+			queue.enqueue(dependency);
 		});
-	
+
 	return demand;
 }());

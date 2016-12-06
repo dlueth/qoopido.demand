@@ -1,3 +1,8 @@
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	UNDEFINED, FALSE
+*/
+
 /**
  * iterate
  *
@@ -12,19 +17,15 @@
  * @return {object}
  */
 
-/* global global, document, demand, provide, settings */
+var functionIterate = (function() {
+	return function iterate(object, callback, context) {
+		var properties = Object.keys(object),
+			i = 0, property;
 
-/* constants */
-	//=require constants.js
-	/* global UNDEFINED, FALSE */
-
-function iterate(object, callback, context) {
-	var properties = Object.keys(object),
-		i = 0, property;
-
-	for(; (property = properties[i]) !== UNDEFINED; i++) {
-		if(callback.call(context, property, object[property]) === FALSE) {
-			break;
+		for(; (property = properties[i]) !== UNDEFINED; i++) {
+			if(callback.call(context, property, object[property]) === FALSE) {
+				break;
+			}
 		}
 	}
-}
+}());

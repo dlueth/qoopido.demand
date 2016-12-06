@@ -1,14 +1,10 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+	DEMAND_ID,
+	arrayPrototypeSlice
+*/
 
-/* constants */
-	//=require constants.js
-	/* global DEMAND_ID */
-
-/* shortcuts */
-	//=require shortcuts.js
-	/* global arrayPrototypeSlice */
-
-var Failure = (function() {
+var ClassFailure = (function() {
 	function Failure(message, module, stack) {
 		this.message = message;
 		

@@ -1,76 +1,41 @@
-/* global global, document, demand, provide, settings */
+/* global
+	global, document, demand, provide, queue, processor, settings,
+ 	EVENT_PRE_REQUEST, EVENT_POST_REQUEST,
+	regexIsAbsoluteUri,
+	functionIterate, functionResolveUrl,
+	ClassXhr, ClassFailure,
+	singletonEvent
+*/
 
-/* constants */
-	//=require constants.js
-	/* global MODULE_PREFIX_HANDLER, NULL, EVENT_PRE_REQUEST, EVENT_POST_REQUEST */
-
-/* variables */
-	//=require variables.js
-	/* global regexIsAbsoluteUri */
-
-/* functions */
-	//=require function/iterate.js
-	//=require function/resolveUrl.js
-	/* global iterate, resolveUrl */
-
-/* classes */
-	//=require class/xhr.js
-	//=require class/failure.js
-	//=require class/singleton/event.js
-	/* global Xhr, Failure, event */
-
-var Loader = (function() {
+var ClassLoader = (function() {
 	function Loader(dependency) {
-		var self = this,
-			pattern;
+		var pattern;
 
 		if(!regexIsAbsoluteUri.test(dependency.path)) {
-			iterate(settings.pattern, function(property, value) {
+			functionIterate(settings.pattern, function(property, value) {
 				value.matches(dependency.path) && (!pattern || pattern.weight < value.weight) && (pattern = value);
 			});
 		}
 
-		self.dependency = dependency;
-		self.url        = pattern ? resolveUrl(pattern.process(dependency.path)) : dependency.path;
-		
-		demand(MODULE_PREFIX_HANDLER + dependency.handler)
-			.then(
-				function(handler) {
-					//dependency.handler = handler;
-					//dependency.mock    = self.mock && mocks[dependency.path];
-					
-					if(!self.mock) {
-						event.emit(EVENT_PRE_REQUEST, dependency.handler, self);
-						
-						new Xhr(self.url).then(
-							function(response, type) {
-								if(handler.validate(type)) {
-									self.source = response;
-									
-									event.emit(EVENT_POST_REQUEST, dependency.handler, self);
-								} else {
-									dependency.deferred.reject(new Failure('error loading (content-type)', self.path));
-								}
-							},
-							function(status) {
-								dependency.deferred.reject(new Failure('error loading' + (status ? ' (status)' : ''), self.path));
-							}
-						);
-					}
-				},
-				function() {
+		dependency.url = pattern ? functionResolveUrl(pattern.process(dependency.path)) : dependency.path;
 
+		singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
+
+		new ClassXhr(dependency.url).then(
+			function(response, type) {
+				if(dependency.handler.validate(type)) {
+					dependency.source = response;
+
+					singletonEvent.emit(EVENT_POST_REQUEST, dependency.type, dependency);
+				} else {
+					dependency.deferred.reject(new ClassFailure('error loading (content-type)', dependency.path));
 				}
-			);
+			},
+			function(status) {
+				dependency.deferred.reject(new ClassFailure('error loading' + (status ? ' (status)' : ''), dependency.path));
+			}
+		);
 	}
-
-	/* only for reference
-	Loader.prototype = {
-		dependency: NULL,
-	 	url:        NULL,
-	 	source:     NULL
-	};
-	*/
 
 	return Loader;
 }());
