@@ -8,6 +8,7 @@
 	handlerModule
 */
 
+/*eslint no-unused-vars: [2, { "args": "none" }]*/
 (function(global, document, options, setTimeout, clearTimeout) {
 	'use strict';
 
