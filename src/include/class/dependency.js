@@ -1,16 +1,14 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings,
-	MODULE_PREFIX_HANDLER, DEMAND_ID, PROVIDE_ID, PATH_ID, NULL, TRUE, FALSE,
-	regexIsAbsoluteUri, regexMatchBaseUrl, regexMatchInternal,
-	validatorIsPositive, functionResolveUrl, functionIterate,
+	MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, NULL, TRUE, FALSE,
+	regexMatchInternal, regexMatchParameter
+	validatorIsPositive, functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
 	ClassRegistry, ClassPledge, ClassFailure,
 	singletonCache
 */
 
 var ClassDependency = (function() {
-	var registry            = new ClassRegistry(),
-		regexIsAbsolutePath = /^\//,
-		regexMatchParameter = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/;
+	var registry = new ClassRegistry();
 
 	demand.list = {
 		all: function() {
@@ -51,37 +49,28 @@ var ClassDependency = (function() {
 		}
 	};
 
-	function resolvePath(uri, context) {
-		var path = uri.replace(regexMatchParameter, '');
-
-		if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
-			path = '/' + functionResolveUrl(((context && functionResolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
-		}
-
-		return path;
-	}
-
-	function Dependency(uri, context) {
+	function ClassDependency(uri, context) {
 		var self      = this,
 			parameter = uri.match(regexMatchParameter);
 
 		self.deferred = ClassPledge.defer();
 		self.pledge   = self.deferred.pledge;
-		self.path     = resolvePath(uri, context);
+		self.path     = functionResolvePath(uri, context);
 		self.mock     = (parameter && parameter[1]) ? TRUE : FALSE;
 		self.cache    = (parameter && parameter[2]) ? parameter[2] === '+' : NULL;
 		self.type     = (parameter && parameter[3]) || settings.handler;
 		self.version  = (parameter && parameter[4]) || settings.version;
 		self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
+		self.id       = self.type + '!' + self.path;
 		self.uri      = (self.mock ? 'mock:' : '') + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
-		
-		registry.set(self.path, self);
+
+		registry.set(self.id, self);
 		
 		return self;
 	}
 
 	/* only for reference
-	Dependency.prototype = {
+	 ClassDependency.prototype = {
 		deferred: NULL,
 		pledge:   NULL,
 		path:     NULL,
@@ -90,30 +79,32 @@ var ClassDependency = (function() {
 		type:     NULL,
 		version:  NULL,
 		lifetime: NULL,
+		id:       NULL,
 		uri:      NULL,
 		handler:  NULL, // set by Dependency.resolve
-		url:      NULL, // set by Loader
+	 	url:      NULL, // set by Loader
 		source:   NULL, // set by Cache or Loader
 	};
 	*/
 
-	Dependency.resolve = function(uri, context) {
-		var path       = resolvePath(uri, context),
-			dependency = registry.get(path);
+	ClassDependency.resolve = function(uri, context) {
+		var dependency = registry.get(functionResolveId(uri, context));
 
 		if(!dependency) {
-			dependency = new Dependency(uri, context);
+			dependency = new ClassDependency(uri, context);
 
 			if(context && regexMatchInternal.test(uri)) {
 				switch(uri) {
 					case DEMAND_ID:
-						dependency.deferred.resolve(function() {
+						dependency.deferred.resolve((function() {
 							var scopedDemand = demand.bind(context);
 
 							functionIterate(demand, function(property, value) {
 								scopedDemand[property] = value;
-							})
-						});
+							});
+
+							return scopedDemand;
+						}()));
 
 						break;
 					case PROVIDE_ID:
@@ -134,7 +125,7 @@ var ClassDependency = (function() {
 							singletonCache.get(dependency);
 						},
 						function() {
-							dependency.deferred.reject(new ClassFailure('error loading (handler)', self.path));
+							dependency.deferred.reject(new ClassFailure(ERROR_LOAD + ' (handler)', self.path));
 						}
 					)
 			}
@@ -143,5 +134,5 @@ var ClassDependency = (function() {
 		return dependency;
 	};
 
-	return Dependency;
+	return ClassDependency;
 }());

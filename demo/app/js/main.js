@@ -36,7 +36,51 @@
 	function definition(demand, provide, Pledge) {
 		log('demand', '/app/js/main', 'resolved', 'module');
 
+		demand.configure({
+			pattern: {
+				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
+				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
+				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
+				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
+				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
+			}
+		});
+
+		// provide a simple inline module without dependencies
+			function definition1() {
+				log('provide', '/app/js/example1', 'resolved', 'module');
+
+				return function appJsExample1() {
+
+				};
+			}
+
+		provide('example1', definition1);
+
+		// provide an inline module with dependencies
+			function definition2(appJsExample1) {
+				log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
+
+				return function appJsExample2() {
+
+				};
+			}
+
+			provide('example2', [ 'example1' ], definition2);
+
+
+		demand('@1.0.3#60!simple')
+			.then(
+				function(appJsSimple) {
+					log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
+				},
+				function() {
+					log('demand', '/app/js/simple', 'rejected');
+				}
+			)
+
 		// example: configuration
+		/*
 		demand.configure({
 			pattern: {
 				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
@@ -95,6 +139,7 @@
 				}
 			}
 		});
+		*/
 
 		// listen on demand events
 		/*
@@ -111,27 +156,8 @@
 			.on('postCache',   function(loader) { console.log('postCache', loader && loader.path || loader); })
 		*/
 
-		// provide a simple inline module without dependencies
-		function definition1() {
-			log('provide', '/app/js/example1', 'resolved', 'module');
+		/*
 
-			return function appJsExample1() {
-
-			};
-		}
-
-		provide('example1', definition1);
-
-		// provide an inline module with dependencies
-		function definition2(appJsExample1) {
-			log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
-
-			return function appJsExample2() {
-
-			};
-		}
-
-		provide('example2', [ 'example1' ], definition2);
 
 
 		// load plugins lzstring, sri and cookie
@@ -240,6 +266,7 @@
 					]
 				);
 			});
+			*/
 
 		return true;
 	}

@@ -14,8 +14,6 @@
  * @return {boolean}
  */
 
-var validatorIsPositive = (function() {
-	return function isPositive(value) {
-		return validatorIsTypeOf(value, STRING_NUMBER) && isFinite(value) && Math.floor(value) === value && value >= 0;
-	}
-}());
+function validatorIsPositive(value) {
+	return validatorIsTypeOf(value, STRING_NUMBER) && isFinite(value) && Math.floor(value) === value && value >= 0;
+}

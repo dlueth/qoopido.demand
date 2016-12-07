@@ -8,11 +8,11 @@
 var ClassQueue = (function() {
 	var storage = {};
 	
-	function Queue() {
+	function ClassQueue() {
 		storage[singletonUuid.set(this)] = [];
 	}
 	
-	Queue.prototype = {
+	ClassQueue.prototype = {
 		/* only for reference
 		 uuid: NULL,
 		 */
@@ -34,5 +34,5 @@ var ClassQueue = (function() {
 		}
 	};
 	
-	return Queue;
+	return ClassQueue;
 }());

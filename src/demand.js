@@ -39,10 +39,12 @@
 	//=require validator/isPositive.js
 	//=require validator/isArray.js
 	//=require validator/isObject.js
-	//###require validator/isInstanceOf.js
+	//=require validator/isInstanceOf.js // not used internally
 	//=require function/escapeRegex.js
 	//=require function/getTimestamp.js
 	//=require function/ResolveUrl.js
+	//=require function/ResolvePath.js
+	//=require function/ResolveId.js
 	//=require function/defer.js
 	//=require function/iterate.js
 	//=require function/log.js
@@ -60,14 +62,13 @@
 	//=require class/queue.js
 	//=require class/registry.js
 	//=require class/xhr.js
-
-	//=require singleton/cache.js
 	//=require singleton/event.js
 
 	//###require inheritance.js
 	//=require demand.js
 	//=require provide.js
 
+	//=require singleton/cache.js
 	//=require class/processor.js
 	//=require class/dependency.js
 	//=require handler/module.js
@@ -83,11 +84,11 @@
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
-	//assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
-	//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositiveInteger', isPositiveInteger);
+	assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
+	//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositiveInteger);
 	assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
 	assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
-	//assignModule(MODULE_PREFIX_FUNCTION + 'hash', hash);
+	//assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
 	assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
 	assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
 	assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
@@ -97,5 +98,8 @@
 
 	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
 	options && options.settings && demand.configure(options.settings);
-	options && options.main && demand(options.main);
+
+	functionDefer(function() {
+		options && options.main && demand(options.main);
+	});
 }(this, document, 'demand' in this && demand));

@@ -12,8 +12,6 @@
  *
  * @return {boolean}
  */
-var validatorIsInstanceOf = (function() {
-	return function isInstanceOf(object, module) {
-		return object instanceof module;
-	};
-}());
+function validatorIsInstanceOf(object, module) {
+	return object instanceof module;
+}

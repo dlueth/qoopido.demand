@@ -4,12 +4,10 @@
 	validatorIsTypeOf
 */
 
-var functionLog = (function() {
-	return function log(error) {
-		/* eslint-disable no-console */
-		if(!validatorIsTypeOf(console, STRING_UNDEFINED)) {
-			console.error(error.toString());
-		}
-		/* eslint-enable no-console */
+function functionLog(error) {
+	/* eslint-disable no-console */
+	if(!validatorIsTypeOf(console, STRING_UNDEFINED)) {
+		console.error(error.toString());
 	}
-}());
+	/* eslint-enable no-console */
+}

@@ -14,7 +14,7 @@ var ClassXhr = (function(XMLHttpRequest) {
 		}
 	}
 	
-	return function Xhr(url) {
+	return function ClassXhr(url) {
 		var boundCheckState = checkState.bind(this),
 			deferred        = ClassPledge.defer(),
 			xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
@@ -47,5 +47,5 @@ var ClassXhr = (function(XMLHttpRequest) {
 		pointer = setTimeout(boundCheckState, settings.timeout);
 		
 		return deferred.pledge;
-	}
+	};
 }(XMLHttpRequest));

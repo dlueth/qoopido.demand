@@ -7,7 +7,7 @@
 var ClassProcessor = (function() {
 	var storage = {};
 
-	function Processor(queue) {
+	function ClassProcessor(queue) {
 		var self    = this,
 			pointer = storage[singletonUuid.set(self)] = { queue: queue, current: NULL };
 
@@ -17,7 +17,7 @@ var ClassProcessor = (function() {
 			});
 	}
 
-	Processor.prototype = {
+	ClassProcessor.prototype = {
 		/* only for reference
 		 uuid: NULL,
 		 */
@@ -30,7 +30,7 @@ var ClassProcessor = (function() {
 
 				current.handler.process(current.path, current.source);
 
-				singletonEvent.emit(EVENT_POST_PROCESS, current);
+				singletonEvent.emit(EVENT_POST_PROCESS, current.path, current);
 			} else {
 				pointer.current = NULL;
 			}
@@ -40,5 +40,5 @@ var ClassProcessor = (function() {
 		}
 	};
 	
-	return Processor;
+	return ClassProcessor;
 }());

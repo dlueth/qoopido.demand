@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings,
-	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
 	arrayPrototypeSlice,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, functionIterate, functionMerge, functionDefer,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
@@ -84,16 +84,19 @@ var demand = global.demand = (function() {
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			new ClassLoader(dependency);
+			functionDefer(function() {
+				new ClassLoader(dependency);
+			});
 		})
-		.on(EVENT_POST_REQUEST, function(dependency) {
-			// needs to be functionDeferred to make sure any module listeners are complete
+		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
 			functionDefer(function() {
 				singletonEvent.emit(EVENT_PRE_PROCESS, NULL, dependency)
 			});
 		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
-			queue.enqueue(dependency);
+			functionDefer(function() {
+				queue.enqueue(dependency);
+			});
 		});
 
 	return demand;

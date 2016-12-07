@@ -6,13 +6,13 @@
 var ClassRegistry = (function() {
 	var storage = {};
 
-	function Registry() {
+	function ClassRegistry() {
 		var self = this;
 
 		storage[singletonUuid.set(self)] = {};
 	}
 
-	Registry.prototype = {
+	ClassRegistry.prototype = {
 		get: function(key) {
 			return key ? storage[this.uuid][key] : storage[this.uuid];
 		},
@@ -21,5 +21,5 @@ var ClassRegistry = (function() {
 		}
 	};
 
-	return Registry;
+	return ClassRegistry;
 }());

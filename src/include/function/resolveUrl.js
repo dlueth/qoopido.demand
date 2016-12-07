@@ -5,11 +5,9 @@
 var functionResolveUrl = (function() {
 	var resolver = document.createElement('a');
 
-	function resolveUrl(url) {
+	return function functionResolveUrl(url) {
 		resolver.href = url;
 
 		return resolver.href;
-	}
-
-	return resolveUrl;
+	};
 }());

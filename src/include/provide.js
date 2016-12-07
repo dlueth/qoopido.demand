@@ -1,6 +1,6 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings,
-	STRING_STRING, STRING_FUNCTION, NULL,
+	STRING_STRING, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsArray, functionLog,
 	ClassDependency, ClassFailure
 */
@@ -12,48 +12,27 @@ global.provide = function provide() {
 		module, isFunction;
 
 	if(!uri && processor.current) {
-		uri = processor.current.uri;
+		module = processor.current;
+		uri    = processor.current.uri;
 
 		processor.process();
 	}
 	
 	if(uri) {
-		module     = new ClassDependency(uri);
+		module     = module || new ClassDependency(uri);
 		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
 
-		if(module.pledge.isPending()) {
-			if(dependencies) {
-				demand
-					.apply(module.path, dependencies)
-					.then(
-						function() { functionLog('success'); },
-						function() { functionLog('error'); }
-					);
-			} else {
-				module.deferred.resolve(isFunction ? definition() : definition);
-			}
+		if(dependencies) {
+			demand
+				.apply(module.path, dependencies)
+				.then(
+					function() { module.deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
+					function() { functionLog(new ClassFailure(ERROR_PROVIDE, module.path)); }
+				);
+		} else {
+			module.deferred.resolve(isFunction ? definition() : definition);
 		}
-		
-		/*
-		path       = resolvePath(path, this);
-		deferred   = registry[path] || (registry[path] = Pledge.defer());
-		pledge     = deferred.pledge;
-		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
-		
-		if(pledge.isPending()) {
-			if(dependencies) {
-				demand
-					.apply(path, dependencies)
-					.then(
-						function() { deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-						function() { functionLog(new ClassFailure('error providing', path)); }
-					);
-			} else {
-				deferred.resolve(isFunction ? definition() : definition);
-			}
-		}
-		*/
 	} else {
-		throw new ClassFailure('unspecified anonymous provide');
+		throw new ClassFailure(ERROR_PROVIDE_ANONYMOUS);
 	}
-}
+};

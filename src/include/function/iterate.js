@@ -17,15 +17,13 @@
  * @return {object}
  */
 
-var functionIterate = (function() {
-	return function iterate(object, callback, context) {
-		var properties = Object.keys(object),
-			i = 0, property;
+function functionIterate(object, callback, context) {
+	var properties = Object.keys(object),
+		i = 0, property;
 
-		for(; (property = properties[i]) !== UNDEFINED; i++) {
-			if(callback.call(context, property, object[property]) === FALSE) {
-				break;
-			}
+	for(; (property = properties[i]) !== UNDEFINED; i++) {
+		if(callback.call(context, property, object[property]) === FALSE) {
+			break;
 		}
 	}
-}());
+}

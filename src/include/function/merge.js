@@ -28,14 +28,14 @@ var functionMerge = (function() {
 					targetProperty = (targetPropertyIsObject && targetProperty.length === UNDEFINED) ? targetProperty : {};
 				}
 
-				this[property] = merge(targetProperty, value);
+				this[property] = functionMerge(targetProperty, value);
 			} else {
 				this[property] = value;
 			}
 		}
 	}
 
-	function merge() {
+	return function functionMerge() {
 		var target = arguments[0],
 			i = 1, properties;
 
@@ -44,7 +44,5 @@ var functionMerge = (function() {
 		}
 
 		return target;
-	}
-
-	return merge;
+	};
 }());

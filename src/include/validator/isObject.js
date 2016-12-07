@@ -14,8 +14,6 @@
  * @return {boolean}
  */
 
-var validatorIsObject = (function() {
-	return function isObject(object) {
-		return object && validatorIsTypeOf(object, STRING_OBJECT);
-	}
-}());
+function validatorIsObject(object) {
+	return object && validatorIsTypeOf(object, STRING_OBJECT);
+}

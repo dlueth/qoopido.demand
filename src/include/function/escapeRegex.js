@@ -5,9 +5,7 @@
 var functionEscapeRegex = (function() {
 	var regexMatchRegex = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
 
-	function escapeRegex(value) {
+	return function functionEscapeRegex(value) {
 		return value.replace(regexMatchRegex, '\\$&');
-	}
-
-	return escapeRegex;
+	};
 }());

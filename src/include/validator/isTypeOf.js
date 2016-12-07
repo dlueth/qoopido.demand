@@ -13,8 +13,6 @@
  * @return {boolean}
  */
 
-var validatorIsTypeOf = (function() {
-	return function isTypeOf(object, type) {
-		return typeof object === type;
-	}
-}());
+function validatorIsTypeOf(object, type) {
+	return typeof object === type;
+}

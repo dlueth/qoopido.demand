@@ -6,7 +6,7 @@
 var ClassPattern = (function() {
 	var regexMatchTrailingSlash = /(.+)\/$/;
 
-	function Pattern(pattern, url) {
+	function ClassPattern(pattern, url) {
 		var self = this;
 
 		self.weight       = pattern.length;
@@ -15,7 +15,7 @@ var ClassPattern = (function() {
 		self.matchUrl     = new RegExp('^' + functionEscapeRegex(url));
 	}
 
-	Pattern.prototype = {
+	ClassPattern.prototype = {
 		/* only for reference
 		 weight:       0,
 		 url:          NULL,
@@ -33,5 +33,5 @@ var ClassPattern = (function() {
 		}
 	};
 
-	return Pattern;
+	return ClassPattern;
 }());

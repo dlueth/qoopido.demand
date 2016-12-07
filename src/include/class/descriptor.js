@@ -3,14 +3,12 @@
 	NULL
 */
 
-var ClassDescriptor = (function() {
-	return function Descriptor(value, writable, configurable, enumerable) {
-		return {
-			__proto__:    NULL,
-			value:        value,
-			enumerable:   !!enumerable,
-			configurable: !!configurable,
-			writable:     !!writable
-		};
-	}
-}());
+function ClassDescriptor(value, writable, configurable, enumerable) {
+	return {
+		__proto__:    NULL,
+		value:        value,
+		enumerable:   !!enumerable,
+		configurable: !!configurable,
+		writable:     !!writable
+	};
+}

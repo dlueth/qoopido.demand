@@ -69,7 +69,7 @@ var ClassPledge = (function() {
 		}
 	}
 
-	function Pledge(executor) {
+	function ClassPledge(executor) {
 		var self = this;
 
 		storage[singletonUuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
@@ -77,7 +77,7 @@ var ClassPledge = (function() {
 		executor(resolve.bind(self), reject.bind(self));
 	}
 
-	Pledge.prototype = {
+	ClassPledge.prototype = {
 		/* only for reference
 		 uuid:   NULL,
 		 value:  NULL,
@@ -93,7 +93,7 @@ var ClassPledge = (function() {
 		then: function(resolveListener, rejectListener) {
 			var self       = this,
 				properties = storage[self.uuid],
-				deferred   = Pledge.defer();
+				deferred   = ClassPledge.defer();
 
 			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, deferred: deferred });
 			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, deferred: deferred });
@@ -115,10 +115,10 @@ var ClassPledge = (function() {
 		}
 	};
 
-	Pledge.defer = function() {
+	ClassPledge.defer = function() {
 		var self = {};
 
-		self.pledge = new Pledge(function(resolveListener, rejectListener) {
+		self.pledge = new ClassPledge(function(resolveListener, rejectListener) {
 			self.resolve = resolveListener;
 			self.reject  = rejectListener;
 		});
@@ -126,8 +126,8 @@ var ClassPledge = (function() {
 		return self;
 	};
 
-	Pledge.all = function(pledges) {
-		var deferred   = Pledge.defer(),
+	ClassPledge.all = function(pledges) {
+		var deferred   = ClassPledge.defer(),
 			properties = (storage[singletonUuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
 			i = 0, pledge;
 
@@ -138,8 +138,8 @@ var ClassPledge = (function() {
 		return deferred.pledge;
 	};
 
-	Pledge.race = function(pledges) {
-		var deferred = Pledge.defer(),
+	ClassPledge.race = function(pledges) {
+		var deferred = ClassPledge.defer(),
 			i = 0, pledge;
 
 		for(; pledge = pledges[i]; i++) {
@@ -149,5 +149,5 @@ var ClassPledge = (function() {
 		return deferred.pledge;
 	};
 
-	return Pledge;
+	return ClassPledge;
 }());

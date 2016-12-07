@@ -17,7 +17,7 @@ var functionDefer = (function() {
 		element, fallback;
 
 	if('MutationObserver' in global) {
-		return function defer(fn) {
+		return function functionDefer(fn) {
 			element = document.createElement('div');
 
 			new MutationObserver(function() { fn(); })
@@ -41,18 +41,18 @@ var functionDefer = (function() {
 
 			global.addEventListener('message', onMessage, FALSE);
 
-			return function defer(fn) {
+			return function functionDefer(fn) {
 				var uuid = singletonUuid.generate();
 
 				storage[uuid] = fn;
 
 				global.postMessage(uuid, '*');
-			}
+			};
 		}());
 	}
 
 	if(!hasSetImmediate && 'onreadystatechange' in (element = document.createElement('script'))) {
-		return function defer(fn) {
+		return function functionDefer(fn) {
 			element.onreadystatechange = function onreadystatechange() {
 				element.onreadystatechange = NULL;
 				element.parentNode.removeChild(element);
@@ -68,7 +68,7 @@ var functionDefer = (function() {
 	fallback = hasSetImmediate ? setImmediate : setTimeout;
 	/* eslint-enable no-undef */
 
-	return function defer(fn) {
+	return function functionDefer(fn) {
 		fallback(fn);
-	}
+	};
 }());
