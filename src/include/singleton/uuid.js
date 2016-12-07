@@ -5,6 +5,10 @@
 	ClassDescriptor
 */
 
+//=require constants.js
+//=require validator/isTypeOf.js
+//=require class/Descriptor.js
+
 var singletonUuid = (function() {
 	var objectDefineProperty = Object.defineProperty,
 		regex                = new RegExp('[xy]', 'g'),

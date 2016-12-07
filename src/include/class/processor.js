@@ -4,6 +4,10 @@
 	singletonUuid, singletonEvent
 */
 
+//=require constants.js
+//=require singleton/uuid.js
+//=require singleton/event.js
+
 var ClassProcessor = (function() {
 	var storage = {};
 
@@ -11,7 +15,7 @@ var ClassProcessor = (function() {
 		var self    = this,
 			pointer = storage[singletonUuid.set(self)] = { queue: queue, current: NULL };
 
-		demand
+		singletonEvent
 			.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
 				!pointer.current && self.process();
 			});
@@ -28,7 +32,7 @@ var ClassProcessor = (function() {
 			if(pointer.queue.length) {
 				current = pointer.current = pointer.queue.dequeue();
 
-				current.handler.process(current.path, current.source);
+				current.handler.process.call(current);
 
 				singletonEvent.emit(EVENT_POST_PROCESS, current.path, current);
 			} else {

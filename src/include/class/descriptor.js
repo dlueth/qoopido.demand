@@ -3,6 +3,8 @@
 	NULL
 */
 
+//=require constants.js
+
 function ClassDescriptor(value, writable, configurable, enumerable) {
 	return {
 		__proto__:    NULL,

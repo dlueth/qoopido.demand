@@ -3,6 +3,8 @@
 	objectPrototypeToString
 */
 
+//=require shortcuts.js
+
 /**
  * isArray
  *

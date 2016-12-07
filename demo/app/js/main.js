@@ -38,11 +38,20 @@
 
 		demand.configure({
 			pattern: {
-				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
-				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
-				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
-				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
-				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
+				'/nucleus':  '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
+				'/jquery':   '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
+				'/velocity': '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js'
+			},
+			modules: {
+				'/demand/handler/legacy': {
+					'/jquery': {
+						probe: function() { return global.jQuery; }
+					},
+					'/velocity': {
+						probe:        function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); },
+						dependencies: [ 'legacy!/jquery' ]
+					}
+				}
 			}
 		});
 
@@ -77,7 +86,17 @@
 				function() {
 					log('demand', '/app/js/simple', 'rejected');
 				}
-			)
+			);
+
+		demand('legacy!/velocity')
+			.then(
+				function(jQuery) {
+					log('demand', '/velocity', 'resolved', 'legacy');
+				},
+				function() {
+					log('demand', '/velocity', 'rejected');
+				}
+			);
 
 		// example: configuration
 		/*

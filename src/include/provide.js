@@ -5,6 +5,13 @@
 	ClassDependency, ClassFailure
 */
 
+//=require constants.js
+//=require validator/isTypeOf.js
+//=require validator/isArray.js
+//=require function/log.js
+//=require class/dependency.js
+//=require class/failure.js
+
 global.provide = function provide() {
 	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,

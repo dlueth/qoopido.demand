@@ -3,6 +3,8 @@
 	singletonUuid
 */
 
+//=require singleton/uuid.js
+
 var ClassRegistry = (function() {
 	var storage = {};
 

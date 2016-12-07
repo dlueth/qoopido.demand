@@ -5,6 +5,10 @@
 	singletonUuid
 */
 
+//=require constants.js
+//=require shortcuts.js
+//=require singleton/uuid.js
+
 /**
  * defer
  *

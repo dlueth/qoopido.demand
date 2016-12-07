@@ -7,6 +7,14 @@
 	singletonEvent
 */
 
+//=require constants.js
+//=require variables.js
+//=require function/resolveUrl.js
+//=require function/iterate.js
+//=require singleton/event.js
+//=require class/xhr.js
+//=require class/failure.js
+
 function ClassLoader(dependency) {
 	var pattern;
 

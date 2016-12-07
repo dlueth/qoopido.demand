@@ -6,6 +6,11 @@
 	singletonUuid
 */
 
+//=require constants.js
+//=require shortcuts.js
+//=require function/defer.js
+//=require singleton/uuid.js
+
 var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
 		PLEDGE_RESOLVED = 'resolved',

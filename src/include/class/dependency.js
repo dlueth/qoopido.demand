@@ -1,53 +1,27 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings,
 	MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, NULL, TRUE, FALSE,
-	regexMatchInternal, regexMatchParameter
-	validatorIsPositive, functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
+	regexMatchInternal, regexMatchParameter,
+	validatorIsPositive,
+	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
 	ClassRegistry, ClassPledge, ClassFailure,
 	singletonCache
 */
 
+//=require constants.js
+//=require variables.js
+//=require validator/isPositive.js
+//=require function/resolvePath.js
+//=require function/resolveId.js
+//=require function/resolveUrl.js
+//=require function/iterate.js
+//=require class/registry.js
+//=require class/pledge.js
+//=require class/failure.js
+//=require singleton/cache.js
+
 var ClassDependency = (function() {
 	var registry = new ClassRegistry();
-
-	demand.list = {
-		all: function() {
-			return Object.keys(registry.get());
-		},
-		pending:  function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isPending()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
-		},
-		resolved: function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isResolved()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
-		},
-		rejected: function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isRejected()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
-		}
-	};
 
 	function ClassDependency(uri, context) {
 		var self      = this,
@@ -56,13 +30,12 @@ var ClassDependency = (function() {
 		self.deferred = ClassPledge.defer();
 		self.pledge   = self.deferred.pledge;
 		self.path     = functionResolvePath(uri, context);
-		self.mock     = (parameter && parameter[1]) ? TRUE : FALSE;
-		self.cache    = (parameter && parameter[2]) ? parameter[2] === '+' : NULL;
-		self.type     = (parameter && parameter[3]) || settings.handler;
-		self.version  = (parameter && parameter[4]) || settings.version;
-		self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
+		self.cache    = (parameter && parameter[1]) ? parameter[1] === '+' : NULL;
+		self.type     = (parameter && parameter[2]) || settings.handler;
+		self.version  = (parameter && parameter[3]) || settings.version;
+		self.lifetime = (parameter && parameter[4] && parameter[4] * 1000) || settings.lifetime;
 		self.id       = self.type + '!' + self.path;
-		self.uri      = (self.mock ? 'mock:' : '') + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
+		self.uri      = self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
 
 		registry.set(self.id, self);
 		
@@ -74,7 +47,6 @@ var ClassDependency = (function() {
 		deferred: NULL,
 		pledge:   NULL,
 		path:     NULL,
-		mock:     NULL,
 		cache:    NULL,
 		type:     NULL,
 		version:  NULL,
@@ -82,8 +54,9 @@ var ClassDependency = (function() {
 		id:       NULL,
 		uri:      NULL,
 		handler:  NULL, // set by Dependency.resolve
-	 	url:      NULL, // set by Loader
-		source:   NULL, // set by Cache or Loader
+	 	source:   NULL, // set by Cache or Loader
+	 	url:      NULL, // optional, set by Loader
+		lock:     NULL, // optional, set by handler
 	};
 	*/
 
@@ -132,6 +105,45 @@ var ClassDependency = (function() {
 		}
 
 		return dependency;
+	};
+
+	ClassDependency.list = {
+		all: function() {
+			return Object.keys(registry.get());
+		},
+		pending:  function() {
+			var modules = [];
+
+			functionIterate(registry.get(), function(property, value) {
+				if(value.pledge.isPending()) {
+					modules.push(property);
+				}
+			});
+
+			return modules;
+		},
+		resolved: function() {
+			var modules = [];
+
+			functionIterate(registry.get(), function(property, value) {
+				if(value.pledge.isResolved()) {
+					modules.push(property);
+				}
+			});
+
+			return modules;
+		},
+		rejected: function() {
+			var modules = [];
+
+			functionIterate(registry.get(), function(property, value) {
+				if(value.pledge.isRejected()) {
+					modules.push(property);
+				}
+			});
+
+			return modules;
+		}
 	};
 
 	return ClassDependency;

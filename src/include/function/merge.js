@@ -1,8 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings,
 	UNDEFINED,
-	validatorIsObject, functionIterate
+	validatorIsObject,
+	functionIterate
 */
+
+//=require constants.js
+//=require validator/isObject.js
+//=require function/iterate.js
 
 /**
  * merge

@@ -1,11 +1,27 @@
 /* global
 	global, document, demand, provide, queue, processor, settings,
-	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
 	arrayPrototypeSlice,
-	validatorIsTypeOf, validatorIsObject, validatorIsPositive, functionIterate, functionMerge, functionDefer,
+	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
+	functionIterate, functionMerge, functionDefer,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
-	singletonEvent
+	singletonEvent, singletonCache
 */
+
+//=require constants.js
+//=require shortcuts.js
+//=require validator/isTypeOf.js
+//=require validator/isObject.js
+//=require validator/isPositive.js
+//=require function/iterate.js
+//=require function/merge.js
+//=require function/defer.js
+//=require singleton/event.js
+//=require singleton/cache.js
+//=require class/pledge.js
+//=require class/dependency.js
+//=require class/pattern.js
+//=require class/loader.js
 
 var demand = global.demand = (function() {
 	function demand() {
@@ -76,11 +92,9 @@ var demand = global.demand = (function() {
 		return demand;
 	};
 
-	demand.on = function(events, callback) {
-		singletonEvent.on(events, callback);
-
-		return demand;
-	};
+	demand.on    = singletonEvent.on.bind(demand);
+	demand.list  = ClassDependency.list;
+	demand.clear = singletonCache.clear;
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
@@ -93,10 +107,27 @@ var demand = global.demand = (function() {
 				singletonEvent.emit(EVENT_PRE_PROCESS, NULL, dependency)
 			});
 		})
+		.on(EVENT_PRE_REQUEST, function(dependency) {
+			var pointer = dependency.handler.onPreRequest;
+
+			pointer && pointer.call(dependency);
+		})
+		.on(EVENT_POST_REQUEST, function(dependency) {
+			var pointer = dependency.handler.onPostRequest;
+
+			pointer && pointer.call(dependency);
+		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
-			functionDefer(function() {
+			var callback = functionDefer.bind(NULL, function() {
 				queue.enqueue(dependency);
 			});
+
+			if(dependency.lock) {
+				dependency.lock.then(callback);
+			} else {
+				callback();
+			}
+
 		});
 
 	return demand;

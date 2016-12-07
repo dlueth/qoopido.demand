@@ -4,6 +4,9 @@
 	validatorIsTypeOf
 */
 
+//=require constants.js
+//=require validator/isTypeOf.js
+
 function functionLog(error) {
 	/* eslint-disable no-console */
 	if(!validatorIsTypeOf(console, STRING_UNDEFINED)) {

@@ -1,17 +1,7 @@
 /**
- * Qoopido.demand plugin/sri
- *
  * Based on jsSHA:
  *   Repo:    https://github.com/Caligatio/jsSHA
  *   License: https://github.com/Caligatio/jsSHA/blob/master/LICENSE
- *
- * Copyright (c) 2016 Dirk Lueth
- *
- * Dual licensed under the MIT and GPL licenses.
- *  - http://www.opensource.org/licenses/mit-license.php
- *  - http://www.gnu.org/copyleft/gpl.html
- *
- * @author Dirk Lueth <info@qoopido.com>
  */
 
 (function() {

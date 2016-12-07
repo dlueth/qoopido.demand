@@ -4,6 +4,9 @@
 	arrayPrototypeSlice
 */
 
+//=require constants.js
+//=require shortcuts.js
+
 function ClassFailure(message, module, stack) {
 	this.message = message;
 		

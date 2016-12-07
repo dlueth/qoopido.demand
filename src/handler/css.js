@@ -1,15 +1,3 @@
-/**
- * Qoopido.demand handler/css
- *
- * Copyright (c) 2016 Dirk Lueth
- *
- * Dual licensed under the MIT and GPL licenses.
- *  - http://www.opensource.org/licenses/mit-license.php
- *  - http://www.gnu.org/copyleft/gpl.html
- *
- * @author Dirk Lueth <info@qoopido.com>
- */
-
 (function(document) {
 	'use strict';
 

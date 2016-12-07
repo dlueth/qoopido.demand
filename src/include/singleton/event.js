@@ -1,9 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings,
-	NULL, STRING_STRING, STRING_FUNCTION,
+	NULL, STRING_STRING, STRING_FUNCTION, EVENT_POST_CONFIGURE,
 	arrayPrototypeSlice,
 	validatorIsTypeOf
 */
+
+//=require constants.js
+//=require shortcuts.js
+//=require validator/isTypeOf.js
 
 var singletonEvent = (function() {
 	var regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Configure|Request|Process|Cache)$/,
@@ -25,9 +29,11 @@ var singletonEvent = (function() {
 					}
 				}
 			}
+
+			return this;
 		},
 		on: function(events, callback) {
-			var event;
+			var event, pointer;
 
 			if(validatorIsTypeOf(events, STRING_STRING) && validatorIsTypeOf(callback, STRING_FUNCTION)) {
 				events = events.split(' ');
@@ -37,11 +43,17 @@ var singletonEvent = (function() {
 
 					if(regexMatchEvent.test(event[0])) {
 						(listener[event[0]] || (listener[event[0]] = [])).push({ callback: callback, filter: event[1] });
+
+						if(event[0] === EVENT_POST_CONFIGURE && (pointer = settings.modules[event[1]])) {
+							callback(pointer);
+						}
 					}
 				}
 			}
+
+			return this;
 		}
-	}
+	};
 
 	return new Event();
 }());

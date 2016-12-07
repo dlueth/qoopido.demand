@@ -4,6 +4,9 @@
 	validatorIsTypeOf
 */
 
+//=require constants.js
+//=require validator/isTypeOf.js
+
 /**
  * isObject
  *

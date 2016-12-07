@@ -5,6 +5,11 @@
 	singletonUuid, singletonEvent
 */
 
+//=require constants.js
+//=require shortcuts.js
+//=require singleton/uuid.js
+//=require singleton/event.js
+
 var ClassQueue = (function() {
 	var storage = {};
 	

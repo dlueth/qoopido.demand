@@ -5,6 +5,10 @@
 	ClassPledge
 */
 
+//=require shortcuts.js
+//=require variables.js
+//=require class/pledge.js
+
 var ClassXhr = (function(XMLHttpRequest) {
 	var XDomainRequest = 'XDomainRequest' in global && global.XDomainRequest || XMLHttpRequest;
 	

@@ -1,9 +1,17 @@
 /* global 
-	global, document, demand, provide, queue, processor, settings
+	global, document, demand, provide, queue, processor, settings,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, NULL, FALSE, TRUE,
-	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId
+	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
 	singletonEvent
 */
+
+//=require constants.js
+//=require function/getTimestamp.js
+//=require function/escapeRegex.js
+//=require function/iterate.js
+//=require function/defer.js
+//=require function/resolveId.js
+//=require singleton/event.js
 
 var singletonCache = (function(JSON) {
 	var STORAGE_PREFIX         = '[' + DEMAND_ID + ']',
@@ -14,71 +22,15 @@ var singletonCache = (function(JSON) {
 		supportsRemainingSpace = supportsLocalStorage && 'remainingSpace' in localStorage,
 		cache;
 
-	demand
+	singletonEvent
 		.on(EVENT_POST_PROCESS, function(dependency) {
 			functionDefer(function() {
 				cache.set(dependency);
 			});
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			demand.clear.path(dependency.id);
+			cache.clear.path(dependency.id);
 		});
-
-	demand.clear = {
-		path: (function() {
-			if(supportsLocalStorage) {
-				return function path(path) {
-					functionDefer(function() {
-						var id  = functionResolveId(path),
-							key = STORAGE_PREFIX + '[' + id + ']';
-
-						localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
-						localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
-
-						singletonEvent.emit(EVENT_CACHE_CLEAR, path);
-					});
-				}
-			} else {
-				return FUNCTION_EMPTY;
-			}
-		}()),
-		all: (function() {
-			if(supportsLocalStorage) {
-				return function all() {
-					var match;
-
-					functionIterate(localStorage, function(property) {
-						match = property.match(regexMatchState);
-
-						match && this.path(match[1]);
-					}, this);
-				}
-			} else {
-				return FUNCTION_EMPTY;
-			}
-		}()),
-		expired: (function() {
-			if(supportsLocalStorage) {
-				return function expired() {
-					var match, state;
-
-					functionIterate(localStorage, function(property) {
-						match = property.match(regexMatchState);
-
-						if(match) {
-							state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
-
-							if(state && state.expires > 0 && state.expires <= functionGetTimestamp()) {
-								this.path(match[1]);
-							}
-						}
-					}, this);
-				}
-			} else {
-				return FUNCTION_EMPTY;
-			}
-		}())
-	};
 
 	function cachingEnabled(dependency) {
 		var match;
@@ -159,7 +111,62 @@ var singletonCache = (function(JSON) {
 			} else {
 				return FUNCTION_EMPTY;
 			}
-		}())
+		}()),
+		clear: {
+			path: (function() {
+				if(supportsLocalStorage) {
+					return function path(path) {
+						functionDefer(function() {
+							var id  = functionResolveId(path),
+								key = STORAGE_PREFIX + '[' + id + ']';
+
+							localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
+							localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
+
+							singletonEvent.emit(EVENT_CACHE_CLEAR, path);
+						});
+					}
+				} else {
+					return FUNCTION_EMPTY;
+				}
+			}()),
+			all: (function() {
+				if(supportsLocalStorage) {
+					return function all() {
+						var match;
+
+						functionIterate(localStorage, function(property) {
+							match = property.match(regexMatchState);
+
+							match && this.path(match[1]);
+						}, this);
+					}
+				} else {
+					return FUNCTION_EMPTY;
+				}
+			}()),
+			expired: (function() {
+				if(supportsLocalStorage) {
+					return function expired() {
+						var match, state;
+
+						functionIterate(localStorage, function(property) {
+							match = property.match(regexMatchState);
+
+							if(match) {
+								state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
+
+								if(state && state.expires > 0 && state.expires <= functionGetTimestamp()) {
+									this.path(match[1]);
+								}
+							}
+						}, this);
+					}
+				} else {
+					return FUNCTION_EMPTY;
+				}
+			}())
+		}
 	};
 
 	return (cache = new Cache());

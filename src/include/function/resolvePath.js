@@ -1,8 +1,11 @@
 /* global
 	global, document, demand, provide, queue, processor, settings,
-	regexMatchParameter, regexMatchBaseUrl, regexIsAbsoluteUri
+	regexMatchParameter, regexMatchBaseUrl, regexIsAbsoluteUri,
 	functionResolveUrl
 */
+
+//=require variables.js
+//=require function/resolveUrl.js
 
 var functionResolvePath = (function() {
 	var regexIsAbsolutePath = /^\//;

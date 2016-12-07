@@ -3,6 +3,9 @@
 	functionResolveUrl, functionEscapeRegex
 */
 
+//=require function/resolveUrl.js
+//=require function/escapeRegex.js
+
 var ClassPattern = (function() {
 	var regexMatchTrailingSlash = /(.+)\/$/;
 
