@@ -1,5 +1,3 @@
-/*eslint no-unused-vars: [2, { "args": "none" }]*/
-
 /* global
  global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_FUNCTION, TRUE,
@@ -10,6 +8,7 @@
 	handlerModule
 */
 
+/*eslint no-unused-vars: [2, { "vars": "local", "args": "none" }]*/
 (function(global, document, options, setTimeout, clearTimeout) {
 	'use strict';
 
