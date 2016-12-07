@@ -1,5 +1,5 @@
 /* global 
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, NULL, TRUE, FALSE,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,

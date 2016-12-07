@@ -1,5 +1,5 @@
 /* global 
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_STRING, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsArray, functionLog,
 	ClassDependency, ClassFailure

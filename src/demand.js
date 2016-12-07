@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+ global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_FUNCTION, TRUE,
 	functionResolveUrl, validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionMerge, functionIterate, functionDefer,
@@ -8,7 +8,7 @@
 	handlerModule
 */
 
-(function(global, document, options) {
+(function(global, document, options, setTimeout, clearTimeout) {
 	'use strict';
 
 	/* eslint-disable no-unused-vars */
@@ -54,4 +54,4 @@
 
 		options.main && demand(options.main);
 	}
-}(this, document, 'demand' in this && demand));
+}(this, document, 'demand' in this && demand, setTimeout, clearTimeout));

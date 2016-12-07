@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	EVENT_POST_PROCESS, EVENT_QUEUE_ENQUEUE, NULL,
 	singletonUuid, singletonEvent
 */

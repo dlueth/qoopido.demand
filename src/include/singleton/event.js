@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL, STRING_STRING, STRING_FUNCTION, EVENT_POST_CONFIGURE,
 	arrayPrototypeSlice,
 	validatorIsTypeOf

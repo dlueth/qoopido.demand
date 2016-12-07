@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
  	FUNCTION_EMPTY, NULL,
 	arrayPrototypeSlice, arrayPrototypeConcat,
 	functionDefer,

@@ -1,7 +1,6 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL, TRUE, FALSE,
-	setTimeout,
 	singletonUuid
 */
 

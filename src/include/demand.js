@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
 	arrayPrototypeSlice,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
@@ -23,7 +23,7 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-var demand = global.demand = (function() {
+global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,

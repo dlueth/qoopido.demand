@@ -1,5 +1,5 @@
 /* global 
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, PROVIDE_ID, PATH_ID,
 	functionEscapeRegex, functionResolveUrl
 */

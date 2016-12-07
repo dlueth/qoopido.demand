@@ -1,5 +1,5 @@
 /* global 
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, NULL, FALSE, TRUE,
 	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
 	singletonEvent

@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	EVENT_QUEUE_ENQUEUE, EVENT_QUEUE_DEQUEUE,
 	arrayPrototypeSlice,
 	singletonUuid, singletonEvent

@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	EVENT_PRE_REQUEST, EVENT_POST_REQUEST,
 	regexMatchSourcemap, regexIsAbsoluteUri,
 	functionResolveUrl,
