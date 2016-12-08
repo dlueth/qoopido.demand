@@ -17,6 +17,7 @@ engines:
 ratings:
   paths:
   - "src/**.js"
+  - "build/**.js"
 exclude_paths:
 - "yarn.lock"
 - "gulpfile.js"
