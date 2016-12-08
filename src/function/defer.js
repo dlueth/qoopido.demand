@@ -1,3 +1,9 @@
+/**
+ * Based on setAsap:
+ *   Repo:    https://github.com/taylorhakes/setAsap
+ *   License: https://github.com/taylorhakes/setAsap/blob/master/LICENSE
+ */
+
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL, TRUE, FALSE,

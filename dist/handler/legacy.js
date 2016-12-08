@@ -1,3 +1,3 @@
-/**! Qoopido.demand 3.5.7 (MIT OR GPL-3.0+) | https://github.com/dlueth/qoopido.demand | (c) 2016 Dirk Lueth */
+/**! Qoopido.demand 4.0.0 (MIT OR GPL-3.0+) | https://github.com/dlueth/qoopido.demand | (c) 2016 Dirk Lueth */
 !function(){"use strict";function e(e,n,t,r){function o(){var e,r=this,o=r.deferred,d=a[r.path]&&a[r.path].probe;t.process.call(r),d&&(e=d())?provide(function(){return e}):o.reject(new n("error probing",r.path))}var a={};return demand.on("postConfigure:"+e,function(e){a=r(e)?e:{}}),{validate:t.validate,onPreRequest:function(){var e=this,n=a[e.path]&&a[e.path].dependencies;n&&(e.lock=demand.apply(null,n)),t.onPreRequest.call(e)},onPostRequest:t.onPostRequest,process:function(){var e=this,t=o.bind(e);e.lock?e.lock.then(t,function(){e.deferred.reject(new n("error resolving",e.path,arguments))}):t()}}}provide(["path","/demand/failure","/demand/handler/module","/demand/validator/isObject"],e)}();
 //# sourceMappingURL=legacy.js.map

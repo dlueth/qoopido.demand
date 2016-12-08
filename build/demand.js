@@ -23,7 +23,7 @@
 	//=require class/queue.js
 	//=require class/processor.js
 	//=require handler/module.js
-	//=require validator/isInstanceOf.js
+	//###require validator/isInstanceOf.js
 	//=require function/hash.js
 
 	queue     = new ClassQueue();
@@ -38,7 +38,7 @@
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'resolveUrl', functionResolveUrl);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
+	//assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
 	//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositive);
 	assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
 	assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
