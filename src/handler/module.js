@@ -1,19 +1,18 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	EVENT_PRE_REQUEST, EVENT_POST_REQUEST,
+	linkElement,
 	regexMatchSourcemap, regexIsAbsoluteUri,
-	functionResolveUrl,
-	singletonEvent
+	functionResolveUrl
 */
 
 //=require constants.js
+//=require shortcuts.js
 //=require variables.js
 //=require function/resolveUrl.js
-//=require singleton/event.js
 
 var handlerModule = (function() {
 	var target         = document.getElementsByTagName('head')[0],
-		resolver       = document.createElement('a'),
 		regexMatchType = /^(application|text)\/(x-)?javascript/;
 
 	return {
@@ -32,9 +31,9 @@ var handlerModule = (function() {
 
 			while(match = regexMatchSourcemap.exec(self.source)) {
 				if(regexIsAbsoluteUri.test(match[1])) {
-					resolver.href = self.url;
+					linkElement.href = self.url;
 
-					replacement = resolver.protocol + '//' + resolver.host + match[1];
+					replacement = linkElement.protocol + '//' + linkElement.host + match[1];
 				} else {
 					replacement = functionResolveUrl(self.url + '/../' + match[1]);
 				}

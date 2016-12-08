@@ -26,27 +26,26 @@ var ClassPledge = (function() {
 	}
 
 	function handle(state, parameter) {
-		var self     = this,
-			listener = storage[self.uuid],
+		var properties = storage[this.uuid],
 			pointer, result;
 
-		if(self.state === PLEDGE_PENDING) {
-			self.state = state;
-			self.value = parameter;
+		if(properties.state === PLEDGE_PENDING) {
+			properties.state = state;
+			properties.value = parameter;
 		}
 
-		while(pointer = listener[self.state].shift()) {
-			result = pointer.handler.apply(NULL, self.value);
+		while(pointer = properties[properties.state].shift()) {
+			result = pointer.handler.apply(NULL, properties.value);
 
 			if(result && typeof result.then === 'function') {
 				result.then(pointer.deferred.resolve, pointer.deferred.reject);
 			} else {
-				pointer.deferred[self.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, self.value);
+				pointer.deferred[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
 			}
 		}
 
-		listener[PLEDGE_RESOLVED].length = 0;
-		listener[PLEDGE_REJECTED].length = 0;
+		properties[PLEDGE_RESOLVED].length = 0;
+		properties[PLEDGE_REJECTED].length = 0;
 	}
 
 	function observe(pledge, index, properties) {
@@ -77,18 +76,15 @@ var ClassPledge = (function() {
 	function ClassPledge(executor) {
 		var self = this;
 
-		storage[singletonUuid.set(self)] = { handle: handle.bind(self), resolved: [], rejected: [] };
+		storage[singletonUuid.set(self)] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
 
 		executor(resolve.bind(self), reject.bind(self));
 	}
 
 	ClassPledge.prototype = {
 		/* only for reference
-		 uuid:   NULL,
-		 value:  NULL,
-		 cache:  NULL, // will only be set by storage
+		 uuid: NULL
 		 */
-		state:  PLEDGE_PENDING,
 		'catch': function(listener) {
 			return this.then(FUNCTION_EMPTY, listener);
 		},
@@ -96,27 +92,26 @@ var ClassPledge = (function() {
 			return this.then(alwaysListener, alwaysListener);
 		},
 		then: function(resolveListener, rejectListener) {
-			var self       = this,
-				properties = storage[self.uuid],
+			var properties = storage[this.uuid],
 				deferred   = ClassPledge.defer();
 
 			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, deferred: deferred });
 			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, deferred: deferred });
 
-			if(self.state !== PLEDGE_PENDING) {
+			if(properties.state !== PLEDGE_PENDING) {
 				functionDefer(properties.handle);
 			}
 
 			return deferred.pledge;
 		},
 		isPending: function() {
-			return this.state === PLEDGE_PENDING;
+			return storage[this.uuid].state === PLEDGE_PENDING;
 		},
 		isResolved: function() {
-			return this.state === PLEDGE_RESOLVED;
+			return storage[this.uuid].state === PLEDGE_RESOLVED;
 		},
 		isRejected: function() {
-			return this.state === PLEDGE_REJECTED;
+			return storage[this.uuid].state === PLEDGE_REJECTED;
 		}
 	};
 

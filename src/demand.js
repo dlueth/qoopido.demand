@@ -1,58 +1,134 @@
 /* global
- global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_FUNCTION, TRUE,
-	functionResolveUrl, validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
-	functionMerge, functionIterate, functionDefer,
- 	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure,
-	singletonUuid,
-	handlerModule
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
+	arrayPrototypeSlice,
+	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
+	functionIterate, functionMerge, functionDefer,
+	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
+	singletonEvent, singletonCache
 */
 
-/*eslint no-unused-vars: [2, { "vars": "local", "args": "none" }]*/
-(function(global, document, options, setTimeout, clearTimeout) {
-	'use strict';
+//=require constants.js
+//=require shortcuts.js
+//=require validator/isTypeOf.js
+//=require validator/isObject.js
+//=require validator/isPositive.js
+//=require function/iterate.js
+//=require function/merge.js
+//=require function/defer.js
+//=require singleton/event.js
+//=require singleton/cache.js
+//=require class/pledge.js
+//=require class/dependency.js
+//=require class/pattern.js
+//=require class/loader.js
 
-	/* eslint-disable no-unused-vars */
-	var settings = { cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
-		queue, processor;
-	/* eslint-enable no-unused-vars */
+global.demand = (function() {
+	function demand() {
+		var dependencies = arrayPrototypeSlice.call(arguments),
+			context      = this !== global ? this : NULL,
+			i = 0, uri;
 
-	//###require inheritance.js // @todo check if really required
-	//=require demand.js
-	//=require provide.js
-	//=require class/queue.js
-	//=require class/processor.js
-	//=require handler/module.js
-	//=require validator/isInstanceOf.js
+		for(; (uri = dependencies[i]); i++) {
+			dependencies[i] = ClassDependency.resolve(uri, context).pledge;
+		}
 
-	queue     = new ClassQueue();
-	processor = new ClassProcessor(queue);
-
-	function assignModule(id, factory) {
-		provide(id, function() { return factory; });
+		return ClassPledge.all(dependencies);
 	}
 
-	assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
-	//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositive);
-	assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
-	assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
-	//assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
-	assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
-	assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
-	assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
-	assignModule(MODULE_PREFIX + 'queue', ClassQueue);
-	assignModule(MODULE_PREFIX + 'xhr', ClassXhr);
-	assignModule(MODULE_PREFIX + 'failure', ClassFailure);
+	demand.configure = function(options) {
+		var cache    = options.cache,
+			version  = options.version,
+			timeout  = options.timeout,
+			lifetime = options.lifetime,
+			base     = options.base,
+			pattern  = options.pattern,
+			modules  = options.modules,
+			pointer  = settings.modules,
+			temp;
 
-	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+		if(validatorIsTypeOf(cache, STRING_BOOLEAN)) {
+			settings.cache[''] = { weight: 0, state: cache };
+		} else if(validatorIsObject(cache)) {
+			functionIterate(cache, function(property, value) {
+				settings.cache[property] = { weight: property.length, state: value };
+			});
+		}
 
-	if(options) {
-		options.settings && demand.configure(options.settings);
+		if(validatorIsTypeOf(version, STRING_STRING)) {
+			settings.version = version;
+		}
 
-		options.main && demand(options.main);
-	}
-}(this, document, 'demand' in this && demand, setTimeout, clearTimeout));
+		if(validatorIsPositive(timeout)) {
+			settings.timeout = Math.min(Math.max(timeout, 2), 12) * 1000;
+		}
+
+		if(validatorIsPositive(lifetime) && lifetime > 0) {
+			settings.lifetime = lifetime * 1000;
+		}
+
+		if(validatorIsTypeOf(base, STRING_STRING) && base !== '') {
+			settings.pattern.base = new ClassPattern('', base);
+		}
+
+		if(validatorIsObject(pattern)) {
+			functionIterate(pattern, function(property, value) {
+				property !== 'base' && (settings.pattern[property] = new ClassPattern(property, value));
+			});
+		}
+
+		if(validatorIsObject(modules)) {
+			functionIterate(modules, function(property, value) {
+				temp = pointer[property] = pointer[property] || {};
+
+				singletonEvent.emit(EVENT_PRE_CONFIGURE, property, temp);
+
+				functionMerge(temp, value);
+
+				singletonEvent.emit(EVENT_POST_CONFIGURE, property, temp);
+			});
+		}
+
+		return demand;
+	};
+
+	demand.on    = singletonEvent.on.bind(demand);
+	demand.list  = ClassDependency.list;
+	demand.clear = singletonCache.clear;
+
+	demand
+		.on(EVENT_CACHE_MISS, function(dependency) {
+			functionDefer(function() {
+				new ClassLoader(dependency);
+			});
+		})
+		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
+			functionDefer(function() {
+				singletonEvent.emit(EVENT_PRE_PROCESS, NULL, dependency)
+			});
+		})
+		.on(EVENT_PRE_REQUEST, function(dependency) {
+			var pointer = dependency.handler.onPreRequest;
+
+			pointer && pointer.call(dependency);
+		})
+		.on(EVENT_POST_REQUEST, function(dependency) {
+			var pointer = dependency.handler.onPostRequest;
+
+			pointer && pointer.call(dependency);
+		})
+		.on(EVENT_PRE_PROCESS, function(dependency) {
+			var callback = functionDefer.bind(NULL, function() {
+				queue.enqueue(dependency);
+			});
+
+			if(dependency.lock) {
+				dependency.lock.then(callback);
+			} else {
+				callback();
+			}
+
+		});
+
+	return demand;
+}());

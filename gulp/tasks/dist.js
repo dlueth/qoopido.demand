@@ -29,11 +29,7 @@ gulp.task(id + ':build', function() {
 	return gulp.src(task.build || task.watch)
 		.pipe(plugins.sourcemaps.init())
 		.pipe(plugins.plumber({ errorHandler: shared.handleError}))
-		.pipe(plugins.include({
-			extensions: "js",
-			hardFail: true,
-			includePaths: [ __dirname + "/../../src/include" ]
-		}))
+		.pipe(plugins.include(config.settings.include))
 		.pipe(plugins.uglify({ preserveComments: 'none' }))
 		.pipe(plugins.header(config.strings.banner.min))
 		.pipe(plugins.insert.transform(shared.transform))

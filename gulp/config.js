@@ -7,12 +7,18 @@ module.exports = {
 			]
 		},
 		"dist": {
-			"watch": [ "src/**/*.js" ],
-			"build": [ "src/**/*.js", "!src/include/**/*.js" ],
+			"watch": [ "src/**/*.js", "build/**/*.js" ],
+			"build": [ "build/**/*.js" ],
 			"dest": "dist/"
 		}
 	},
-	settings: {},
+	settings: {
+		include: {
+			extensions: "js",
+			hardFail: true,
+			includePaths: [ __dirname + "/../src" ]
+		}
+	},
 	strings: {
 		banner: {
 			min: [
