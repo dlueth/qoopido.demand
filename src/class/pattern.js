@@ -1,10 +1,11 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	functionResolveUrl, functionEscapeRegex
+	functionResolveUrl, functionEscapeRegex, functionIterate
 */
 
 //=require function/resolveUrl.js
 //=require function/escapeRegex.js
+//=require function/iterate.js
 
 var ClassPattern = (function() {
 	var regexMatchTrailingSlash = /(.+)\/$/;
@@ -12,27 +13,33 @@ var ClassPattern = (function() {
 	function ClassPattern(pattern, url) {
 		var self = this;
 
-		self.weight       = pattern.length;
-		self.url          = functionResolveUrl(url).replace(regexMatchTrailingSlash, '$1');
-		self.matchPattern = new RegExp('^' + functionEscapeRegex(pattern));
-		self.matchUrl     = new RegExp('^' + functionEscapeRegex(url));
+		self.weight   = pattern.length;
+		self.match    = new RegExp('^' + functionEscapeRegex(pattern));
+		self.location = [].concat(url);
+
+		functionIterate(self.location, function(property, value) {
+			self.location[property] = {
+				url:   functionResolveUrl(value).replace(regexMatchTrailingSlash, '$1'),
+				match: new RegExp('^' + functionEscapeRegex(value))
+			};
+		});
 	}
 
 	ClassPattern.prototype = {
 		/* only for reference
-		 weight:       0,
-		 url:          NULL,
-		 matchPattern: NULL,
-		 matchUrl:     NULL,
+		 weight:   0,
+		 match:    NULL,
+		 location: NULL,
 		 */
 		matches: function(path) {
-			return this.matchPattern.test(path);
+			return this.match.test(path);
 		},
-		remove: function(url) {
-			return url.replace(this.matchUrl, '');
-		},
-		process: function(path) {
-			return path.replace(this.matchPattern, this.url);
+		process: function(path, index) {
+			var current = this.location[index];
+
+			if(current) {
+				return path.replace(this.match, current.url);
+			}
 		}
 	};
 
