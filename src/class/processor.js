@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	EVENT_POST_PROCESS, EVENT_QUEUE_ENQUEUE, NULL,
+	EVENT_QUEUE_ENQUEUE, NULL,
 	singletonUuid, singletonEvent
 */
 
@@ -32,9 +32,7 @@ var ClassProcessor = (function() {
 			if(pointer.queue.length) {
 				current = pointer.current = pointer.queue.dequeue();
 
-				current.handler.process.call(current);
-
-				singletonEvent.emit(EVENT_POST_PROCESS, current.path, current);
+				current.handler.process && current.handler.process.call(current);
 			} else {
 				pointer.current = NULL;
 			}

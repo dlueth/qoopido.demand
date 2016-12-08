@@ -1,11 +1,12 @@
 /* eslint no-unused-vars:0 */
 /* global console */
+
 (function(global, document) {
 	'use strict';
 
-	var target  = document.getElementById('target')//,
-		//content = target.textContent ? 'textContent' : 'innerText'
-		;
+	var target  = document.getElementById('target')
+		// , content = target.textContent ? 'textContent' : 'innerText'
+		, start;
 
 	function log(action, module, state, details) {
 		var row = document.createElement('tr'),
@@ -36,70 +37,7 @@
 	function definition(demand, provide, Pledge) {
 		log('demand', '/app/js/main', 'resolved', 'module');
 
-		demand.configure({
-			pattern: {
-				'/nucleus':  '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
-				'/jquery':   '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
-				'/velocity': '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js'
-			},
-			modules: {
-				'/demand/handler/legacy': {
-					'/jquery': {
-						probe: function() { return global.jQuery; }
-					},
-					'/velocity': {
-						probe:        function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); },
-						dependencies: [ 'legacy!/jquery' ]
-					}
-				}
-			}
-		});
-
-		// provide a simple inline module without dependencies
-			function definition1() {
-				log('provide', '/app/js/example1', 'resolved', 'module');
-
-				return function appJsExample1() {
-
-				};
-			}
-
-		provide('example1', definition1);
-
-		// provide an inline module with dependencies
-			function definition2(appJsExample1) {
-				log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
-
-				return function appJsExample2() {
-
-				};
-			}
-
-			provide('example2', [ 'example1' ], definition2);
-
-
-		demand('@1.0.3#60!simple')
-			.then(
-				function(appJsSimple) {
-					log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
-				},
-				function() {
-					log('demand', '/app/js/simple', 'rejected');
-				}
-			);
-
-		demand('legacy!/velocity')
-			.then(
-				function(jQuery) {
-					log('demand', '/velocity', 'resolved', 'legacy');
-				},
-				function() {
-					log('demand', '/velocity', 'rejected');
-				}
-			);
-
 		// example: configuration
-		/*
 		demand.configure({
 			pattern: {
 				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
@@ -109,6 +47,7 @@
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
 			},
 			modules: {
+				/*
 				'/demand/plugin/genie': {
 					'/app/': function(dependencies) {
 						var fragments = [],
@@ -123,14 +62,15 @@
 					'/nucleus/': function(dependencies) {
 						var fragments = [],
 							i = 0, dependency;
-						
+
 						for(; (dependency = dependencies[i]); i++) {
 							fragments.push(dependency.path.replace(/^\/nucleus\//, '') + '.js');
 						}
-						
+
 						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
 					}
 				},
+				*/
 				'/demand/plugin/lzstring': {
 					'/app/': true
 				},
@@ -158,27 +98,108 @@
 				}
 			}
 		});
-		*/
 
 		// listen on demand events
 		/*
 		demand
-			.on('cacheMiss',   function(loader) { console.log('cacheMiss', loader && loader.path || loader); })
-			.on('cacheHit',    function(loader) { console.log('cacheHit', loader && loader.path || loader); })
-			.on('cacheClear',  function(loader) { console.log('cacheExceed', loader && loader.path || loader); })
-			.on('cacheExceed', function(loader) { console.log('cacheExceed', loader && loader.path || loader); })
-			.on('preRequest',  function(loader) { console.log('preRequest', loader && loader.path || loader); })
-			.on('postRequest', function(loader) { console.log('postRequest', loader && loader.path || loader); })
-			.on('preProcess',  function(loader) { console.log('preProcess', loader && loader.path || loader); })
-			.on('postProcess', function(loader) { console.log('postProcess', loader && loader.path || loader); })
-			.on('preCache',    function(loader) { console.log('preCache', loader && loader.path || loader); })
-			.on('postCache',   function(loader) { console.log('postCache', loader && loader.path || loader); })
+			.on('cacheMiss',     function(dependency) { console.log('cacheMiss', dependency.id); })
+			.on('cacheHit',      function(dependency) { console.log('cacheHit', dependency.id); })
+			.on('cacheClear',    function(dependency) { console.log('cacheClear', dependency.id); })
+			.on('cacheExceed',   function(dependency) { console.log('cacheExceed', dependency.id); })
+		 	.on('preConfigure',  function(settings) { console.log('preConfigure', settings); })
+		 	.on('postConfigure', function(settings) { console.log('postConfigure', settings); })
+			.on('preRequest',    function(dependency) { console.log('preRequest', dependency.id); })
+			.on('postRequest',   function(dependency) { console.log('postRequest', dependency.id); })
+			.on('preProcess',    function(dependency) { console.log('preProcess', dependency.id); })
+			.on('postProcess',   function(dependency) { console.log('postProcess', dependency.id); })
 		*/
 
+		// provide a simple inline module without dependencies
+			function definition1() {
+				log('provide', '/app/js/example1', 'resolved', 'module');
+
+				return function appJsExample1() {
+
+				};
+			}
+
+			provide('example1', definition1);
+
+		// provide an inline module with dependencies
+			function definition2(appJsExample1) {
+				log('provide', '/app/js/example2', 'resolved', 'module, with dependency');
+
+				return function appJsExample2() {
+
+				};
+			}
+
+			provide('example2', [ 'example1' ], definition2);
+
+		start = window.performance.now();
+
+		Pledge.all([
+			// load CSS
+			demand('css!../css/default')
+				.then(
+					function(appCssDefault) {
+						log('demand', '/app/css/default', 'resolved', 'css');
+					},
+					function() {
+						log('demand', '/app/css/default', 'rejected');
+					}
+				),
+			// load a module without dependencies, a specific version and lifetime
+			demand('@1.0.3#60!simple')
+				.then(
+					function(appJsSimple) {
+						log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
+					},
+					function() {
+						log('demand', '/app/js/simple', 'rejected');
+					}
+				),
+			// load text (HTML in this case)
+			demand('text!../html/dummy.html')
+				.then(
+					function(appHtmlDummy) {
+						log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri');
+					},
+					function() {
+						log('demand', '/app/html/dummy', 'rejected');
+					}
+				),
+			// load JSON data with caching disabled
+			demand('-json!../json/dummy')
+				.then(
+					function(appJsonDummy) {
+						log('demand', '/app/json/dummy', 'resolved', 'json, no cache');
+					},
+					function() {
+						log('demand', '/app/json/dummy', 'rejected');
+					}
+				),
+			// load bundles with demand (see configuration above)
+			demand('bundle!/velocity+leaflet')
+				.then(
+					function(velocity, leaflet) {
+						log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency');
+					},
+					function() {
+						log('demand', '/velocity+leaflet', 'rejected');
+					}
+				)
+		])
+		.then(
+			function() {
+				console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
+			}
+		)
+		.always(function() {
+			//console.log(true);
+		});
+
 		/*
-
-
-
 		// load plugins lzstring, sri and cookie
 		demand('/demand/plugin/lzstring', '/demand/plugin/sri', '/demand/plugin/cookie')
 			// always will be called on resolved as well as rejected
@@ -186,17 +207,6 @@
 				// by returning a pledge further loading may be delayed
 				return Pledge.all(
 					[
-						// load a module without dependencies and  a specific version and lifetime
-						demand('@1.0.3#60!simple')
-							.then(
-								function(appJsSimple) {
-									log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
-								},
-								function() {
-									log('demand', '/app/js/simple', 'rejected');
-								}
-							),
-
 						// load modules via genie PHP-script
 						demand('@1.0.5!one', 'two')
 							.then(
@@ -207,39 +217,6 @@
 								function() {
 									log('demand', '/app/js/one', 'rejected');
 									log('demand', '/app/js/two', 'rejected');
-								}
-							),
-
-						// load text (HTML in this case)
-						demand('text!../html/dummy.html')
-							.then(
-								function(appHtmlDummy) {
-									log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri');
-								},
-								function() {
-									log('demand', '/app/html/dummy', 'rejected');
-								}
-							),
-
-						// load JSON data with caching disabled
-						demand('-json!../json/dummy')
-							.then(
-								function(appJsonDummy) {
-									log('demand', '/app/json/dummy', 'resolved', 'json, no cache');
-								},
-								function() {
-									log('demand', '/app/json/dummy', 'rejected');
-								}
-							),
-
-						// load CSS
-						demand('css!../css/default')
-							.then(
-								function(appCssDefault) {
-									log('demand', '/app/css/default', 'resolved', 'css');
-								},
-								function() {
-									log('demand', '/app/css/default', 'rejected');
 								}
 							)
 					]
@@ -290,5 +267,5 @@
 		return true;
 	}
 
-	provide([ 'demand', 'provide', '/demand/pledge' ], definition);
+	provide([ 'demand', 'provide', '/demand/pledge', '/demand/handler/css', '/demand/handler/json', '/demand/handler/text', '/demand/handler/legacy' ], definition);
 }(this, document));

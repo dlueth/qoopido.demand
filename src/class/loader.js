@@ -30,7 +30,7 @@ function ClassLoader(dependency) {
 
 	new ClassXhr(dependency.url).then(
 		function(response, type) {
-			if(dependency.handler.validate(type)) {
+			if(!dependency.handler.validate || dependency.handler.validate(type)) {
 				dependency.source = response;
 
 				singletonEvent.emit(EVENT_POST_REQUEST, dependency.type, dependency);

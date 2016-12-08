@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, NULL,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	arrayPrototypeSlice,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
 	functionIterate, functionMerge, functionDefer,
@@ -118,16 +118,22 @@ global.demand = (function() {
 			pointer && pointer.call(dependency);
 		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
-			var callback = functionDefer.bind(NULL, function() {
-				queue.enqueue(dependency);
+			var pointer = dependency.handler.onPreProcess,
+				enqueue = (dependency.handler.enqueue !== FALSE) ? functionDefer.bind(NULL, function() { queue.enqueue(dependency); }) : NULL;
+
+			pointer && pointer.call(dependency);
+
+			dependency.pledge.then(function() {
+				singletonEvent.emit(EVENT_POST_PROCESS, dependency.path, dependency);
 			});
 
-			if(dependency.lock) {
-				dependency.lock.then(callback);
-			} else {
-				callback();
+			if(enqueue) {
+				if(dependency.delay) {
+					dependency.delay.then(enqueue);
+				} else {
+					enqueue();
+				}
 			}
-
 		});
 
 	return demand;

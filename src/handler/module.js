@@ -20,10 +20,9 @@ var handlerModule = (function() {
 			return regexMatchType.test(type);
 		},
 		onPreRequest: function() {
-			var self = this,
-				url = self.url;
+			var url = this.url;
 
-			self.url = url.slice(-3) !== '.js' ? url + '.js' : url;
+			this.url = url.slice(-3) !== '.js' ? url + '.js' : url;
 		},
 		onPostRequest: function() {
 			var self = this,
@@ -44,14 +43,16 @@ var handlerModule = (function() {
 		process: function() {
 			var self = this,
 				script;
-				
-			script       = document.createElement('script');
-			script.async = true;
-			script.text  = self.source;
-					
-			script.setAttribute('demand-path', self.path);
-					
-			target.appendChild(script);
+
+			if(self.source) {
+				script       = document.createElement('script');
+				script.async = true;
+				script.text  = self.source;
+
+				script.setAttribute('demand-id', self.id);
+
+				target.appendChild(script);
+			}
 		}
 	};
 }());

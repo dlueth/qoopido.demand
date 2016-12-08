@@ -5,7 +5,7 @@
 	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash,
  	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure,
 	singletonUuid,
-	handlerModule
+	handlerModule, handlerBundle
 */
 
 /*eslint no-unused-vars: [2, { "vars": "local", "args": "none" }]*/
@@ -20,11 +20,12 @@
 	//###require inheritance.js // @todo check if really required
 	//=require demand.js
 	//=require provide.js
+	//=require function/hash.js
 	//=require class/queue.js
 	//=require class/processor.js
-	//=require handler/module.js
 	//###require validator/isInstanceOf.js
-	//=require function/hash.js
+	//=require handler/module.js
+	//=require handler/bundle.js
 
 	queue     = new ClassQueue();
 	processor = new ClassProcessor(queue);
@@ -34,6 +35,7 @@
 	}
 
 	assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
+	assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 	assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);

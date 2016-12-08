@@ -25,7 +25,7 @@ var singletonCache = (function(JSON) {
 	singletonEvent
 		.on(EVENT_POST_PROCESS, function(dependency) {
 			functionDefer(function() {
-				cache.set(dependency);
+				dependency.source && cache.set(dependency);
 			});
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {

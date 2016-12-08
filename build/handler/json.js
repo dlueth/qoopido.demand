@@ -2,13 +2,16 @@
 	'use strict';
 
 	function definition() {
-		return {
-			matchType: /^application\/json/,
-			onPreRequest: function() {
-				var self = this,
-					url  = self.url;
+		var regexMatchType = /^application\/json/;
 
-				self.url = url.slice(-5) !== '.json' ? url + '.json' : url;
+		return {
+			validate: function(type) {
+				return regexMatchType.test(type);
+			},
+			onPreRequest: function() {
+				var url = this.url;
+
+				this.url = url.slice(-5) !== '.json' ? url + '.json' : url;
 			},
 			process: function() {
 				var data = JSON.parse(this.source);

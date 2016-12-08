@@ -31,7 +31,7 @@
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					self.lock = demand.apply(null, dependencies);
+					self.delay = demand.apply(null, dependencies);
 				}
 
 				handlerModule.onPreRequest.call(self);
@@ -41,8 +41,8 @@
 				var self         = this,
 					boundResolve = resolve.bind(self);
 
-				if(self.lock) {
-					self.lock
+				if(self.delay) {
+					self.delay
 						.then(
 							boundResolve,
 							function() {
