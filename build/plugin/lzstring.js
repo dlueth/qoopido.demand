@@ -16,19 +16,28 @@
 			pattern                       = [ { pattern: path, weight: path.length, state: false }],
 			enabled;
 		
-		function onPostConfigure(options) {
-			if(isObject(options)) {
-				pattern.length = 0;
-				
-				iterate(options, function(key, value) {
-					pattern.push({ pattern: key, weight: key.length, state: value });
-				});
-			} else if(isTypeOf(options, 'boolean')) {
-				enabled = options;
-			}
-		}
-		
-		demand.on('postConfigure:' + path, onPostConfigure);
+		demand
+			.on('postConfigure:' + path, function(options) {
+				if(isObject(options)) {
+					pattern.length = 0;
+
+					iterate(options, function(key, value) {
+						pattern.push({ pattern: key, weight: key.length, state: value });
+					});
+				} else if(isTypeOf(options, 'boolean')) {
+					enabled = options;
+				}
+			})
+			.on('preCache', function(dependency) {
+				if(enabled || isEnabled(dependency.path)) {
+					dependency.source = compress(dependency.source);
+				}
+			})
+			.on('preProcess', function(dependency) {
+				if(dependency.deferred.pledge.cache === 'hit' && (enabled || isEnabled(dependency.path))) {
+					dependency.source = decompress(dependency.source);
+				}
+			});
 
 		function compressUTF16(uncompressed, bitsPerChar) {
 			var contextDictionary         = {},
@@ -332,18 +341,6 @@
 
 			return match ? match.state : false;
 		}
-
-		demand
-			.on('preCache', function(loader) {
-				if(enabled || isEnabled(loader.path)) {
-					loader.source = compress(loader.source);
-				}
-			})
-			.on('preProcess', function(loader) {
-				if(loader.deferred.pledge.cache === 'hit' && (enabled || isEnabled(loader.path))) {
-					loader.source = decompress(loader.source);
-				}
-			});
 
 		return {
 			compress:   compress,

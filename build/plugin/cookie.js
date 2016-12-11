@@ -2,25 +2,37 @@
 	'use strict';
 
 	function definition(path, iterate, isObject, isTypeOf) {
-		var pattern = [],
+		var past    = 'Thu, 01 Jan 1970 00:00:00 GMT',
+			future  = 'Fri, 31 Dec 9999 23:59:59 GMT',
+			pattern = [],
 			enabled;
 		
-		function onPostConfigure(options) {
-			if(isObject(options)) {
-				pattern.length = 0;
-				
-				iterate(options, function(key, value) {
-					pattern.push({ pattern: key, weight: key.length, state: value });
-				});
-			} else if(isTypeOf(options, 'boolean')) {
-				enabled = options;
-			}
-		}
-		
-		demand.on('postConfigure:' + path, onPostConfigure);
+		demand.
+			on('postConfigure:' + path, function(options) {
+				if(isObject(options)) {
+					pattern.length = 0;
+
+					iterate(options, function(key, value) {
+						pattern.push({ pattern: key, weight: key.length, state: value });
+					});
+				} else if(isTypeOf(options, 'boolean')) {
+					enabled = options;
+				}
+			})
+			.on('cacheMiss', function(dependency) {
+				setCookie(dependency.path, '', past);
+			})
+			.on('cacheClear', function(path) {
+				setCookie(path, '', past);
+			})
+			.on('postCache', function(dependency, state) {
+				setCookie(dependency.path, JSON.stringify(state), future);
+			});
 
 		function setCookie(path, value, expiration) {
-			document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
+			if(enabled || isEnabled(path)) {
+				document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
+			}
 		}
 
 		function isEnabled(path) {
@@ -34,20 +46,6 @@
 
 			return match ? match.state : false;
 		}
-
-		demand
-			.on('cacheMiss cacheClear', function(item) {
-				item = typeof item === 'string' ? item : item.path;
-
-				if(enabled || isEnabled(item)) {
-					setCookie(item, '', 'Thu, 01 Jan 1970 00:00:00 GMT');
-				}
-			})
-			.on('postCache', function(loader) {
-				if(enabled || isEnabled(loader.path)) {
-					setCookie(loader.path, JSON.stringify(loader.state), 'Fri, 31 Dec 9999 23:59:59 GMT');
-				}
-			});
 
 		return true;
 	}

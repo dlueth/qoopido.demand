@@ -102,16 +102,18 @@
 		// listen on demand events
 		/*
 		demand
-			.on('cacheMiss',     function(dependency) { console.log('cacheMiss', dependency.id); })
-			.on('cacheHit',      function(dependency) { console.log('cacheHit', dependency.id); })
-			.on('cacheClear',    function(dependency) { console.log('cacheClear', dependency.id); })
-			.on('cacheExceed',   function(dependency) { console.log('cacheExceed', dependency.id); })
-		 	.on('preConfigure',  function(settings) { console.log('preConfigure', settings); })
-		 	.on('postConfigure', function(settings) { console.log('postConfigure', settings); })
-			.on('preRequest',    function(dependency) { console.log('preRequest', dependency.id); })
-			.on('postRequest',   function(dependency) { console.log('postRequest', dependency.id); })
-			.on('preProcess',    function(dependency) { console.log('preProcess', dependency.id); })
-			.on('postProcess',   function(dependency) { console.log('postProcess', dependency.id); })
+			.on('cacheMiss',     function(dependency)        { console.log('cacheMiss', dependency.id); })
+			.on('cacheHit',      function(dependency)        { console.log('cacheHit', dependency.id); })
+			.on('cacheClear',    function(path)              { console.log('cacheClear', path); })
+			.on('cacheExceed',   function(dependency)        { console.log('cacheExceed', dependency.id); })
+		 	.on('preCache',      function(dependency, state) { console.log('preCache', settings); })
+		 	.on('postCache',     function(dependency, state) { console.log('postCache', settings); })
+		 	.on('preConfigure',  function(settings)          { console.log('preConfigure', settings); })
+		 	.on('postConfigure', function(settings)          { console.log('postConfigure', settings); })
+			.on('preRequest',    function(dependency)        { console.log('preRequest', dependency.id); })
+			.on('postRequest',   function(dependency)        { console.log('postRequest', dependency.id); })
+			.on('preProcess',    function(dependency)        { console.log('preProcess', dependency.id); })
+			.on('postProcess',   function(dependency)        { console.log('postProcess', dependency.id); })
 		*/
 
 		// provide a simple inline module without dependencies
@@ -138,66 +140,69 @@
 
 		start = window.performance.now();
 
-		Pledge.all([
-			// load CSS
-			demand('css!../css/default')
-				.then(
-					function(appCssDefault) {
-						log('demand', '/app/css/default', 'resolved', 'css');
-					},
-					function() {
-						log('demand', '/app/css/default', 'rejected');
-					}
-				),
-			// load a module without dependencies, a specific version and lifetime
-			demand('@1.0.3#60!simple')
-				.then(
-					function(appJsSimple) {
-						log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
-					},
-					function() {
-						log('demand', '/app/js/simple', 'rejected');
-					}
-				),
-			// load text (HTML in this case)
-			demand('text!../html/dummy.html')
-				.then(
-					function(appHtmlDummy) {
-						log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri');
-					},
-					function() {
-						log('demand', '/app/html/dummy', 'rejected');
-					}
-				),
-			// load JSON data with caching disabled
-			demand('-json!../json/dummy')
-				.then(
-					function(appJsonDummy) {
-						log('demand', '/app/json/dummy', 'resolved', 'json, no cache');
-					},
-					function() {
-						log('demand', '/app/json/dummy', 'rejected');
-					}
-				),
-			// load bundles with demand (see configuration above)
-			demand('bundle!/velocity+leaflet')
-				.then(
-					function(velocity, leaflet) {
-						log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency');
-					},
-					function() {
-						log('demand', '/velocity+leaflet', 'rejected');
-					}
-				)
-		])
-		.then(
-			function() {
-				console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
-			}
-		)
-		.always(function() {
-			//console.log(true);
-		});
+		demand('/demand/plugin/cookie')
+			.then(function() {
+				return Pledge.all([
+					// load CSS
+					demand('css!../css/default')
+						.then(
+							function(appCssDefault) {
+								log('demand', '/app/css/default', 'resolved', 'css');
+							},
+							function() {
+								log('demand', '/app/css/default', 'rejected');
+							}
+						),
+					// load a module without dependencies, a specific version and lifetime
+					demand('@1.0.3#60!simple')
+						.then(
+							function(appJsSimple) {
+								log('demand', '/app/js/simple', 'resolved', 'module, version 1.0.3, cache 60s, compress, sri');
+							},
+							function() {
+								log('demand', '/app/js/simple', 'rejected');
+							}
+						),
+					// load text (HTML in this case)
+					demand('text!../html/dummy.html')
+						.then(
+							function(appHtmlDummy) {
+								log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri');
+							},
+							function() {
+								log('demand', '/app/html/dummy', 'rejected');
+							}
+						),
+					// load JSON data with caching disabled
+					demand('-json!../json/dummy')
+						.then(
+							function(appJsonDummy) {
+								log('demand', '/app/json/dummy', 'resolved', 'json, no cache');
+							},
+							function() {
+								log('demand', '/app/json/dummy', 'rejected');
+							}
+						),
+					// load bundles with demand (see configuration above)
+					demand('bundle!/velocity+leaflet')
+						.then(
+							function(velocity, leaflet) {
+								log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency');
+							},
+							function() {
+								log('demand', '/velocity+leaflet', 'rejected');
+							}
+						)
+				])
+			})
+			.then(
+				function() {
+					console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
+				}
+			)
+			.always(function() {
+				//console.log(true);
+			});
 
 		/*
 		// load plugins lzstring, sri and cookie

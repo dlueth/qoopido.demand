@@ -1,6 +1,6 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, NULL, FALSE, TRUE,
+	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, NULL, FALSE, TRUE,
 	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
 	singletonEvent
 */
@@ -85,7 +85,13 @@ var singletonCache = (function(JSON) {
 		set: (function() {
 			if(supportsLocalStorage) {
 				return function set(dependency) {
+					var state;
+
 					if(cachingEnabled(dependency)) {
+						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
+
+						singletonEvent.emit(EVENT_PRE_CACHE, dependency.path, dependency, state);
+
 						functionDefer(function() {
 							var id = STORAGE_PREFIX + '[' + dependency.id + ']',
 								spaceBefore;
@@ -94,14 +100,14 @@ var singletonCache = (function(JSON) {
 								spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
 
 								localStorage.setItem(id + STORAGE_SUFFIX_VALUE, dependency.source);
-								localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify({ version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime }));
+								localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(state));
 
 								// strict equality check with "===" is required due to spaceBefore might be "0"
 								if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
 									throw new Error('QUOTA_EXCEEDED_ERR');
 								}
 
-								return TRUE;
+								singletonEvent.emit(EVENT_POST_CACHE, dependency.path, dependency, state);
 							} catch(error) {
 								singletonEvent.emit(EVENT_CACHE_EXCEED, dependency.path, dependency);
 							}
@@ -123,7 +129,7 @@ var singletonCache = (function(JSON) {
 							localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
 							localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
 
-							singletonEvent.emit(EVENT_CACHE_CLEAR, path);
+							singletonEvent.emit(EVENT_CACHE_CLEAR, path, path);
 						});
 					}
 				} else {
