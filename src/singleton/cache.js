@@ -1,11 +1,15 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, NULL, FALSE, TRUE,
+	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
+	validatorIsTypeOf, validatorIsInstanceOf,
 	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
+	ClassDependency,
 	singletonEvent
 */
 
 //=require constants.js
+//=require validator/isTypeOf.js
+//=require validator/isInstanceOf.js
 //=require function/getTimestamp.js
 //=require function/escapeRegex.js
 //=require function/iterate.js
@@ -29,7 +33,7 @@ var singletonCache = (function(JSON) {
 			});
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			cache.clear.path(dependency.id);
+			cache.clear.path(dependency);
 		});
 
 	function cachingEnabled(dependency) {
@@ -49,8 +53,8 @@ var singletonCache = (function(JSON) {
 
 	}
 
-	function emit(event, dependency) {
-		singletonEvent.emit(event, dependency.path, dependency);
+	function emit(event, dependency, state) {
+		singletonEvent.emit(event, dependency.id, dependency, state);
 	}
 
 	function Cache() {}
@@ -90,7 +94,7 @@ var singletonCache = (function(JSON) {
 					if(cachingEnabled(dependency)) {
 						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
 
-						singletonEvent.emit(EVENT_PRE_CACHE, dependency.path, dependency, state);
+						emit(EVENT_PRE_CACHE, dependency, state);
 
 						functionDefer(function() {
 							var id = STORAGE_PREFIX + '[' + dependency.id + ']',
@@ -107,9 +111,9 @@ var singletonCache = (function(JSON) {
 									throw new Error('QUOTA_EXCEEDED_ERR');
 								}
 
-								singletonEvent.emit(EVENT_POST_CACHE, dependency.path, dependency, state);
+								emit(EVENT_POST_CACHE, dependency, state);
 							} catch(error) {
-								singletonEvent.emit(EVENT_CACHE_EXCEED, dependency.path, dependency);
+								emit(EVENT_CACHE_EXCEED, dependency);
 							}
 						});
 					}
@@ -121,16 +125,23 @@ var singletonCache = (function(JSON) {
 		clear: {
 			path: (function() {
 				if(supportsLocalStorage) {
-					return function path(path) {
-						functionDefer(function() {
-							var id  = functionResolveId(path),
-								key = STORAGE_PREFIX + '[' + id + ']';
+					return function path(module) {
+						var dependency = validatorIsInstanceOf(module, ClassDependency) ? module : NULL,
+							uri        = validatorIsTypeOf(module, STRING_STRING) ? module : '',
+							key        = STORAGE_PREFIX + '[' + (dependency ? dependency.id : functionResolveId(uri)) + ']';
 
-							localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
-							localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
+						if(localStorage[key + STORAGE_SUFFIX_STATE]) {
+							if(!dependency) {
+								dependency = new ClassDependency(uri, NULL, FALSE);
+							}
 
-							singletonEvent.emit(EVENT_CACHE_CLEAR, path, path);
-						});
+							functionDefer(function() {
+								localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
+								localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
+
+								emit(EVENT_CACHE_CLEAR, dependency);
+							});
+						}
 					}
 				} else {
 					return FUNCTION_EMPTY;

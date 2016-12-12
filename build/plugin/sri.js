@@ -588,13 +588,21 @@
 	function definition(path, iterate, isObject) {
 		var settings;
 		
-		demand.on('postConfigure:' + path, onPostConfigure);
-		
-		function onPostConfigure(options) {
-			if(isObject(options)) {
-				settings = options;
-			}
-		}
+		demand
+			.on('postConfigure:' + path, function(options) {
+				if(isObject(options)) {
+					settings = options;
+				}
+			})
+			.on('postRequest', function(dependency) {
+				var options;
+
+				if(options = isEnabled(dependency.path)) {
+					if(hash(options.type, dependency.source) !== options.hash) {
+						dependency.deferred.reject('/demand/plugin/sri');
+					}
+				}
+			});
 
 		function isEnabled(path) {
 			var match;
@@ -609,18 +617,6 @@
 
 			return match || false;
 		}
-
-		demand
-			.on('postRequest', function(loader) {
-				var options;
-
-				if(options = isEnabled(loader.path)) {
-					if(hash(options.type, loader.source) !== options.hash) {
-						loader.deferred.reject('/demand/plugin/sri');
-					}
-				}
-			}
-		);
 
 		return true;
 	}

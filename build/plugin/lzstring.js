@@ -14,6 +14,7 @@
 			mathPow28                     = Math.pow(2, 8),
 			mathPow216                    = Math.pow(2, 16),
 			pattern                       = [ { pattern: path, weight: path.length, state: false }],
+			storage                       = {},
 			enabled;
 		
 		demand
@@ -28,13 +29,18 @@
 					enabled = options;
 				}
 			})
+			.on('cacheHit', function(dependency) {
+				if(enabled || isEnabled(dependency.path)) {
+					storage[dependency.id] = true;
+				}
+			})
 			.on('preCache', function(dependency) {
 				if(enabled || isEnabled(dependency.path)) {
 					dependency.source = compress(dependency.source);
 				}
 			})
 			.on('preProcess', function(dependency) {
-				if(dependency.deferred.pledge.cache === 'hit' && (enabled || isEnabled(dependency.path))) {
+				if(storage[dependency.id]) {
 					dependency.source = decompress(dependency.source);
 				}
 			});

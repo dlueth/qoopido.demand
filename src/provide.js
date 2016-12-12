@@ -20,7 +20,7 @@ global.provide = function provide() {
 
 	if(!uri && processor.current) {
 		module = processor.current;
-		uri    = processor.current.uri;
+		uri    = module.uri;
 
 		processor.process();
 	}
@@ -34,7 +34,7 @@ global.provide = function provide() {
 				.apply(module.path, dependencies)
 				.then(
 					function() { module.deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-					function() { functionLog(new ClassFailure(ERROR_PROVIDE, module.path)); }
+					function() { functionLog(new ClassFailure(ERROR_PROVIDE, module.id)); }
 				);
 		} else {
 			module.deferred.resolve(isFunction ? definition() : definition);

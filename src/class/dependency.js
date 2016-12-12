@@ -23,12 +23,10 @@
 var ClassDependency = (function() {
 	var registry = new ClassRegistry();
 
-	function ClassDependency(uri, context) {
+	function ClassDependency(uri, context, register) {
 		var self      = this,
 			parameter = uri.match(regexMatchParameter);
 
-		self.deferred = ClassPledge.defer();
-		self.pledge   = self.deferred.pledge;
 		self.path     = functionResolvePath(uri, context);
 		self.mock     = (parameter && parameter[1]) ? TRUE : FALSE;
 		self.cache    = (parameter && parameter[2]) ? parameter[1] === '+' : NULL;
@@ -37,24 +35,26 @@ var ClassDependency = (function() {
 		self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.id       = (self.mock ? MOCK_PREFIX : '' ) + self.type + '!' + self.path;
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
+		self.deferred = ClassPledge.defer();
+		self.pledge   = self.deferred.pledge;
 
-		registry.set(self.id, self);
-		
+		(register !== FALSE) && registry.set(self.id, self);
+
 		return self;
 	}
 
 	/* only for reference
 	 ClassDependency.prototype = {
-		deferred: NULL,
-		pledge:   NULL,
-		path:     NULL,
-		mock:     NULL,
+	 	path:     NULL,
+	 	mock:     NULL,
 		cache:    NULL,
 		type:     NULL,
 		version:  NULL,
 		lifetime: NULL,
-		id:       NULL,
-		uri:      NULL,
+	 	id:       NULL,
+	 	uri:      NULL,
+		deferred: NULL,
+		pledge:   NULL,
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
 	 	url:      NULL, // optional, set by Loader
@@ -104,7 +104,7 @@ var ClassDependency = (function() {
 							}
 						},
 						function() {
-							dependency.deferred.reject(new ClassFailure(ERROR_LOAD + ' (handler)', self.path));
+							dependency.deferred.reject(new ClassFailure(ERROR_LOAD + ' (handler)', self.id));
 						}
 					)
 			}

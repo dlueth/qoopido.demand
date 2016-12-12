@@ -104,7 +104,7 @@ global.demand = (function() {
 		})
 		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
 			functionDefer(function() {
-				singletonEvent.emit(EVENT_PRE_PROCESS, NULL, dependency)
+				singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency)
 			});
 		})
 		.on(EVENT_PRE_REQUEST, function(dependency) {
@@ -124,7 +124,7 @@ global.demand = (function() {
 			pointer && pointer.call(dependency);
 
 			dependency.pledge.then(function() {
-				singletonEvent.emit(EVENT_POST_PROCESS, dependency.path, dependency);
+				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
 			});
 
 			if(enqueue) {

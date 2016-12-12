@@ -20,18 +20,18 @@
 				}
 			})
 			.on('cacheMiss', function(dependency) {
-				setCookie(dependency.path, '', past);
+				setCookie(dependency, '', past);
 			})
-			.on('cacheClear', function(path) {
-				setCookie(path, '', past);
+			.on('cacheClear', function(dependency) {
+				setCookie(dependency, '', past);
 			})
 			.on('postCache', function(dependency, state) {
-				setCookie(dependency.path, JSON.stringify(state), future);
+				setCookie(dependency, JSON.stringify(state), future);
 			});
 
-		function setCookie(path, value, expiration) {
-			if(enabled || isEnabled(path)) {
-				document.cookie = 'demand[' + path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
+		function setCookie(dependency, value, expiration) {
+			if(enabled || isEnabled(dependency.path)) {
+				document.cookie = 'demand[' + dependency.id + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
 			}
 		}
 

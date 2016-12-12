@@ -34,14 +34,14 @@ var handlerBundle = (function() {
 				source   = self.source,
 				deferred = self.deferred,
 				modules  = settings[self.path],
-				match, pledges, dependency;
+				match, pledges, dependency, i = 0, uri;
 
 			while(match = regexMatchSourcemap.exec(source)) {
 				source = source.replace(match[0], '');
 			}
 
 			function reject() {
-				deferred.reject(new ClassFailure(ERROR_RESOLVE, self.path, arguments));
+				deferred.reject(new ClassFailure(ERROR_RESOLVE, self.id, arguments));
 			}
 
 			self.source = source;
@@ -49,24 +49,26 @@ var handlerBundle = (function() {
 			if(modules) {
 				pledges = [];
 
-				functionIterate(modules, function(property, value) {
-					pledges.push(ClassDependency.resolve(MOCK_PREFIX + value).pledge);
-				});
+				for(; (uri = modules[i]); i++) {
+					pledges.push(ClassDependency.resolve(MOCK_PREFIX + uri).pledge);
+				}
 
 				ClassPledge.all(pledges).then(
 					function() {
+						var i = 0, module;
+
 						pledges.length = 0;
 
 						handlerModule.process.call(self);
 
-						functionIterate(arguments, function(property, value) {
-							dependency         = new ClassDependency(modules[property]);
-							dependency.handler = value;
+						for(; (module = arguments[i]); i++) {
+							dependency         = new ClassDependency(modules[i]);
+							dependency.handler = module;
 
 							queue.enqueue(dependency);
 							processor.process();
 							pledges.push(dependency.pledge);
-						});
+						}
 
 						ClassPledge.all(pledges).then(
 							deferred.resolve,

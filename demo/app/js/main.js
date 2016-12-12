@@ -104,10 +104,10 @@
 		demand
 			.on('cacheMiss',     function(dependency)        { console.log('cacheMiss', dependency.id); })
 			.on('cacheHit',      function(dependency)        { console.log('cacheHit', dependency.id); })
-			.on('cacheClear',    function(path)              { console.log('cacheClear', path); })
+			.on('cacheClear',    function(dependency)        { console.log('cacheClear', dependency.id); })
 			.on('cacheExceed',   function(dependency)        { console.log('cacheExceed', dependency.id); })
-		 	.on('preCache',      function(dependency, state) { console.log('preCache', settings); })
-		 	.on('postCache',     function(dependency, state) { console.log('postCache', settings); })
+		 	.on('preCache',      function(dependency, state) { console.log('preCache', dependency.id, state); })
+		 	.on('postCache',     function(dependency, state) { console.log('postCache', dependency.id, state); })
 		 	.on('preConfigure',  function(settings)          { console.log('preConfigure', settings); })
 		 	.on('postConfigure', function(settings)          { console.log('postConfigure', settings); })
 			.on('preRequest',    function(dependency)        { console.log('preRequest', dependency.id); })
@@ -140,7 +140,7 @@
 
 		start = window.performance.now();
 
-		demand('/demand/plugin/cookie')
+		demand('/demand/plugin/cookie', '/demand/plugin/lzstring')
 			.then(function() {
 				return Pledge.all([
 					// load CSS
