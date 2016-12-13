@@ -33,7 +33,7 @@ var singletonCache = (function(JSON) {
 			});
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			cache.clear.path(dependency);
+			cache.clear.path(dependency.id);
 		});
 
 	function cachingEnabled(dependency) {
@@ -125,21 +125,16 @@ var singletonCache = (function(JSON) {
 		clear: {
 			path: (function() {
 				if(supportsLocalStorage) {
-					return function path(module) {
-						var dependency = validatorIsInstanceOf(module, ClassDependency) ? module : NULL,
-							uri        = validatorIsTypeOf(module, STRING_STRING) ? module : '',
-							key        = STORAGE_PREFIX + '[' + (dependency ? dependency.id : functionResolveId(uri)) + ']';
+					return function path(path) {
+						var id  = functionResolveId(path),
+							key = STORAGE_PREFIX + '[' + id + ']';
 
 						if(localStorage[key + STORAGE_SUFFIX_STATE]) {
-							if(!dependency) {
-								dependency = new ClassDependency(uri, NULL, FALSE);
-							}
-
 							functionDefer(function() {
 								localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
 								localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
 
-								emit(EVENT_CACHE_CLEAR, dependency);
+								emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
 							});
 						}
 					}

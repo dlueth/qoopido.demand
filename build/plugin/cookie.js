@@ -31,7 +31,7 @@
 
 		function setCookie(dependency, value, expiration) {
 			if(enabled || isEnabled(dependency.path)) {
-				document.cookie = 'demand[' + dependency.id + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
+				document.cookie = 'demand[' + dependency.type + '][' + dependency.path + ']=' + encodeURIComponent(value) + '; expires=' + expiration + '; path=/';
 			}
 		}
 

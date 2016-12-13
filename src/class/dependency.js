@@ -62,8 +62,12 @@ var ClassDependency = (function() {
 	};
 	*/
 
+	ClassDependency.get = function(uri, context) {
+		return registry.get(functionResolveId(uri, context));
+	};
+
 	ClassDependency.resolve = function(uri, context) {
-		var dependency = registry.get(functionResolveId(uri, context));
+		var dependency = this.get(uri, context);
 
 		if(!dependency) {
 			dependency = new ClassDependency(uri, context);
