@@ -26,6 +26,7 @@
 	//require validator/isInstanceOf.js
 	//=require handler/module.js
 	//=require handler/bundle.js
+	//###require handler/bundle/genie.js
 
 	queue     = new ClassQueue();
 	processor = new ClassProcessor(queue);

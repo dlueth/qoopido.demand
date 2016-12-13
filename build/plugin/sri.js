@@ -585,7 +585,7 @@
 		return binb2b64(intermediateH);
 	}
 
-	function definition(path, iterate, isObject) {
+	function definition(path, Failure, iterate, isObject) {
 		var settings;
 		
 		demand
@@ -599,7 +599,7 @@
 
 				if(options = isEnabled(dependency.path)) {
 					if(hash(options.type, dependency.source) !== options.hash) {
-						dependency.deferred.reject('/demand/plugin/sri');
+						dependency.deferred.reject(new Failure('error resolving (sri)', dependency.id));
 					}
 				}
 			});
@@ -621,5 +621,5 @@
 		return true;
 	}
 
-	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/failure', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
 }());

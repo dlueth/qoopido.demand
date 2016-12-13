@@ -2,6 +2,9 @@
 <html lang="en-US">
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<!-- <link rel="prefetch" href="../dist/demand.js" /> -->
+	<!-- <link rel="prefetch" href="./app/js/main.js" /> -->
+	<!-- <link rel="preconnect" href="//cdn.jsdelivr.net" /> -->
 	<!--[if lte IE 8]>
 		<script src="../dist/legacy.js"></script>
 	<![endif]-->
@@ -35,7 +38,7 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	}('../dist/demand.js', 'app/js/main', { base: './', version: '4.0.0', cache: true }));
+	}('../dist/demand.js', 'app/js/main', { base: './', version: '4.0.0', cache: false }));
 
 	// '//cdn.jsdelivr.net/qoopido.demand/3.5.7/demand.js'
 	// '../dist/demand.js'

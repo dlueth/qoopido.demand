@@ -140,7 +140,7 @@
 
 		start = window.performance.now();
 
-		demand('/demand/plugin/cookie', '/demand/plugin/lzstring')
+		demand('/demand/plugin/cookie', '/demand/plugin/lzstring', '/demand/plugin/sri')
 			.then(function() {
 				return Pledge.all([
 					// load CSS
