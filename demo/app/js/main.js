@@ -29,7 +29,15 @@
 		cell[content] = details || '';
 		row.appendChild(cell);
 
+		cell          = document.createElement('td');
+		cell[content] = duration() || 'n/a';
+		row.appendChild(cell);
+
 		target.appendChild(row);
+	}
+
+	function duration() {
+		return Math.round(window.performance.now() - start);
 	}
 
 	function definition(demand, provide, Pledge) {
@@ -226,7 +234,7 @@
 				])
 			})
 			.always(function() {
-				console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
+				//console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
 			});
 
 		return true;
