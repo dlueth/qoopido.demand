@@ -104,7 +104,7 @@ var ClassDependency = (function() {
 							if(dependency.mock) {
 								dependency.deferred.resolve(handler);
 							} else {
-								singletonCache.get(dependency);
+								singletonCache.resolve(dependency);
 							}
 						},
 						function() {

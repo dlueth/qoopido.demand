@@ -18,46 +18,49 @@
 	/* eslint-enable no-unused-vars */
 
 	//###require inheritance.js // @todo check if really required
-	//=require demand.js
-	//=require provide.js
-	//=require function/hash.js
-	//=require class/queue.js
-	//=require class/processor.js
-	//require validator/isInstanceOf.js
-	//=require handler/module.js
-	//=require handler/bundle.js
-	//###require handler/bundle/genie.js
 
-	queue     = new ClassQueue();
-	processor = new ClassProcessor(queue);
+	// include main components
+		//=require demand.js
+		//=require provide.js
 
-	function assignModule(id, factory) {
-		provide(id, function() { return factory; });
-	}
+	// process initial configuration
+		demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+		options && options.settings && demand.configure(options.settings);
 
-	assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
-	assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'resolveUrl', functionResolveUrl);
-	assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
-	//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositive);
-	assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
-	assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
-	assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
-	assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
-	assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
-	assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
-	assignModule(MODULE_PREFIX + 'queue', ClassQueue);
-	assignModule(MODULE_PREFIX + 'xhr', ClassXhr);
-	assignModule(MODULE_PREFIX + 'failure', ClassFailure);
+	// include additional components
+		//=require function/hash.js
+		//=require class/queue.js
+		//=require class/processor.js
+		//=require validator/isInstanceOf.js
+		//=require handler/module.js
+		//=require handler/bundle.js
+		//=require plugin/genie.js
 
-	demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+	// initialize
+		queue     = new ClassQueue();
+		processor = new ClassProcessor(queue);
 
-	if(options) {
-		options.settings && demand.configure(options.settings);
+		function assignModule(id, factory) {
+			provide(id, function() { return factory; });
+		}
 
-		options.main && demand(options.main);
-	}
+		assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
+		assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'resolveUrl', functionResolveUrl);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
+		//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositive);
+		assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
+		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
+		assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
+		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
+		assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
+		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
+		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
+		assignModule(MODULE_PREFIX + 'xhr', ClassXhr);
+		assignModule(MODULE_PREFIX + 'failure', ClassFailure);
+
+		options && options.main && demand(options.main);
 }(this, document, 'demand' in this && demand, setTimeout, clearTimeout));

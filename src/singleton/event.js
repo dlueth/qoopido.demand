@@ -10,7 +10,7 @@
 //=require validator/isTypeOf.js
 
 var singletonEvent = (function() {
-	var regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Configure|Request|Process|Cache)$/,
+	var regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Resolve|Configure|Request|Process|Cache)$/,
 		listener        = {};
 
 	function Event() {}

@@ -14,6 +14,7 @@
 
 global.provide = function provide() {
 	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
+		context      = this !== global ? this : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
 		definition   = dependencies ? arguments[uri ? 2 : 1] : arguments[uri ? 1 : 0],
 		module, isFunction;
@@ -26,7 +27,7 @@ global.provide = function provide() {
 	}
 	
 	if(uri) {
-		module     = module || new ClassDependency(uri);
+		module     = module || new ClassDependency(uri, context);
 		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
 
 		if(dependencies) {

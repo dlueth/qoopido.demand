@@ -5,7 +5,7 @@
 	'use strict';
 
 	var target  = document.getElementById('target')
-		// , content = target.textContent ? 'textContent' : 'innerText'
+		, content = target.textContent ? 'textContent' : 'innerText'
 		, start;
 
 	function log(action, module, state, details) {
@@ -32,8 +32,6 @@
 		target.appendChild(row);
 	}
 
-	var log = console.log;
-
 	function definition(demand, provide, Pledge) {
 		log('demand', '/app/js/main', 'resolved', 'module');
 
@@ -47,7 +45,6 @@
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
 			},
 			modules: {
-				/*
 				'/demand/plugin/genie': {
 					'/app/': function(dependencies) {
 						var fragments = [],
@@ -70,7 +67,6 @@
 						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
 					}
 				},
-				*/
 				'/demand/plugin/lzstring': {
 					'/app/': true
 				},
@@ -183,6 +179,16 @@
 								log('demand', '/app/json/dummy', 'rejected');
 							}
 						),
+					// load legacy scripts
+					demand('legacy!/jquery')
+						.then(
+							function(jQuery) {
+								log('demand', '/jquery', 'resolved', 'legacy');
+							},
+							function() {
+								log('demand', '/jquery', 'rejected');
+							}
+						),
 					// load bundles with demand (see configuration above)
 					demand('bundle!/velocity+leaflet')
 						.then(
@@ -192,82 +198,36 @@
 							function() {
 								log('demand', '/velocity+leaflet', 'rejected');
 							}
+						),
+					// load modules as genie bundle
+					demand('@1.0.5!one', 'two')
+						.then(
+							function(appJsOne, appJsTwo) {
+								log('demand', '/app/js/one', 'resolved', 'genie bundle');
+								log('demand', '/app/js/two', 'resolved', 'genie bundle');
+							},
+							function() {
+								log('demand', '/app/js/one', 'rejected');
+								log('demand', '/app/js/two', 'rejected');
+							}
+						),
+					// load demand modules as genie bundle (see configuration above)
+					demand('/nucleus/dom/element', '/nucleus/dom/collection')
+						.then(
+							function(DomElement, DomCollection) {
+								log('demand', '/nucleus/dom/element', 'resolved', 'genie bundle, with dependency');
+								log('demand', '/nucleus/dom/collection', 'resolved', 'genie bundle, with dependency');
+							},
+							function() {
+								log('demand', '/nucleus/dom/element', 'rejected');
+								log('demand', '/nucleus/dom/collection', 'rejected');
+							}
 						)
 				])
 			})
-			.then(
-				function() {
-					console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
-				}
-			)
 			.always(function() {
-				//console.log(true);
+				console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
 			});
-
-		/*
-		// load plugins lzstring, sri and cookie
-		demand('/demand/plugin/lzstring', '/demand/plugin/sri', '/demand/plugin/cookie')
-			// always will be called on resolved as well as rejected
-			.always(function highPriority() {
-				// by returning a pledge further loading may be delayed
-				return Pledge.all(
-					[
-						// load modules via genie PHP-script
-						demand('@1.0.5!one', 'two')
-							.then(
-								function(appJsOne, appJsTwo) {
-									log('demand', '/app/js/one', 'resolved', 'genie bundle');
-									log('demand', '/app/js/two', 'resolved', 'genie bundle');
-								},
-								function() {
-									log('demand', '/app/js/one', 'rejected');
-									log('demand', '/app/js/two', 'rejected');
-								}
-							)
-					]
-				)
-			})
-			.always(function lowPriority() {
-				return Pledge.all(
-					[
-						// load legacy scripts
-						demand('legacy!/jquery')
-							.then(
-								function(jQuery) {
-									log('demand', '/jQuery', 'resolved', 'legacy');
-								},
-								function() {
-									log('demand', '/jQuery', 'rejected');
-								}
-							),
-
-						// load bundles with demand (see configuration above)
-						demand('bundle!/velocity+leaflet')
-							.then(
-								function(velocity, leaflet) {
-									log('demand', '/velocity+leaflet', 'resolved', 'bundle, with dependency');
-								},
-								function() {
-									log('demand', '/velocity+leaflet', 'rejected');
-								}
-							),
-
-						// load demand modules as genie bundle (see configuration above)
-						demand('/nucleus/dom/element', '/nucleus/dom/collection')
-							.then(
-								function(DomElement, DomCollection) {
-									log('demand', '/nucleus/dom/element', 'resolved', 'genie bundle, with dependency');
-									log('demand', '/nucleus/dom/collection', 'resolved', 'genie bundle, with dependency');
-								},
-								function() {
-									log('demand', '/nucleus/dom/element', 'rejected');
-									log('demand', '/nucleus/dom/collection', 'rejected');
-								}
-							)
-					]
-				);
-			});
-			*/
 
 		return true;
 	}

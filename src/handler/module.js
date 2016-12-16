@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	EVENT_PRE_REQUEST, EVENT_POST_REQUEST,
+	EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE
 	linkElement,
 	regexMatchSourcemap, regexIsAbsoluteUri,
 	functionResolveUrl
@@ -46,7 +46,7 @@ var handlerModule = (function() {
 
 			if(self.source) {
 				script       = document.createElement('script');
-				script.async = true;
+				script.async = TRUE;
 				script.text  = self.source;
 
 				script.setAttribute('demand-id', self.id);

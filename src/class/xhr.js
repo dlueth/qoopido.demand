@@ -1,9 +1,11 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	TRUE,
 	regexMatchBaseUrl,
 	ClassPledge
 */
 
+//=require constants.js
 //=require shortcuts.js
 //=require variables.js
 //=require class/pledge.js
@@ -42,7 +44,7 @@ var ClassXhr = (function(XMLHttpRequest) {
 			}
 		};
 
-		xhr.open('GET', url, true);
+		xhr.open('GET', url, TRUE);
 		xhr.send();
 		
 		pointer = setTimeout(boundCheckState, settings.timeout);

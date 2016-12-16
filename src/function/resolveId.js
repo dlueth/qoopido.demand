@@ -8,7 +8,7 @@
 //=require function/resolvePath.js
 
 function functionResolveId(uri, context) {
-	var parameter = uri.match(regexMatchParameter)
+	var parameter = uri.match(regexMatchParameter);
 
 	return ((parameter && parameter[1]) ? 'mock:' : '') + ((parameter && parameter[3]) || settings.handler) + '!' + functionResolvePath(uri, context);
 }

@@ -33,7 +33,9 @@ var singletonCache = (function(JSON) {
 			});
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			cache.clear.path(dependency.id);
+			functionDefer(function() {
+				cache.clear.path(dependency.id);
+			});
 		});
 
 	function cachingEnabled(dependency) {
@@ -72,16 +74,25 @@ var singletonCache = (function(JSON) {
 						if(state && state.version === dependency.version && ((!state.expires && !dependency.lifetime) || state.expires > functionGetTimestamp())) {
 							dependency.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
 
-							emit(EVENT_CACHE_HIT, dependency);
-						} else {
-							emit(EVENT_CACHE_MISS, dependency);
+							return TRUE;
 						}
+					}
+				};
+			} else {
+				return FUNCTION_EMPTY;
+			}
+		}()),
+		resolve: (function() {
+			if(supportsLocalStorage) {
+				return function resolve(dependency) {
+					if(this.get(dependency)) {
+						emit(EVENT_CACHE_HIT, dependency);
 					} else {
 						emit(EVENT_CACHE_MISS, dependency);
 					}
 				};
 			} else {
-				return function get(dependency) {
+				return function resolve(dependency) {
 					emit(EVENT_CACHE_MISS, dependency);
 				};
 			}

@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
+	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	arrayPrototypeSlice,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
 	functionIterate, functionMerge, functionDefer,
@@ -29,11 +29,15 @@ global.demand = (function() {
 			context      = this !== global ? this : NULL,
 			i = 0, uri;
 
+		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
+
 		for(; (uri = dependencies[i]); i++) {
 			dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 		}
 
-		return ClassPledge.all(dependencies);
+		return ClassPledge.all(dependencies).always(function() {
+			singletonEvent.emit(EVENT_POST_RESOLVE, NULL, dependencies, context);
+		});
 	}
 
 	demand.configure = function(options) {
