@@ -3,7 +3,7 @@
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash,
- 	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure,
+ 	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
 	singletonUuid,
 	handlerModule, handlerBundle
 */
@@ -31,7 +31,7 @@
 		//=require function/hash.js
 		//=require class/queue.js
 		//=require class/processor.js
-		//=require validator/isInstanceOf.js
+		//###require validator/isInstanceOf.js
 		//=require handler/module.js
 		//=require handler/bundle.js
 		//=require plugin/genie.js
@@ -49,14 +49,14 @@
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'resolveUrl', functionResolveUrl);
-		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
-		//assignModule(MODULE_PREFIX_VALIDATOR + 'isPositive', validatorIsPositive);
+		//assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
+		assignModule(MODULE_PREFIX_FUNCTION + 'resolveUrl', functionResolveUrl);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
 		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
 		assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
 		assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
+		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
 		assignModule(MODULE_PREFIX + 'xhr', ClassXhr);

@@ -23,6 +23,23 @@ var handlerBundle = (function() {
 	var path     = MODULE_PREFIX_HANDLER + 'bundle',
 		settings = {};
 
+	demand
+		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
+			var i, dependency;
+
+			if(validatorIsObject(options)) {
+				settings = options;
+
+				functionIterate(settings, function(uri, dependencies) {
+					for(i = 0; (dependency = dependencies[i]); i++) {
+						if(validatorIsTypeOf(dependency, STRING_STRING)) {
+							dependencies[i] = functionResolveId(dependency);
+						}
+					}
+				});
+			}
+		});
+
 	function getType(dependencies) {
 		var type, i = 0, temp;
 
@@ -41,21 +58,6 @@ var handlerBundle = (function() {
 
 		return type;
 	}
-
-	demand
-		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
-			var i, dependency;
-
-			settings = validatorIsObject(options) ? options : {};
-
-			functionIterate(settings, function(uri, dependencies) {
-				for(i = 0; (dependency = dependencies[i]); i++) {
-					if(validatorIsTypeOf(dependency, STRING_STRING)) {
-						dependencies[i] = functionResolveId(dependency);
-					}
-				}
-			});
-		});
 
 	return {
 		enqueue:  FALSE,

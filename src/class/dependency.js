@@ -21,18 +21,19 @@
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
-	var registry = new ClassRegistry();
+	var registry    = new ClassRegistry(),
+		placeholder = [];
 
 	function ClassDependency(uri, context, register) {
 		var self      = this,
-			parameter = uri.match(regexMatchParameter);
+			parameter = uri.match(regexMatchParameter) || placeholder;
 
 		self.path     = functionResolvePath(uri, context);
-		self.mock     = (parameter && parameter[1]) ? TRUE : FALSE;
-		self.cache    = (parameter && parameter[2]) ? parameter[1] === '+' : NULL;
-		self.type     = (parameter && parameter[3]) || settings.handler;
-		self.version  = (parameter && parameter[4]) || settings.version;
-		self.lifetime = (parameter && parameter[5] && parameter[5] * 1000) || settings.lifetime;
+		self.mock     = parameter[1] ? TRUE : FALSE;
+		self.cache    = parameter[2] ? parameter[1] === '+' : NULL;
+		self.type     = parameter[3] || settings.handler;
+		self.version  = parameter[4] || settings.version;
+		self.lifetime = (parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.id       = (self.mock ? MOCK_PREFIX : '' ) + self.type + '!' + self.path;
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
 		self.deferred = ClassPledge.defer();

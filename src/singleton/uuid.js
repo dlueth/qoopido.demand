@@ -1,18 +1,19 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_UNDEFINED,
+	objectDefineProperty,
 	validatorIsTypeOf,
 	ClassDescriptor
 */
 
 //=require constants.js
+//=require shortcuts.js
 //=require validator/isTypeOf.js
 //=require class/Descriptor.js
 
 var singletonUuid = (function() {
-	var objectDefineProperty = Object.defineProperty,
-		regex                = new RegExp('[xy]', 'g'),
-		storage              = {};
+	var regex   = new RegExp('[xy]', 'g'),
+		storage = {};
 
 	function randomize(character) {
 		var r = Math.random() * 16 | 0;

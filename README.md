@@ -8,7 +8,7 @@
 [![David dependencies](https://img.shields.io/david/dlueth/qoopido.demand.svg?style=flat-square)](https://david-dm.org/dlueth/qoopido.demand)
 [![David dev dependencies](https://img.shields.io/david/dev/dlueth/qoopido.demand.svg?style=flat-square&label=dev%20dependencies)](https://david-dm.org/dlueth/qoopido.demand)
 
-Qoopido.demand is a modular, flexible, localStorage caching and 100% async JavaScript module loader with a promise like interface. All these features come in a tiny package of **<6kB minified and gzipped**.
+Qoopido.demand is a modular, flexible, localStorage caching and 100% async JavaScript module loader with a promise like interface. All these features come in a rather tiny package of roughly **~6kB minified and gzipped**.
 
 Qoopido.demand originated from daily use of require.js for my Qoopido.nucleus library. Caused by the nature of the library (modular/atomic modules, no concatenation or bundling) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring loads. Sadly enough there was no solution combining the advantages of both - until Qoopido.demand.
 

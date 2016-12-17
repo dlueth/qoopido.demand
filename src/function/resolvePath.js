@@ -1,22 +1,18 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	regexMatchParameter, regexMatchBaseUrl, regexIsAbsoluteUri,
+	regexMatchParameter, regexMatchBaseUrl, regexIsAbsolutePath, regexIsAbsoluteUri,
 	functionResolveUrl
 */
 
 //=require variables.js
 //=require function/resolveUrl.js
 
-var functionResolvePath = (function() {
-	var regexIsAbsolutePath = /^\//;
+function functionResolvePath(uri, context) {
+	var path = uri.replace(regexMatchParameter, '');
 
-	return function functionResolvePath(uri, context) {
-		var path = uri.replace(regexMatchParameter, '');
+	if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
+		path = '/' + functionResolveUrl(((context && functionResolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
+	}
 
-		if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
-			path = '/' + functionResolveUrl(((context && functionResolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
-		}
-
-		return path;
-	};
-}());
+	return path;
+}
