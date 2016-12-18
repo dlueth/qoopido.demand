@@ -1,8 +1,13 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype,
+	functionIterate,
 	ClassDescriptor
 */
+
+//=require shortcuts.js
+//=require function/iterate.js
+//=require class/descriptor.js
 
 (function() {
 	function extend(parent) {
@@ -20,6 +25,8 @@
 		properties.parent      = new ClassDescriptor(parent);
 
 		self.prototype = objectCreate(parent, properties);
+
+		return self;
 	}
 
 	objectDefineProperty(functionPrototype, 'extends', new ClassDescriptor(extend));

@@ -1,27 +1,23 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	singletonUuid
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	AbstractUuid
 */
 
-//=require singleton/uuid.js
+//=require abstract/uuid.js
 
-var ClassRegistry = (function() {
-	var storage = {};
+function ClassRegistry() {
+	this.parent.constructor.call(this);
 
-	function ClassRegistry() {
-		var self = this;
+	storage[this.uuid] = {};
+}
 
-		storage[singletonUuid.set(self)] = {};
+ClassRegistry.prototype = {
+	get: function(key) {
+		return key ? storage[this.uuid][key] : storage[this.uuid];
+	},
+	set: function(key, value) {
+		storage[this.uuid][key] = value;
 	}
+};
 
-	ClassRegistry.prototype = {
-		get: function(key) {
-			return key ? storage[this.uuid][key] : storage[this.uuid];
-		},
-		set: function(key, value) {
-			storage[this.uuid][key] = value;
-		}
-	};
-
-	return ClassRegistry;
-}());
+ClassRegistry.extends(AbstractUuid);

@@ -1,6 +1,6 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	MODULE_PREFIX_PLUGIN, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_PRE_RESOLVE, STRING_STRING, ERROR_RESOLVE, FALSE,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	MODULE_PREFIX_PLUGIN, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_PRE_RESOLVE, STRING_STRING, ERROR_RESOLVE, FALSE, TRUE,
 	regexMatchInternal,
 	validatorIsObject, validatorIsTypeOf,
 	functionIterate, functionHash,
@@ -18,7 +18,7 @@
 //=require class/failure.js
 //=require singleton/cache.js
 
-(function() {
+var pluginGenie = (function() {
 	var path    = MODULE_PREFIX_PLUGIN + 'genie',
 		pattern = [];
 
@@ -110,4 +110,6 @@
 				}
 			});
 		});
+
+	return TRUE;
 }());

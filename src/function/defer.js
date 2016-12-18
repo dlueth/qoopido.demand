@@ -5,14 +5,14 @@
  */
 
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	NULL, TRUE, FALSE,
-	singletonUuid
+	functionUuid
 */
 
 //=require constants.js
 //=require shortcuts.js
-//=require singleton/uuid.js
+//=require function/uuid.js
 
 /**
  * defer
@@ -38,8 +38,6 @@ var functionDefer = (function() {
 
 	if(!hasSetImmediate && 'postMessage' in global && !('importScripts' in global) && 'addEventListener' in global) {
 		return (function() {
-			var storage = {};
-
 			function onMessage(event) {
 				if(event.source === global && event.data && storage[event.data]) {
 					storage[event.data]();
@@ -51,7 +49,7 @@ var functionDefer = (function() {
 			global.addEventListener('message', onMessage, FALSE);
 
 			return function functionDefer(fn) {
-				var uuid = singletonUuid.generate();
+				var uuid = functionUuid();
 
 				storage[uuid] = fn;
 

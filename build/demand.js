@@ -1,11 +1,11 @@
 /* global
- global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_FUNCTION, TRUE,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
-	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash,
+	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
  	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
-	singletonUuid,
-	handlerModule, handlerBundle
+	handlerModule, handlerBundle,
+ 	pluginGenie
 */
 
 /*eslint no-unused-vars: [2, { "vars": "local", "args": "none" }]*/
@@ -14,10 +14,12 @@
 
 	/* eslint-disable no-unused-vars */
 	var settings = { cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
+		storage  = {},
 		queue, processor;
 	/* eslint-enable no-unused-vars */
 
-	//###require inheritance.js // @todo check if really required
+	// include inheritance
+		//=require inheritance.js
 
 	// include main components
 		//=require demand.js
@@ -31,7 +33,6 @@
 		//=require function/hash.js
 		//=require class/queue.js
 		//=require class/processor.js
-		//###require validator/isInstanceOf.js
 		//=require handler/module.js
 		//=require handler/bundle.js
 		//=require plugin/genie.js
@@ -46,16 +47,16 @@
 
 		assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
 		assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
+		assignModule(MODULE_PREFIX_PLUGIN + 'genie', pluginGenie);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
-		//assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
 		assignModule(MODULE_PREFIX_FUNCTION + 'resolveUrl', functionResolveUrl);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
 		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
 		assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
-		assignModule(MODULE_PREFIX + 'uuid', singletonUuid);
+		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);

@@ -1,15 +1,16 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
  	FUNCTION_EMPTY, NULL,
 	arrayPrototypeSlice, arrayPrototypeConcat,
-	functionDefer,
-	singletonUuid
+	functionDefer, functionUuid,
+	AbstractUuid
 */
 
 //=require constants.js
 //=require shortcuts.js
 //=require function/defer.js
-//=require singleton/uuid.js
+//=require function/uuid.js
+//=require abstract/uuid.js
 
 var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
@@ -74,17 +75,14 @@ var ClassPledge = (function() {
 	}
 
 	function ClassPledge(executor) {
-		var self = this;
+		var self = this.parent.constructor.call(this);
 
-		storage[singletonUuid.set(self)] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
+		storage[self.uuid] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
 
 		executor(resolve.bind(self), reject.bind(self));
 	}
 
 	ClassPledge.prototype = {
-		/* only for reference
-		 uuid: NULL
-		 */
 		'catch': function(listener) {
 			return this.then(FUNCTION_EMPTY, listener);
 		},
@@ -128,7 +126,7 @@ var ClassPledge = (function() {
 
 	ClassPledge.all = function(pledges) {
 		var deferred   = ClassPledge.defer(),
-			properties = (storage[singletonUuid.generate()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
+			properties = (storage[functionUuid()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
 			i = 0, pledge;
 
 		for(; pledge = pledges[i]; i++) {
@@ -149,5 +147,5 @@ var ClassPledge = (function() {
 		return deferred.pledge;
 	};
 
-	return ClassPledge;
+	return ClassPledge.extends(AbstractUuid);
 }());
