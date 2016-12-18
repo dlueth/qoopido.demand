@@ -8,35 +8,34 @@
 [![David dependencies](https://img.shields.io/david/dlueth/qoopido.demand.svg?style=flat-square)](https://david-dm.org/dlueth/qoopido.demand)
 [![David dev dependencies](https://img.shields.io/david/dev/dlueth/qoopido.demand.svg?style=flat-square&label=dev%20dependencies)](https://david-dm.org/dlueth/qoopido.demand)
 
-Qoopido.demand is a modular, flexible, localStorage caching and 100% async JavaScript module loader with a promise like interface. All these features come in a rather tiny package of roughly **~6kB minified and gzipped**.
+Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of roughly **~6kB minified and gzipped**.
 
-Qoopido.demand originated from daily use of require.js for my Qoopido.nucleus library. Caused by the nature of the library (modular/atomic modules, no concatenation or bundling) I have been having an eye on basket.js as well as it is able to reduce the number of requests on recurring loads. Sadly enough there was no solution combining the advantages of both - until Qoopido.demand.
+Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled. 
 
 You will find a benchmark on the official [site](http://demand.qoopido.com) and some more demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/master/demo/index.html). Just open your developer console and remember to clear your localStorage :)
 
 ## Key features in detail
 - promise like interface (no native promise support required)
-- loaded modules can be cached in localStorage for blazingly fast performance
-- cache will be validated against version number, modules URL and/or an expiration timeout
+- localStorage caching for blazingly fast performance
+- automatic cache invalidation by version or lifetime
 - per module/path/subpath setting of cache parameters
-- relative and absolute module path resolution supported
-- support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), CSS and JSON included
-- optional support for auto-bundles included
+- relative and absolute module path resolution
+- fallback URLs possible by default
+- support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), text, CSS and JSON included
+- optional support for auto-bundles via ```genie``` included
 - plugins for cookie support, lzstring compression and SRI included
 - support for custom handlers & plugins built in
-- support for "probes", similar to require.js "shims", yet more flexible
-- support for "patterns",mostly equivalent to require.js "paths"
 
 
 ## Compatibility
-Qoopido.demand is officially developed for Chrome, Firefox, Safari, Opera and IE8+.
+Qoopido.demand is developed for Chrome, Firefox, Safari, Opera and IE9+.
 
-To support IE8 a standalone script is included in the distribution. It can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
+To additionally support IE8 a standalone script is included in the distribution. It can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
 
-I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs in combination with VirtualBox are being used.
+I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs via VirtualBox.
 
 ## Requirements
-Due to the fact that modules are being loaded via XHR/XDR a remote server has to be CORS enabled and you should generally not request modules over a different protocol. Rest assured though that most of the usual CDNs have CORS enabled by default.
+Due to modules getting loaded via XHR/XDR a remote server has to have CORS enabled and you should generally not load modules across protocols. Rest assured though that most of the usual CDNs have CORS enabled by default.
 
 ## External dependencies
 None!
@@ -45,32 +44,14 @@ None!
 Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the moment.
 
 ## Loading demand
-Use the following code snippet in a standalone script tag before the closing body tag to include demand:
-
-```javascript
-(function(url, main, settings) {
-	(function(window, document, type, target, script){
-		target = document.getElementsByTagName(type)[0];
-		script = document.createElement(type);
-
-		window.demand = { url: url, main: main, settings: settings };
-
-		script.async = 1;
-		script.src   = url;
-
-		target.parentNode.insertBefore(script, target);
-	}(window, document, 'script'))
-}('/src/demand.js', 'app/main', { base: '/demo' }));
-```
-
-You may as well use the uglified version:
+Use the following minified code snippet in a standalone script tag before the closing body tag to include demand:
 
 ```javascript
 !function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
 ("/src/demand.js","app/main",{base:"/demo"});
 ```
 
-The above snippet is very similar to the one Google Analytics utilizes. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand. The path to the main module will be relative to base if it is relative itself.
+The snippet is very similar to Google Analytics. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration settings for demand.
 
 ## Configuration options
 The last parameter of the above code snippet is a configuration object. It just shows the properties you will most frequently set. There are some more, less frequently used, options that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
