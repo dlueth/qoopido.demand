@@ -8,7 +8,6 @@
 //=require constants.js
 //=require validator/isTypeOf.js
 //=require validator/isArray.js
-//=require function/log.js
 //=require class/dependency.js
 //=require class/failure.js
 
@@ -35,7 +34,7 @@ global.provide = function provide() {
 				.apply(module.path, dependencies)
 				.then(
 					function() { module.deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-					function() { functionLog(new ClassFailure(ERROR_PROVIDE, module.id)); }
+					function() { module.deferred.reject(new ClassFailure(ERROR_PROVIDE, module.id)); }
 				);
 		} else {
 			module.deferred.resolve(isFunction ? definition() : definition);

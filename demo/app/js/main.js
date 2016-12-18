@@ -6,7 +6,8 @@
 
 	var target  = document.getElementById('target')
 		, content = target.textContent ? 'textContent' : 'innerText'
-		, start;
+		, start
+		, origin;
 
 	function log(action, module, state, details) {
 		var duration = getDuration(),
@@ -145,7 +146,7 @@
 
 			provide('example2', [ 'example1' ], definition2);
 
-		start = window.performance.now();
+		start = origin = window.performance.now();
 
 		demand('/demand/plugin/cookie', '/demand/plugin/lzstring', '/demand/plugin/sri')
 			.then(function() {
@@ -237,7 +238,7 @@
 				])
 			})
 			.always(function() {
-				//console.info('duration: ' + Math.round(window.performance.now() - start) + 'ms');
+				console.info('total: ' + Math.round(window.performance.now() - origin) + 'ms');
 			});
 
 		return true;
