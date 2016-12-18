@@ -111,7 +111,6 @@ var handlerBundle = (function() {
 			} else {
 				reject();
 			}
-
 		}
 	};
 }());

@@ -9,7 +9,8 @@
 		, start;
 
 	function log(action, module, state, details) {
-		var row = document.createElement('tr'),
+		var duration = getDuration(),
+			row      = document.createElement('tr'),
 			cell;
 
 		cell          = document.createElement('td');
@@ -30,13 +31,15 @@
 		row.appendChild(cell);
 
 		cell          = document.createElement('td');
-		cell[content] = duration() || 'n/a';
+		cell[content] = isNaN(duration) ? 'n/a' : duration;
 		row.appendChild(cell);
 
 		target.appendChild(row);
+
+		start = window.performance.now();
 	}
 
-	function duration() {
+	function getDuration() {
 		return Math.round(window.performance.now() - start);
 	}
 
