@@ -27,9 +27,11 @@ var singletonCache = (function(JSON) {
 
 	singletonEvent
 		.on(EVENT_POST_PROCESS, function(dependency) {
-			functionDefer(function() {
-				dependency.source && cache.set(dependency);
-			});
+			if(dependency.source) {
+				functionDefer(function() {
+					cache.set(dependency);
+				});
+			}
 		})
 		.on(EVENT_CACHE_MISS, function(dependency) {
 			functionDefer(function() {
@@ -105,33 +107,29 @@ var singletonCache = (function(JSON) {
 		set: (function() {
 			if(supportsLocalStorage) {
 				return function set(dependency) {
-					var state;
+					var state, id, spaceBefore;
 
 					if(cachingEnabled(dependency)) {
 						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
+						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
 						emit(EVENT_PRE_CACHE, dependency, state);
+						
+						try {
+							spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
 
-						functionDefer(function() {
-							var id = STORAGE_PREFIX + '[' + dependency.id + ']',
-								spaceBefore;
+							localStorage.setItem(id + STORAGE_SUFFIX_VALUE, dependency.source);
+							localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(state));
 
-							try {
-								spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
-
-								localStorage.setItem(id + STORAGE_SUFFIX_VALUE, dependency.source);
-								localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(state));
-
-								// strict equality check with "===" is required due to spaceBefore might be "0"
-								if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-									throw new Error('QUOTA_EXCEEDED_ERR');
-								}
-
-								emit(EVENT_POST_CACHE, dependency, state);
-							} catch(error) {
-								emit(EVENT_CACHE_EXCEED, dependency);
+							// strict equality check with "===" is required due to spaceBefore might be "0"
+							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
+								throw new Error('QUOTA_EXCEEDED_ERR');
 							}
-						});
+
+							emit(EVENT_POST_CACHE, dependency, state);
+						} catch(error) {
+							emit(EVENT_CACHE_EXCEED, dependency);
+						}
 					}
 				};
 			} else {
@@ -146,12 +144,10 @@ var singletonCache = (function(JSON) {
 							key = STORAGE_PREFIX + '[' + id + ']';
 
 						if(localStorage[key + STORAGE_SUFFIX_STATE]) {
-							functionDefer(function() {
-								localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
-								localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
+							localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
+							localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
 
-								emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
-							});
+							emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
 						}
 					}
 				} else {

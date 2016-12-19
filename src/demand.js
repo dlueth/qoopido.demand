@@ -23,8 +23,6 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-// @todo general: check functionDefer usage
-
 global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
@@ -111,14 +109,10 @@ global.demand = (function() {
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			functionDefer(function() {
-				new ClassLoader(dependency);
-			});
+			new ClassLoader(dependency);
 		})
 		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
-			functionDefer(function() {
-				singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency)
-			});
+			singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency)
 		})
 		.on(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
@@ -132,7 +126,7 @@ global.demand = (function() {
 		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
 			var pointer = dependency.handler.onPreProcess,
-				enqueue = (dependency.handler.enqueue !== FALSE) ? functionDefer.bind(NULL, function() { queue.enqueue(dependency); }) : NULL;
+				enqueue = (dependency.handler.enqueue !== FALSE) ? function() { queue.enqueue(dependency); } : NULL;
 
 			pointer && pointer.call(dependency);
 
