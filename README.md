@@ -30,9 +30,9 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 ## Compatibility
 Qoopido.demand is developed for Chrome, Firefox, Safari, Opera and IE9+.
 
-To additionally support IE8 a standalone script is included in the distribution. It can be loaded by including a script tag pointing to ```legacy.js``` in the head of your document. The addon contains polyfills for ```Function.prototype.bind``` as well as ```Object.keys```.
+Fallback support for IE8 has been removed with Qoopido.demand 4.0.0 due to the lack of justifiable polyfills for parts of the inheritance pattern.
 
-I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. To test IE8, 9, 10, 11 as well as Edge the official Microsoft VMs via VirtualBox.
+I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. IE9, 10, 11 as well as Edge are testet on the official Microsoft VMs via VirtualBox.
 
 ## Requirements
 Due to modules getting loaded via XHR/XDR a remote server has to have CORS enabled and you should generally not load modules across protocols. Rest assured though that most of the usual CDNs have CORS enabled by default.
