@@ -1,25 +1,25 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype,
-	functionIterate,
 	ClassDescriptor
 */
 
 //=require shortcuts.js
-//=require function/iterate.js
 //=require class/descriptor.js
 
 (function() {
 	function extend(parent) {
 		var self       = this,
 			prototype  = self.prototype,
-			properties = {};
+			properties = {},
+			names      = objectGetOwnPropertyNames(prototype),
+			i = 0, property;
 
 		parent = parent.prototype || parent;
 
-		objectGetOwnPropertyNames(prototype).forEach(function(property) {
+		for(; (property = names[i]); i++) {
 			properties[property] = objectGetOwnPropertyDescriptor(prototype, property);
-		});
+		}
 
 		properties.constructor = new ClassDescriptor(self);
 		properties.parent      = new ClassDescriptor(parent);
