@@ -8,6 +8,7 @@
 //=require constants.js
 //=require validator/isTypeOf.js
 //=require validator/isArray.js
+//=require function/log.js
 //=require class/dependency.js
 //=require class/failure.js
 
@@ -34,13 +35,12 @@ global.provide = function provide() {
 				.apply(module.path, dependencies)
 				.then(
 					function() { module.deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-					function() { module.deferred.reject(new ClassFailure(ERROR_PROVIDE, module.id)); }
+					function() { module.deferred.reject(functionLog(new ClassFailure(ERROR_PROVIDE, module.id, arguments))); }
 				);
 		} else {
 			module.deferred.resolve(isFunction ? definition() : definition);
 		}
-
 	} else {
-		throw new ClassFailure(ERROR_PROVIDE_ANONYMOUS);
+		functionLog(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));
 	}
 };
