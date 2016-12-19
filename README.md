@@ -93,7 +93,7 @@ The last parameter of the above code snippet is a configuration object. It just 
 				
 	// optional
 	pattern: {
-		'/nucleus':   '[path/url to Qoopido.nucleus]',
+		'/nucleus':   ['[path/url to Qoopido.nucleus]', '[fallback path/url to Qoopido.nucleus]'],
 		'/app':       '[path/url to your modules]',
 		// just an example, loading jQuery + bundle 
 		// will not work due to the nature of jQuery
