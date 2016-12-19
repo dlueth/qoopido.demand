@@ -39,6 +39,7 @@ global.provide = function provide() {
 		} else {
 			module.deferred.resolve(isFunction ? definition() : definition);
 		}
+
 	} else {
 		throw new ClassFailure(ERROR_PROVIDE_ANONYMOUS);
 	}
