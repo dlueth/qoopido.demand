@@ -84,8 +84,6 @@ var pluginGenie = (function() {
 					dependency = new ClassDependency(dependency, context, FALSE);
 
 					if(dependency.type === 'module' && (pattern = matchPattern(dependency.path)) && !singletonCache.get(dependency)) {
-						dependency.index = i;
-
 						(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push(dependency);
 					}
 				}
@@ -98,7 +96,7 @@ var pluginGenie = (function() {
 					value.id = path + '/' + functionHash(JSON.stringify(value.matches));
 
 					for(i = 0; (dependency = matches[i]); i++) {
-						!ClassDependency.get(dependency.uri) && new ClassDependency(dependency.uri);
+						matches[i] = new ClassDependency(dependency.uri);
 					}
 
 					demand.configure(generateConfiguration(value));

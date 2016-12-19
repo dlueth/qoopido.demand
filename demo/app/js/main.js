@@ -147,7 +147,7 @@
 			provide('example2', [ 'example1' ], definition2);
 
 		start = origin = window.performance.now();
-
+		
 		demand('/demand/plugin/cookie', '/demand/plugin/lzstring', '/demand/plugin/sri')
 			.then(function() {
 				return Pledge.all([
@@ -240,7 +240,7 @@
 			.always(function() {
 				console.info('total: ' + Math.round(window.performance.now() - origin) + 'ms');
 			});
-
+		
 		return true;
 	}
 

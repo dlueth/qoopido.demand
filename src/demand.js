@@ -23,21 +23,27 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-// @todo check functionDefer usage
+// @todo general: check functionDefer usage
 
 global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,
-			i = 0, uri;
+			i = 0, uri, result;
 
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
 
 		for(; (uri = dependencies[i]); i++) {
 			dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 		}
-
-		return ClassPledge.all(dependencies).always(function() {
+		
+		if(dependencies.length > 1) {
+			result = ClassPledge.all(dependencies);
+		} else {
+			result = dependencies[0];
+		}
+		
+		return result.always(function() {
 			singletonEvent.emit(EVENT_POST_RESOLVE, NULL, dependencies, context);
 		});
 	}
