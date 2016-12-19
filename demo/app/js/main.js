@@ -150,10 +150,6 @@
 
 		demand('/demand/plugin/cookie', '/demand/plugin/lzstring', '/demand/plugin/sri')
 			.then(function() {
-				provide(function() {
-					//gnarf
-				});
-
 				return Pledge.all([
 					// load CSS
 					demand('css!../css/default')
