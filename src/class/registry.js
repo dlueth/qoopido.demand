@@ -9,6 +9,8 @@ function ClassRegistry() {
 	this.parent.constructor.call(this);
 
 	storage[this.uuid] = {};
+
+	global.storage = storage[this.uuid];
 }
 
 ClassRegistry.prototype = {
@@ -17,6 +19,9 @@ ClassRegistry.prototype = {
 	},
 	set: function(key, value) {
 		storage[this.uuid][key] = value;
+	},
+	remove: function(key) {
+		delete storage[this.uuid][key];
 	}
 };
 

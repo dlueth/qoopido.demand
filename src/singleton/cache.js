@@ -58,7 +58,9 @@ var singletonCache = (function(JSON) {
 		singletonEvent.emit(event, dependency.id, dependency, state);
 	}
 
-	function Cache() {}
+	function Cache() {
+		functionDefer(this.clear.expired);
+	}
 
 	Cache.prototype = {
 		get: (function() {
@@ -84,11 +86,15 @@ var singletonCache = (function(JSON) {
 		resolve: (function() {
 			if(supportsLocalStorage) {
 				return function resolve(dependency) {
-					if(this.get(dependency)) {
-						emit(EVENT_CACHE_HIT, dependency);
-					} else {
-						emit(EVENT_CACHE_MISS, dependency);
-					}
+					var self = this;
+
+					functionDefer(function() {
+						if(self.get(dependency)) {
+							emit(EVENT_CACHE_HIT, dependency);
+						} else {
+							emit(EVENT_CACHE_MISS, dependency);
+						}
+					});
 				};
 			} else {
 				return function resolve(dependency) {

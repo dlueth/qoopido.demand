@@ -1049,7 +1049,7 @@
 		
 		demand.remove = function(path) {
 			if(registry[path]) {
-				!!registry[path].cache && storage.clean.path(path);
+				!!registry[path].cache && storage.clear.path(path);
 				
 				delete registry[path];
 				delete mocks[path];

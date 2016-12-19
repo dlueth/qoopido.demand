@@ -83,7 +83,7 @@ var pluginGenie = (function() {
 				if(validatorIsTypeOf(dependency, STRING_STRING) && !regexMatchInternal.test(dependency) && !ClassDependency.get(dependency, context)) {
 					dependency = new ClassDependency(dependency, context, FALSE);
 
-					if(dependency.type === 'module' && !singletonCache.get(dependency) && (pattern = matchPattern(dependency.path))) {
+					if(dependency.type === 'module' && (pattern = matchPattern(dependency.path)) && !singletonCache.get(dependency)) {
 						dependency.index = i;
 
 						(bundles[pattern.prefix] || (bundles[pattern.prefix] = { fn: pattern.fn, matches: [] })).matches.push(dependency);

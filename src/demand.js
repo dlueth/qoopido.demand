@@ -23,6 +23,8 @@
 //=require class/pattern.js
 //=require class/loader.js
 
+// @todo check functionDefer usage
+
 global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
@@ -96,9 +98,10 @@ global.demand = (function() {
 		return demand;
 	};
 
-	demand.on    = singletonEvent.on.bind(demand);
-	demand.list  = ClassDependency.list;
-	demand.clear = singletonCache.clear;
+	demand.on     = singletonEvent.on.bind(demand);
+	demand.remove = ClassDependency.remove;
+	demand.list   = ClassDependency.list;
+	demand.clear  = singletonCache.clear;
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {

@@ -118,6 +118,14 @@ var ClassDependency = (function() {
 		return dependency;
 	};
 
+	ClassDependency.remove = function(uri, context) {
+		var id = functionResolveId(uri, context);
+
+		singletonCache.clear.path(id);
+		registry.remove(id);
+		registry.remove(MOCK_PREFIX + id);
+	};
+
 	ClassDependency.list = {
 		all: function() {
 			return Object.keys(registry.get());
