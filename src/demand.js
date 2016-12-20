@@ -109,10 +109,14 @@ global.demand = (function() {
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			new ClassLoader(dependency);
+			functionDefer(function() {
+				new ClassLoader(dependency);
+			});
 		})
 		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
-			singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency)
+			functionDefer(function() {
+				singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency);
+			});
 		})
 		.on(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
@@ -126,7 +130,7 @@ global.demand = (function() {
 		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
 			var pointer = dependency.handler.onPreProcess,
-				enqueue = (dependency.handler.enqueue !== FALSE) ? function() { queue.enqueue(dependency); } : NULL;
+				enqueue = (dependency.handler.enqueue !== FALSE) ? functionDefer.bind(NULL, function() { queue.enqueue(dependency); }) : NULL;
 
 			pointer && pointer.call(dependency);
 

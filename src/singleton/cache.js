@@ -1,6 +1,6 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
+	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
 	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
 	ClassDependency,
@@ -23,11 +23,17 @@ var singletonCache = (function(JSON) {
 		regexMatchState        = new RegExp('^' + functionEscapeRegex(STORAGE_PREFIX) + '\\[(.+?)\\]' + functionEscapeRegex(STORAGE_SUFFIX_STATE) + '$'),
 		supportsLocalStorage   = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return FALSE; } }()),
 		supportsRemainingSpace = supportsLocalStorage && 'remainingSpace' in localStorage,
+		storage                = {},
 		cache;
 
 	singletonEvent
+		.on(EVENT_POST_REQUEST, function(dependency) {
+			if(dependency.source && cachingEnabled(dependency)) {
+				storage[dependency.id] = TRUE;
+			}
+		})
 		.on(EVENT_POST_PROCESS, function(dependency) {
-			if(dependency.source) {
+			if(storage[dependency.id]) {
 				functionDefer(function() {
 					cache.set(dependency);
 				});
@@ -61,7 +67,7 @@ var singletonCache = (function(JSON) {
 	}
 
 	function Cache() {
-		functionDefer(this.clear.expired);
+		functionDefer(this.clear.expired, this);
 	}
 
 	Cache.prototype = {

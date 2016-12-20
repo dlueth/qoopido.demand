@@ -17,8 +17,6 @@ var ClassPledge = (function() {
 		PLEDGE_RESOLVED = 'resolved',
 		PLEDGE_REJECTED = 'rejected',
 		storage         = {};
-	
-	global.pledges = 0;
 
 	function resolve() {
 		storage[this.uuid].handle(PLEDGE_RESOLVED, arguments);
@@ -82,8 +80,6 @@ var ClassPledge = (function() {
 		storage[self.uuid] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
 
 		executor(resolve.bind(self), reject.bind(self));
-		
-		global.pledges++;
 	}
 
 	ClassPledge.prototype = {
