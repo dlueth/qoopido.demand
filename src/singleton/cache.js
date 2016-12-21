@@ -28,7 +28,7 @@ var singletonCache = (function(JSON) {
 
 	singletonEvent
 		.on(EVENT_POST_REQUEST, function(dependency) {
-			if(dependency.source && cachingEnabled(dependency)) {
+			if(dependency.source && enabled(dependency)) {
 				storage[dependency.id] = TRUE;
 			}
 		})
@@ -45,7 +45,7 @@ var singletonCache = (function(JSON) {
 			});
 		});
 
-	function cachingEnabled(dependency) {
+	function enabled(dependency) {
 		var match;
 
 		if(dependency.cache !== NULL) {
@@ -67,7 +67,7 @@ var singletonCache = (function(JSON) {
 	}
 
 	function Cache() {
-		functionDefer(this.clear.expired, this);
+		functionDefer(this.clear.expired.bind(this.clear));
 	}
 
 	Cache.prototype = {
@@ -76,7 +76,7 @@ var singletonCache = (function(JSON) {
 				return function get(dependency) {
 					var id, state;
 
-					if(cachingEnabled(dependency)) {
+					if(enabled(dependency)) {
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 						state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
 
@@ -95,14 +95,12 @@ var singletonCache = (function(JSON) {
 			if(supportsLocalStorage) {
 				return function resolve(dependency) {
 					var self = this;
-
-					functionDefer(function() {
-						if(self.get(dependency)) {
-							emit(EVENT_CACHE_HIT, dependency);
-						} else {
-							emit(EVENT_CACHE_MISS, dependency);
-						}
-					});
+					
+					if(self.get(dependency)) {
+						emit(EVENT_CACHE_HIT, dependency);
+					} else {
+						emit(EVENT_CACHE_MISS, dependency);
+					}
 				};
 			} else {
 				return function resolve(dependency) {
@@ -115,7 +113,7 @@ var singletonCache = (function(JSON) {
 				return function set(dependency) {
 					var state, id, spaceBefore;
 
-					if(cachingEnabled(dependency)) {
+					if(enabled(dependency)) {
 						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
@@ -178,7 +176,8 @@ var singletonCache = (function(JSON) {
 			expired: (function() {
 				if(supportsLocalStorage) {
 					return function expired() {
-						var match, state;
+						var self = this,
+							match, state;
 
 						functionIterate(localStorage, function(property) {
 							match = property.match(regexMatchState);
@@ -187,7 +186,7 @@ var singletonCache = (function(JSON) {
 								state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
 
 								if(state && state.expires > 0 && state.expires <= functionGetTimestamp()) {
-									this.path(match[1]);
+									self.path(match[1]);
 								}
 							}
 						}, this);

@@ -109,9 +109,7 @@ global.demand = (function() {
 
 	demand
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			functionDefer(function() {
-				new ClassLoader(dependency);
-			});
+			new ClassLoader(dependency);
 		})
 		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
 			functionDefer(function() {
@@ -120,31 +118,33 @@ global.demand = (function() {
 		})
 		.on(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
-
+	
 			pointer && pointer.call(dependency);
 		})
 		.on(EVENT_POST_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPostRequest;
-
+	
 			pointer && pointer.call(dependency);
 		})
 		.on(EVENT_PRE_PROCESS, function(dependency) {
 			var pointer = dependency.handler.onPreProcess,
 				enqueue = (dependency.handler.enqueue !== FALSE) ? functionDefer.bind(NULL, function() { queue.enqueue(dependency); }) : NULL;
-
+			
 			pointer && pointer.call(dependency);
-
-			dependency.pledge.then(function() {
-				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
-			});
-
-			if(enqueue) {
-				if(dependency.delay) {
-					dependency.delay.then(enqueue);
-				} else {
-					enqueue();
+			
+			functionDefer(function() {
+				dependency.pledge.then(function() {
+					singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
+				});
+				
+				if(enqueue) {
+					if(dependency.delay) {
+						dependency.delay.then(enqueue);
+					} else {
+						enqueue();
+					}
 				}
-			}
+			});
 		});
 
 	return demand;
