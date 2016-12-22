@@ -132,7 +132,7 @@ global.demand = (function() {
 			
 			pointer && pointer.call(dependency);
 			
-			functionDefer(function() {
+			//functionDefer(function() {
 				dependency.pledge.then(function() {
 					singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
 				});
@@ -144,7 +144,7 @@ global.demand = (function() {
 						enqueue();
 					}
 				}
-			});
+			//});
 		});
 
 	return demand;
