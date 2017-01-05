@@ -107,44 +107,39 @@ global.demand = (function() {
 	demand.list   = ClassDependency.list;
 	demand.clear  = singletonCache.clear;
 
-	demand
-		.on(EVENT_CACHE_MISS, function(dependency) {
+	singletonEvent
+		.after(EVENT_CACHE_MISS, function(dependency) {
 			new ClassLoader(dependency);
 		})
-		.on(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
-			functionDefer(function() {
-				singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency);
-			});
+		.after(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
+			singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency);
 		})
-		.on(EVENT_PRE_REQUEST, function(dependency) {
+		.after(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
 	
 			pointer && pointer.call(dependency);
 		})
-		.on(EVENT_POST_REQUEST, function(dependency) {
+		.after(EVENT_POST_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPostRequest;
 	
 			pointer && pointer.call(dependency);
 		})
-		.on(EVENT_PRE_PROCESS, function(dependency) {
-			var pointer = dependency.handler.onPreProcess,
-				enqueue = (dependency.handler.enqueue !== FALSE) ? functionDefer.bind(NULL, function() { queue.enqueue(dependency); }) : NULL;
+		.after(EVENT_PRE_PROCESS, function(dependency) {
+			var pointer = dependency.handler.onPreProcess;
 			
 			pointer && pointer.call(dependency);
 			
-			//functionDefer(function() {
-				dependency.pledge.then(function() {
-					singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
-				});
+			dependency.pledge.then(function() {
+				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
+			});
 				
-				if(enqueue) {
-					if(dependency.delay) {
-						dependency.delay.then(enqueue);
-					} else {
-						enqueue();
-					}
+			if(dependency.handler.enqueue !== FALSE) {
+				if(dependency.delay) {
+					dependency.delay.then(function() { queue.enqueue(dependency); });
+				} else {
+					queue.enqueue(dependency);
 				}
-			//});
+			}
 		});
 
 	return demand;

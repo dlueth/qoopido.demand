@@ -68,12 +68,13 @@ var ClassDependency = (function() {
 	};
 
 	ClassDependency.resolve = function(uri, context) {
-		var dependency = this.get(uri, context);
+		var isInternal = context && regexMatchInternal.test(uri),
+			dependency = isInternal ? this.get(context + '/' + uri) : this.get(uri, context);
 
 		if(!dependency) {
-			dependency = new ClassDependency(uri, context);
+			if(isInternal) {
+				dependency = new ClassDependency(context + '/' + uri);
 
-			if(context && regexMatchInternal.test(uri)) {
 				switch(uri) {
 					case DEMAND_ID:
 						dependency.deferred.resolve((function() {
@@ -97,6 +98,8 @@ var ClassDependency = (function() {
 						break;
 				}
 			} else {
+				dependency = new ClassDependency(uri, context);
+
 				demand(MODULE_PREFIX_HANDLER + dependency.type)
 					.then(
 						function(handler) {

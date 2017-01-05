@@ -27,22 +27,22 @@ var singletonCache = (function(JSON) {
 		cache;
 
 	singletonEvent
+		.on(EVENT_CACHE_MISS, function(dependency) {
+			functionDefer(function() {
+				cache.clear.path(dependency.id);
+			});
+		})
 		.on(EVENT_POST_REQUEST, function(dependency) {
 			if(dependency.source && enabled(dependency)) {
 				storage[dependency.id] = TRUE;
 			}
 		})
-		.on(EVENT_POST_PROCESS, function(dependency) {
+		.after(EVENT_POST_PROCESS, function(dependency) {
 			if(storage[dependency.id]) {
 				functionDefer(function() {
 					cache.set(dependency);
 				});
 			}
-		})
-		.on(EVENT_CACHE_MISS, function(dependency) {
-			functionDefer(function() {
-				cache.clear.path(dependency.id);
-			});
 		});
 
 	function enabled(dependency) {

@@ -6,16 +6,15 @@
 */
 
 //=require constants.js
-//=require singleton/event.js
 //=require abstract/uuid.js
 
 function ClassProcessor(queue) {
 	var self    = this.parent.constructor.call(this),
 		pointer = storage[self.uuid] = { queue: queue, current: NULL };
 
-	singletonEvent
+	demand
 		.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
-				!pointer.current && self.process();
+			!pointer.current && self.process();
 		});
 }
 
