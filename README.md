@@ -12,8 +12,6 @@ Qoopido.demand is a modular, flexible and 100% async JavaScript module loader wi
 
 Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled. 
 
-You will find a benchmark on the official [site](http://demand.qoopido.com) and some more demo code in this repo's demo directory via [rawgit](https://rawgit.com/dlueth/qoopido.demand/master/demo/index.html). Just open your developer console and remember to clear your localStorage :)
-
 ## Key features in detail
 - promise like interface (no native promise support required)
 - localStorage caching for blazingly fast performance
@@ -30,7 +28,7 @@ You will find a benchmark on the official [site](http://demand.qoopido.com) and 
 ## Compatibility
 Qoopido.demand is developed for Chrome, Firefox, Safari, Opera and IE9+.
 
-Support for IE8 has been actively removed with Qoopido.demand 4.0.0 due to the lack of justifiable polyfills for parts of the underlying inheritance pattern.
+Support for IE8 has been actively removed in Qoopido.demand 4.0.0 due to the lack of justifiable polyfills for parts of some underlying pattern.
 
 I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. IE9, 10, 11 as well as Edge are testet on the official Microsoft VMs via VirtualBox.
 
