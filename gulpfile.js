@@ -1,186 +1,57 @@
-var gulp     = require('gulp'),
-	chmod    = require('gulp-chmod'),
-	util     = require('gulp-util'),
-	plugins  = require('gulp-load-plugins')(),
-	sequence = require('run-sequence'),
-	del      = require('del'),
-	config   = {},
-	rights   = {
-		owner: {
-			read: true,
-			write: true,
-			execute: false
-		},
-		group: {
-			read: true,
-			write: false,
-			execute: false
-		},
-		others: {
-			read: true,
-			write: false,
-			execute: false
-		}
-	},
-	package, config, patterns = [];
+var requireDir = require('require-dir'),
+	gulp       = require('gulp'),
+	net        = require('net'),
+	livereload = require('gulp-livereload'),
+	config     = require('./gulp/config'),
+	tasks      = requireDir('./gulp/tasks', { recurse: true, duplicates: true }),
+	watch      = {},
+	watching   = false;
 
 module.exports = gulp;
 
-/**************************************************
- * helper
- **************************************************/
-	function handleError (error) {
-		util.log(error);
+gulp.on('stop', function () {
+	if(watching === false) {
+		process.nextTick(function () {
+			process.exit(0);
+		});
 	}
+});
 
-	function loadPackageFile() {
-		delete require.cache[require.resolve('./package.json')];
+function addWatchTask(name, settings) {
+	gulp.task(name + ':watch', function() {
+		watching = true;
 
-		package = require('./package.json');
-	}
+		gulp.watch(settings.watch, [ name ])
+			.on('change', livereload.changed);
+	});
 
-	function loadConfigFile() {
-		delete require.cache[require.resolve('./gulp/config.json')];
+	watch[name] = settings.watch;
+}
 
-		config = replacePatterns(require('./gulp/config.json'));
-	}
+(function initialize() {
+	var name, task, settings;
 
-	function preparePatterns(node, prefix) {
-		var key, id, item;
+	livereload.listen();
 
-		node = node || package;
+	for(name in gulp.tasks) {
+		task     = gulp.tasks[name];
+		settings = config.tasks[name];
 
-		for(key in node) {
-			id   = (prefix) ? prefix + '.' + key : 'package.' + key;
-			item = node[key];
-
-			if(typeof item === 'string') {
-				patterns.push({ pattern: new RegExp('{{gulp:' + id + '}}', 'g'), replacement: item });
-			} else if(Object.prototype.toString.call(item) === '[object Object]') {
-				preparePatterns(item, id);
-			}
+		if(task && settings && settings.watch) {
+			addWatchTask(name, settings);
 		}
 	}
+}());
 
-	function replacePatterns(value) {
-		var i = 0, entry;
+gulp.task('watch', function() {
+	var name;
 
-		value = JSON.stringify(value);
+	watching = true;
 
-		for(; (entry = patterns[i]) !== undefined; i++) {
-			value = value.replace(entry.pattern, entry.replacement);
-		}
-
-		return JSON.parse(value);
+	for(name in watch) {
+		gulp.watch(watch[name], [ name ])
+			.on('change', livereload.changed);
 	}
+});
 
-	function getDatePatterns() {
-		var date  = new Date(),
-			month = ''.concat('0', (date.getMonth() + 1).toString()).slice(-2),
-			day   = ''.concat('0', date.getDate().toString()).slice(-2),
-			time  = ''.concat('0', date.getHours().toString()).slice(-2) + ':' + ''.concat('0', date.getMinutes().toString()).slice(-2) + ':' + ''.concat('0', date.getSeconds().toString()).slice(-2);
-
-		return [
-			{ pattern: new RegExp('{{gulp:date.year}}', 'g'), replacement: date.getFullYear() },
-			{ pattern: new RegExp('{{gulp:date.month}}', 'g'), replacement: month },
-			{ pattern: new RegExp('{{gulp:date.day}}', 'g'), replacement: day },
-			{ pattern: new RegExp('{{gulp:date.time}}', 'g'), replacement: time }
-		];
-	}
-
-/**************************************************
- * initialization
- **************************************************/
-	loadPackageFile();
-	preparePatterns();
-	loadConfigFile();
-
-/**************************************************
- * tasks (private)
- **************************************************/
-	gulp.task('bump', function(callback) {
-		var tasks = [ 'demo', 'dist' ];
-
-		loadPackageFile();
-		preparePatterns();
-		loadConfigFile();
-
-		tasks.push(callback);
-
-		return sequence.apply(null, tasks);
-	});
-
-	gulp.task('demo:lint', function() {
-		return gulp.src(config.tasks.demo.lint)
-			.pipe(plugins.eslint())
-			.pipe(plugins.eslint.format());
-	});
-
-	gulp.task('demo', function(callback) {
-		return sequence('demo:lint', callback);
-	});
-
-	gulp.task('dist:lint', function() {
-		return gulp.src(config.tasks.dist.lint || config.tasks.dist.watch)
-			.pipe(plugins.eslint())
-			.pipe(plugins.eslint.format());
-	});
-
-	gulp.task('dist:clean', function(callback) {
-		return del(config.tasks.dist.clean || [ config.tasks.dist.destination + '**/*' ], callback);
-	});
-
-	gulp.task('dist:build', function() {
-		return gulp.src(config.tasks.dist.build || config.tasks.dist.watch)
-			.pipe(plugins.sourcemaps.init())
-			.pipe(plugins.plumber({ errorHandler: handleError}))
-			.pipe(plugins.uglify({ preserveComments: 'none' }))
-			.pipe(plugins.header(config.strings.banner.min.join('\n')))
-			.pipe(plugins.frep(patterns))
-			.pipe(plugins.frep(getDatePatterns()))
-			.pipe(chmod(rights))
-			.pipe(plugins.size({ showFiles: true, gzip: true }))
-			.pipe(plugins.sourcemaps.write('./', {
-				sourceMappingURL: function(file) {
-					return file.relative.slice(file.relative.lastIndexOf('/') + 1) + '.map';
-				}
-			}))
-			.pipe(gulp.dest(config.tasks.dist.destination));
-	});
-
-	gulp.task('dist', function(callback) {
-		return sequence('dist:lint', 'dist:clean', 'dist:build', callback);
-	});
-
-/**************************************************
- * tasks (public)
- **************************************************/
-	gulp.task('bump:patch', function() {
-		return gulp.src(config.tasks.bump.watch)
-			.pipe(plugins.bump({ type: 'patch' }))
-			.pipe(chmod(rights))
-			.pipe(gulp.dest(config.tasks.bump.destination));
-	});
-
-	gulp.task('bump:minor', function() {
-		return gulp.src(config.tasks.bump.watch)
-			.pipe(plugins.bump({ type: 'minor' }))
-			.pipe(chmod(rights))
-			.pipe(gulp.dest(config.tasks.bump.destination));
-	});
-
-	gulp.task('bump:major', function() {
-		return gulp.src(config.tasks.bump.watch)
-			.pipe(plugins.bump({ type: 'major' }))
-			.pipe(chmod(rights))
-			.pipe(gulp.dest(config.tasks.bump.destination));
-	});
-
-	gulp.task('all', [ 'bump' ]);
-
-	gulp.task('watch', function() {
-		gulp.watch(config.tasks.bump.watch, [ 'bump' ]);
-		gulp.watch(config.tasks.dist.watch, [ 'dist' ]);
-	});
-
-	gulp.task('default', [ 'watch' ]);
+gulp.task('default', [ 'watch' ]);

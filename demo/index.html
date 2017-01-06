@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
+	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<link rel="preconnect" href="//cdn.jsdelivr.net" />
 	<!--[if lte IE 8]>
 		<script src="../dist/legacy.js"></script>
 	<![endif]-->
@@ -15,6 +17,7 @@
 			<th>Module</th>
 			<th>State</th>
 			<th>Details</th>
+			<th>Duration</th>
 		</tr>
 	</thead>
 	<tbody id="target"></tbody>
@@ -33,7 +36,7 @@
 
 			target.parentNode.insertBefore(script, target);
 		}(window, document, 'script'))
-	}('../dist/demand.js', 'app/js/main', { base: './', version: '3.5.7', cache: false }));
+	}('../dist/demand.js', 'app/js/main', { base: './', version: '4.0.0', cache: false }));
 </script>
 </body>
 </html>

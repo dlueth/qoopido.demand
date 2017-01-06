@@ -1,17 +1,7 @@
 /**
- * Qoopido.demand plugin/sri
- *
  * Based on jsSHA:
  *   Repo:    https://github.com/Caligatio/jsSHA
  *   License: https://github.com/Caligatio/jsSHA/blob/master/LICENSE
- *
- * Copyright (c) 2016 Dirk Lueth
- *
- * Dual licensed under the MIT and GPL licenses.
- *  - http://www.opensource.org/licenses/mit-license.php
- *  - http://www.gnu.org/copyleft/gpl.html
- *
- * @author Dirk Lueth <info@qoopido.com>
  */
 
 (function() {
@@ -595,16 +585,24 @@
 		return binb2b64(intermediateH);
 	}
 
-	function definition(path, iterate, isObject) {
+	function definition(path, Failure, iterate, isObject) {
 		var settings;
 		
-		demand.on('postConfigure:' + path, onPostConfigure);
-		
-		function onPostConfigure(options) {
-			if(isObject(options)) {
-				settings = options;
-			}
-		}
+		demand
+			.on('postConfigure:' + path, function(options) {
+				if(isObject(options)) {
+					settings = options;
+				}
+			})
+			.on('postRequest', function(dependency) {
+				var options;
+
+				if(options = isEnabled(dependency.path)) {
+					if(hash(options.type, dependency.source) !== options.hash) {
+						dependency.deferred.reject(new Failure('error resolving (sri)', dependency.id));
+					}
+				}
+			});
 
 		function isEnabled(path) {
 			var match;
@@ -620,20 +618,8 @@
 			return match || false;
 		}
 
-		demand
-			.on('postRequest', function(loader) {
-				var options;
-
-				if(options = isEnabled(loader.path)) {
-					if(hash(options.type, loader.source) !== options.hash) {
-						loader.deferred.reject('/demand/plugin/sri');
-					}
-				}
-			}
-		);
-
 		return true;
 	}
 
-	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/failure', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
 }());
