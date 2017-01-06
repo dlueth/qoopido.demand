@@ -2,7 +2,7 @@
   "name": "qoopido.demand",
   "title": "Qoopido.demand",
   "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
-  "version": "3.5.7",
+  "version": "4.0.0",
   "homepage": "https://github.com/dlueth/qoopido.demand",
   "author": {
     "name": "Dirk Lueth",
@@ -49,19 +49,20 @@
     "gulp": "^3.9.1",
     "gulp-bump": "^2.2.0",
     "gulp-chmod": "^2.0.0",
-    "gulp-concat": "^2.6.0",
-    "gulp-declare": "^0.3.0",
-    "gulp-define-module": "^0.1.4",
     "gulp-devtools": "0.0.3",
     "gulp-eslint": "^3.0.1",
-    "gulp-frep": "^0.1.3",
     "gulp-header": "^1.7.1",
+    "gulp-include": "^2.3.1",
+    "gulp-insert": "^0.5.0",
+    "gulp-livereload": "^3.8.1",
     "gulp-load-plugins": "^1.2.0",
     "gulp-plumber": "^1.0.1",
     "gulp-size": "^2.0.0",
     "gulp-sourcemaps": "^2.2.0",
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.6",
+    "require-dir": "^0.3.1",
     "run-sequence": "^1.1.4"
-  }
+  },
+  "dependencies": {}
 }

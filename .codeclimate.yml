@@ -17,8 +17,11 @@ engines:
 ratings:
   paths:
   - "src/**.js"
+  - "build/**.js"
 exclude_paths:
+- "yarn.lock"
 - "gulpfile.js"
+- "demand.backup.js"
 - "README.md"
 - "**.json"
 - "dist/"
