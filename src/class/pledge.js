@@ -20,10 +20,14 @@ var ClassPledge = (function() {
 
 	function resolve() {
 		storage[this.uuid].handle(PLEDGE_RESOLVED, arguments);
+		
+		return this;
 	}
 
 	function reject() {
 		storage[this.uuid].handle(PLEDGE_REJECTED, arguments);
+		
+		return this;
 	}
 
 	function handle(state, parameter) {
@@ -126,11 +130,16 @@ var ClassPledge = (function() {
 
 	ClassPledge.all = function(pledges) {
 		var deferred   = ClassPledge.defer(),
-			properties = (storage[functionUuid()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 }),
-			i = 0, pledge;
-
-		for(; pledge = pledges[i]; i++) {
-			observe(pledge, i, properties)
+			properties, i = 0, pledge;
+		
+		if(pledges.length) {
+			properties = (storage[functionUuid()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 })
+			
+			for(; pledge = pledges[i]; i++) {
+				observe(pledge, i, properties)
+			}
+		} else {
+			deferred.resolve();
 		}
 
 		return deferred.pledge;
@@ -142,6 +151,10 @@ var ClassPledge = (function() {
 
 		for(; pledge = pledges[i]; i++) {
 			pledge.then(deferred.resolve, deferred.reject);
+		}
+		
+		if(!pledges.length) {
+			deferred.resolve();
 		}
 
 		return deferred.pledge;
