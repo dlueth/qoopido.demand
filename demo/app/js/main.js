@@ -8,9 +8,17 @@
 		, content = target.textContent ? 'textContent' : 'innerText'
 		, start
 		, origin;
+	
+	(global.performance = global.performance || {}).now = global.performance.now || function() { return +new Date(); };
+	
+	function getDuration(time) {
+		var duration = Math.round(global.performance.now() - time);
+		
+		return isNaN(duration) ? 'n/a' : duration + 'ms';
+	}
 
 	function log(action, module, state, details) {
-		var duration = getDuration(),
+		var duration = getDuration(start),
 			row      = document.createElement('tr'),
 			cell;
 
@@ -32,16 +40,12 @@
 		row.appendChild(cell);
 
 		cell          = document.createElement('td');
-		cell[content] = isNaN(duration) ? 'n/a' : duration;
+		cell[content] = duration;
 		row.appendChild(cell);
 
 		target.appendChild(row);
 
-		start = window.performance.now();
-	}
-
-	function getDuration() {
-		return Math.round(window.performance.now() - start);
+		start = global.performance.now();
 	}
 
 	function definition(demand, provide, Pledge) {
@@ -146,7 +150,7 @@
 
 			provide('example2', [ 'example1' ], definition2);
 
-		start = origin = window.performance.now();
+		start = origin = global.performance.now();
 
 		demand('/demand/plugin/cookie', '/demand/plugin/lzstring', '/demand/plugin/sri')
 			.then(function() {
@@ -238,7 +242,7 @@
 				])
 			})
 			.always(function() {
-				console.info('total: ' + Math.round(window.performance.now() - origin) + 'ms');
+				console.info('total: ' + getDuration(origin));
 			});
 		
 		return true;
