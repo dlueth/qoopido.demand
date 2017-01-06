@@ -21,8 +21,9 @@
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
-	var registry    = new ClassRegistry(),
-		placeholder = [];
+	var PREFIX_INTERNAL = 'internal!',
+		registry        = new ClassRegistry(),
+		placeholder     = [];
 
 	function ClassDependency(uri, context, register) {
 		var self      = this,
@@ -69,11 +70,11 @@ var ClassDependency = (function() {
 
 	ClassDependency.resolve = function(uri, context) {
 		var isInternal = context && regexMatchInternal.test(uri),
-			dependency = isInternal ? this.get(context + '/' + uri) : this.get(uri, context);
+			dependency = isInternal ? this.get(PREFIX_INTERNAL + context + '/' + uri) : this.get(uri, context);
 
 		if(!dependency) {
 			if(isInternal) {
-				dependency = new ClassDependency(context + '/' + uri);
+				dependency = new ClassDependency(PREFIX_INTERNAL + context + '/' + uri);
 
 				switch(uri) {
 					case DEMAND_ID:
