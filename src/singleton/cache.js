@@ -79,7 +79,7 @@ var singletonCache = (function(JSON) {
 					if(enabled(dependency)) {
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 						state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
-
+						
 						if(state && state.version === dependency.version && ((!state.expires && !dependency.lifetime) || state.expires > functionGetTimestamp())) {
 							dependency.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
 

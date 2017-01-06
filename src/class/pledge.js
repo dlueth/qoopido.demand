@@ -20,14 +20,10 @@ var ClassPledge = (function() {
 
 	function resolve() {
 		storage[this.uuid].handle(PLEDGE_RESOLVED, arguments);
-		
-		return this;
 	}
 
 	function reject() {
 		storage[this.uuid].handle(PLEDGE_REJECTED, arguments);
-		
-		return this;
 	}
 
 	function handle(state, parameter) {
