@@ -15,14 +15,15 @@ Qoopido.demand originated from my daily use of require.js for the initial develo
 ## Key features in detail
 - promise like interface (no native promise support required)
 - localStorage caching for blazingly fast performance
+- dependency resolution for modules
 - automatic cache invalidation by version or lifetime
 - per module/path/subpath setting of cache parameters
 - relative and absolute module path resolution
-- fallback URLs possible by default
+- fallback URLs for any dependency
 - support for handling modules, legacy scripts, bundles (concatenated scripts like from [jsdelivr](https://github.com/jsdelivr/jsdelivr#load-multiple-files-with-single-http-request)), text, CSS and JSON included
-- optional support for auto-bundles via ```genie``` included
 - plugins for cookie support, lzstring compression and SRI included
 - support for custom handlers & plugins built in
+- optional support for auto-bundles via ```genie``` included
 
 
 ## Compatibility
