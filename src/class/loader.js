@@ -19,7 +19,7 @@ function ClassLoader(dependency) {
 	var pattern;
 
 	function resolve(response, type) {
-		if(!dependency.handler.validate || dependency.handler.validate(type)) {
+		if(!type || !dependency.handler.validate || dependency.handler.validate(type)) {
 			dependency.source = response;
 
 			singletonEvent.emit(EVENT_POST_REQUEST, dependency.type, dependency);
