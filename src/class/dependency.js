@@ -122,12 +122,16 @@ var ClassDependency = (function() {
 		return dependency;
 	};
 
-	ClassDependency.remove = function(uri, context) {
-		var id = functionResolveId(uri, context);
+	ClassDependency.remove = function(uri, context, cache) {
+		var id   = functionResolveId(uri, context),
+			node = document.querySelector('[demand-id="' + id + '"]');
 
-		singletonCache.clear.path(id);
 		registry.remove(id);
 		registry.remove(MOCK_PREFIX + id);
+
+		node && node.parentNode.removeChild(node);
+
+		(cache !== FALSE) && singletonCache.clear.path(id);
 	};
 
 	ClassDependency.list = {

@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, TRUE,
+	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, STRING_STRING, STRING_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
  	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
@@ -63,5 +63,16 @@
 		assignModule(MODULE_PREFIX + 'xhr', ClassXhr);
 		assignModule(MODULE_PREFIX + 'failure', ClassFailure);
 
-		options && options.main && demand(options.main);
+		if(options && options.main) {
+			switch(typeof options.main) {
+				case STRING_STRING:
+					demand(options.main);
+
+					break;
+				case STRING_FUNCTION:
+					provide('main', options.main());
+
+					break;
+			}
+		}
 }(this, document, 'demand' in this && demand, setTimeout, clearTimeout));
