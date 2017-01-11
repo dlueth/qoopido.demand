@@ -24,36 +24,36 @@
 			}
 		}
 
-		return {
-			validate: handlerModule.validate,
-			onPreRequest: function() {
+		function HandlerLegacy() {}
+
+		HandlerLegacy.prototype = {
+			onPreProcess: function() {
 				var self         = this,
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
-					self.delay = demand.apply(null, dependencies);
+					self.enqueue = demand.apply(null, dependencies);
 				}
-
-				handlerModule.onPreRequest.call(self);
 			},
-			onPostRequest: handlerModule.onPostRequest,
 			process: function() {
 				var self         = this,
 					boundResolve = resolve.bind(self);
 
-				if(self.delay) {
-					self.delay
+				if(self.enqueue === true) {
+					boundResolve();
+				} else {
+					self.enqueue
 						.then(
 							boundResolve,
 							function() {
 								self.deferred.reject(new Failure('error resolving', self.path, arguments));
 							}
 						)
-				} else {
-					boundResolve();
 				}
 			}
 		};
+
+		return new (HandlerLegacy.extends(handlerModule));
 	}
 
 	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject' ], definition);

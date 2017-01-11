@@ -1,7 +1,7 @@
 (function(document) {
 	'use strict';
 
-	function definition() {
+	function definition(abstractHandler) {
 		var target              = document.getElementsByTagName('head')[0],
 			resolver            = document.createElement('a'),
 			regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
@@ -24,7 +24,9 @@
 			return source;
 		}
 
-		return {
+		function HandlerCss() {}
+
+		HandlerCss.prototype = {
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
@@ -72,7 +74,9 @@
 				provide(function() { return element; });
 			}
 		};
+
+		return new (HandlerCss.extends(abstractHandler));
 	}
 
-	provide(definition);
+	provide([ '/demand/abstract/handler' ], definition);
 }(document));

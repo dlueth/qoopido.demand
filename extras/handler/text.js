@@ -1,10 +1,12 @@
 (function() {
 	'use strict';
 
-	function definition() {
+	function definition(abstractHandler) {
 		var regexMatchType = /^text\/.+/;
 
-		return {
+		function HandlerText() {}
+
+		HandlerText.prototype = {
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
@@ -14,7 +16,9 @@
 				provide(function() { return self.source; });
 			}
 		};
+
+		return new (HandlerText.extends(abstractHandler));
 	}
 
-	provide(definition);
+	provide([ '/demand/abstract/handler' ],definition);
 }());

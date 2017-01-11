@@ -3,19 +3,23 @@
 	EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE
 	linkElement,
 	regexMatchSourcemap, regexIsAbsoluteUri,
-	functionResolveUrl
+	functionResolveUrl,
+	abstractHandler
 */
 
 //=require constants.js
 //=require shortcuts.js
 //=require variables.js
 //=require function/resolveUrl.js
+//=require abstract/handler.js
 
 var handlerModule = (function() {
 	var target         = document.getElementsByTagName('head')[0],
 		regexMatchType = /^(application|text)\/(x-)?javascript/;
 
-	return {
+	function HandlerModule() {}
+
+	HandlerModule.prototype = {
 		validate: function(type) {
 			return regexMatchType.test(type);
 		},
@@ -55,4 +59,6 @@ var handlerModule = (function() {
 			}
 		}
 	};
+
+	return new (HandlerModule.extends(abstractHandler));
 }());

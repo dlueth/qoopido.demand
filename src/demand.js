@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	arrayPrototypeSlice,
-	validatorIsTypeOf, validatorIsObject, validatorIsPositive,
+	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf,
 	functionIterate, functionMerge, functionDefer,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
 	singletonEvent, singletonCache
@@ -13,6 +13,7 @@
 //=require validator/isTypeOf.js
 //=require validator/isObject.js
 //=require validator/isPositive.js
+//=require validator/isInstanceOf.js
 //=require function/iterate.js
 //=require function/merge.js
 //=require function/defer.js
@@ -132,13 +133,11 @@ global.demand = (function() {
 			dependency.pledge.then(function() {
 				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
 			});
-				
-			if(dependency.handler.enqueue !== FALSE) {
-				if(dependency.delay) {
-					dependency.delay.then(function() { queue.enqueue(dependency); });
-				} else {
-					queue.enqueue(dependency);
-				}
+
+			if(dependency.enqueue === true) {
+				queue.enqueue(dependency);
+			} else if(validatorIsInstanceOf(dependency.enqueue, ClassPledge)) {
+				dependency.enqueue.then(function() { queue.enqueue(dependency); });
 			}
 		});
 

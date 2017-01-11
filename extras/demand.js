@@ -1,8 +1,9 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, STRING_STRING, STRING_FUNCTION, TRUE,
+	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, MODULE_PREFIX_ABSTRACT, STRING_STRING, STRING_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
+	abstractHandler,
  	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
 	handlerModule, handlerBundle,
  	pluginGenie
@@ -45,18 +46,19 @@
 			provide(id, function() { return factory; });
 		}
 
+		assignModule(MODULE_PREFIX_ABSTRACT + 'handler', abstractHandler);
 		assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
 		assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
 		assignModule(MODULE_PREFIX_PLUGIN + 'genie', pluginGenie);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
 		assignModule(MODULE_PREFIX_FUNCTION + 'resolveUrl', functionResolveUrl);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);
 		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
 		assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
-		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
