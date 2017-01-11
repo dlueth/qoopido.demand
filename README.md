@@ -6,7 +6,7 @@
 [![Code Climate](https://img.shields.io/codeclimate/github/dlueth/qoopido.demand.svg?style=flat-square)](https://codeclimate.com/github/dlueth/qoopido.demand)
 [![NPM downloads](https://img.shields.io/npm/dt/qoopido.demand.svg?style=flat-square&label=npm%20downloads)](https://www.npmjs.org/package/qoopido.demand)
 
-Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of roughly **6.7kB minified and gzipped**.
+Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of roughly **6.8kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled. 
 
