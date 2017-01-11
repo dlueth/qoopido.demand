@@ -1,6 +1,6 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
+	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
 	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
@@ -124,7 +124,7 @@ var ClassDependency = (function() {
 
 	ClassDependency.remove = function(uri, context, cache) {
 		var id   = functionResolveId(uri, context),
-			node = document.querySelector('[demand-id="' + id + '"]');
+			node = document.querySelector('[' + DEMAND_ID + '-id="' + id + '"]');
 
 		registry.remove(id);
 		registry.remove(MOCK_PREFIX + id);
