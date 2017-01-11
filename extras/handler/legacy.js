@@ -26,17 +26,16 @@
 
 		return {
 			validate: handlerModule.validate,
-			onPreRequest: function() {
+			onPreRequest: handlerModule.onPreRequest,
+			onPostRequest: handlerModule.onPostRequest,
+			onPreProcess: function() {
 				var self         = this,
 					dependencies = settings[self.path] && settings[self.path].dependencies;
 
 				if(dependencies) {
 					self.delay = demand.apply(null, dependencies);
 				}
-
-				handlerModule.onPreRequest.call(self);
 			},
-			onPostRequest: handlerModule.onPostRequest,
 			process: function() {
 				var self         = this,
 					boundResolve = resolve.bind(self);
