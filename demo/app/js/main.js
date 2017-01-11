@@ -56,6 +56,7 @@
 			pattern: {
 				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
+				'/jquery/ui':         '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
 				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
@@ -96,6 +97,10 @@
 				'/demand/handler/legacy': {
 					'/jquery': {
 						probe: function() { return global.jQuery; }
+					},
+					'/jquery/ui': {
+						probe: function() { return window.jQuery.ui; },
+						dependencies: [ 'legacy!/jquery' ]
 					},
 					'/velocity': {
 						probe:        function() { return global.Velocity || (global.jQuery && global.jQuery.fn.velocity); },
@@ -196,13 +201,13 @@
 							}
 						),
 					// load legacy scripts
-					demand('legacy!/jquery')
+					demand('legacy!/jquery/ui')
 						.then(
-							function(jQuery) {
-								log('demand', '/jquery', 'resolved', 'legacy');
+							function(jQueryUi) {
+								log('demand', '/jquery/ui', 'resolved', 'legacy, with dependency');
 							},
 							function() {
-								log('demand', '/jquery', 'rejected');
+								log('demand', '/jquery/ui', 'rejected');
 							}
 						),
 					// load bundles with demand (see configuration above)
