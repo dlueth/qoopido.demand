@@ -1,7 +1,8 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
- 	EVENT_PRE_REQUEST, EVENT_POST_REQUEST, ERROR_LOAD,
+	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, ERROR_LOAD,
 	regexIsAbsoluteUri,
+	linkElement,
 	functionIterate, functionResolveUrl,
 	ClassXhr, ClassFailure,
 	singletonEvent
@@ -9,6 +10,7 @@
 
 //=require constants.js
 //=require variables.js
+//=require shortcuts.js
 //=require function/resolveUrl.js
 //=require function/iterate.js
 //=require singleton/event.js
@@ -16,7 +18,8 @@
 //=require class/failure.js
 
 function ClassLoader(dependency) {
-	var pattern;
+	var regexCleanupSearch = /^\?/,
+		pattern;
 
 	function resolve(response, type) {
 		if(!type || !dependency.handler.validate || dependency.handler.validate(type)) {
@@ -31,6 +34,15 @@ function ClassLoader(dependency) {
 	function reject(status) {
 		dependency.deferred.reject(new ClassFailure(ERROR_LOAD + (status ? ' (status)' : ''), dependency.id));
 	}
+	
+	function addUrlParam(url, param, value) {
+		var query;
+		
+		linkElement.href   = url;
+		linkElement.search = (query = (linkElement.search || '').replace(regexCleanupSearch, '')) + (query ? '&' : '?') + param + '=' + value;
+		
+		return linkElement.href;
+	}
 
 	function load(location) {
 		location       = location || 0;
@@ -38,7 +50,7 @@ function ClassLoader(dependency) {
 
 		singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
 
-		new ClassXhr(dependency.url).then(
+		new ClassXhr(addUrlParam(dependency.url, DEMAND_ID, +new Date())).then(
 			resolve,
 			(
 				pattern ?
