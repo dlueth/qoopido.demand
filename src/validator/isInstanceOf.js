@@ -8,14 +8,6 @@
  *
  * @return {boolean}
  */
-(function() {
-	'use strict';
-	
-	function definition() {
-		return function validatorIsInstanceOf(object, module) {
-			return object instanceof module;
-		};
-	}
-	
-	provide(definition);
-}());
+function validatorIsInstanceOf(object, module) {
+	return object instanceof module;
+}

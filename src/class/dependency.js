@@ -45,8 +45,9 @@ var ClassDependency = (function() {
 		return self;
 	}
 
-	/* only for reference
-	 ClassDependency.prototype = {
+	ClassDependency.prototype = {
+		enqueue: true // handled by handler
+		/* only for reference
 	 	path:     NULL,
 	 	mock:     NULL,
 		cache:    NULL,
@@ -59,10 +60,9 @@ var ClassDependency = (function() {
 		pledge:   NULL,
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
-	 	url:      NULL, // optional, set by Loader
-		delay:    NULL, // optional, set by handler
+	 	url:      NULL // optional, set by Loader
+		*/
 	};
-	*/
 
 	ClassDependency.get = function(uri, context) {
 		return registry.get(functionResolveId(uri, context));

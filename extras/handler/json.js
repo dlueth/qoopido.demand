@@ -1,10 +1,12 @@
 (function() {
 	'use strict';
 
-	function definition() {
+	function definition(abstractHandler) {
 		var regexMatchType = /^application\/json/;
 
-		return {
+		function HandlerJson() {}
+
+		HandlerJson.prototype = {
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
@@ -19,7 +21,9 @@
 				provide(function() { return data; });
 			}
 		};
+
+		return new (HandlerJson.extends(abstractHandler));
 	}
 
-	provide(definition);
+	provide([ '/demand/abstract/handler' ], definition);
 }());

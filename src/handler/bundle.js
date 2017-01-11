@@ -4,6 +4,7 @@
 	regexMatchParameter, regexMatchSourcemap,
 	validatorIsTypeOf, validatorIsObject,
 	functionIterate, functionResolveId,
+	abstractHandler,
 	ClassDependency, ClassPledge, ClassFailure,
 	handlerModule
 */
@@ -14,6 +15,7 @@
 //=require validator/isObject.js
 //=require function/iterate.js
 //=require function/resolveId.js
+//=require abstract/handler.js
 //=require class/dependency.js
 //=require class/pledge.js
 //=require class/Failure.js
@@ -59,8 +61,9 @@ var handlerBundle = (function() {
 		return type;
 	}
 
-	return {
-		enqueue:  FALSE,
+	function HandlerBundle() {}
+
+	HandlerBundle.prototype = {
 		validate: handlerModule.validate,
 		onPreProcess: function() {
 			var self         = this,
@@ -68,6 +71,8 @@ var handlerBundle = (function() {
 				deferred     = self.deferred,
 				dependencies = settings[self.path],
 				type, match, pledges, dependency, i;
+
+			self.enqueue = false;
 
 			function reject() {
 				deferred.reject(new ClassFailure(ERROR_RESOLVE, self.id, arguments));
@@ -113,4 +118,6 @@ var handlerBundle = (function() {
 			}
 		}
 	};
+
+	return new (HandlerBundle.extends(abstractHandler));
 }());
