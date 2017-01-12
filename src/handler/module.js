@@ -37,7 +37,10 @@ var handlerModule = (function() {
 
 					replacement = linkElement.protocol + '//' + linkElement.host + match[1];
 				} else {
-					replacement = functionResolveUrl(dependency.url + '/../' + match[1]);
+					linkElement.href      = dependency.url;
+					linkElement.pathname += '/../' + match[1];
+
+					replacement = linkElement.protocol + '//' + linkElement.host + linkElement.pathname;
 				}
 
 				dependency.source = dependency.source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
