@@ -30,16 +30,16 @@
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
-			onPreRequest: function() {
-				var url  = this.url;
+			onPreRequest: function(dependency) {
+				var url  = dependency.url;
 
-				this.url = url.slice(-4) !== '.css' ? url + '.css' : url;
+				dependency.url = url.slice(-4) !== '.css' ? url + '.css' : url;
 			},
-			onPostRequest: function() {
-				var url     = resolveUrl(this.url + '/..'),
+			onPostRequest: function(dependency) {
+				var url     = resolveUrl(dependency.url + '/..'),
 					base    = url.href,
 					host    = '//' + url.host,
-					source  = this.source,
+					source  = dependency.source,
 					match;
 
 				while((match = regexMatchUrl.exec(source))) {
@@ -50,24 +50,24 @@
 					source = replaceUri(source, match, '@import "' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '"');
 				}
 
-				this.source = source;
+				dependency.source = source;
 			},
-			process: function() {
-				var element = document.querySelector('[demand-id="' + this.id + '"]');
+			process: function(dependency) {
+				var element = document.querySelector('[demand-id="' + dependency.id + '"]');
 
 				if(!element) {
 					element      = document.createElement('style');
 					element.type = 'text/css';
 
-					element.setAttribute('demand-id', this.id);
+					element.setAttribute('demand-id', dependency.id);
 					target.appendChild(element);
 				}
 
 				if(element.tagName === 'STYLE') {
 					if(element.styleSheet) {
-						element.styleSheet.cssText = this.source;
+						element.styleSheet.cssText = dependency.source;
 					} else {
-						element.textContent = this.source;
+						element.textContent = dependency.source;
 					}
 				}
 

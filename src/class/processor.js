@@ -26,7 +26,7 @@ ClassProcessor.prototype = {
 		if(pointer.queue.length) {
 			current = pointer.current = pointer.queue.dequeue();
 
-			current.handler.process && current.handler.process.call(current);
+			current.handler.process && current.handler.process(current);
 		} else {
 			pointer.current = NULL;
 		}

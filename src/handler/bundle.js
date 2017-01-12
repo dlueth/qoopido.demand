@@ -65,17 +65,16 @@ var handlerBundle = (function() {
 
 	HandlerBundle.prototype = {
 		validate: handlerModule.validate,
-		onPreProcess: function() {
-			var self         = this,
-				source       = self.source,
-				deferred     = self.deferred,
-				dependencies = settings[self.path],
-				type, match, pledges, dependency, i;
+		onPreProcess: function(dependency) {
+			var source       = dependency.source,
+				deferred     = dependency.deferred,
+				dependencies = settings[dependency.path],
+				type, match, pledges, temp, i;
 
-			self.enqueue = false;
+			dependency.enqueue = false;
 
 			function reject() {
-				deferred.reject(new ClassFailure(ERROR_RESOLVE, self.id, arguments));
+				deferred.reject(new ClassFailure(ERROR_RESOLVE, dependency.id, arguments));
 			}
 
 			if(dependencies && (type = getType(dependencies))) {
@@ -83,29 +82,29 @@ var handlerBundle = (function() {
 					source = source.replace(match[0], '');
 				}
 
-				self.source = source;
-				pledges     = [];
+				dependency.source = source;
+				pledges           = [];
 
-				for(i = 0; (dependency = dependencies[i]); i++) {
-					pledges.push(ClassDependency.resolve(MOCK_PREFIX + dependency).pledge);
+				for(i = 0; (temp = dependencies[i]); i++) {
+					pledges.push(ClassDependency.resolve(MOCK_PREFIX + temp).pledge);
 				}
 
 				ClassPledge.all(pledges).then(
 					function() {
 						pledges.length = 0;
 
-						for(i = 0; (dependency = dependencies[i]); i++) {
-							dependency         = dependencies[i] = ClassDependency.get(dependency) || new ClassDependency(dependency);
-							dependency.handler = arguments[i];
+						for(i = 0; (temp = dependencies[i]); i++) {
+							temp         = dependencies[i] = ClassDependency.get(temp) || new ClassDependency(temp);
+							temp.handler = arguments[i];
 
-							pledges.push(dependency.pledge);
+							pledges.push(temp.pledge);
 						}
 
 						if(type === 'module') {
 							queue.enqueue.apply(queue, dependencies);
-							handlerModule.process.call(self);
+							handlerModule.process(dependency);
 						} else {
-							handlerModule.process.call(self);
+							handlerModule.process(dependency);
 							queue.enqueue.apply(queue, dependencies);
 						}
 

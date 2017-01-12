@@ -3,7 +3,7 @@
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, MODULE_PREFIX_ABSTRACT, STRING_STRING, STRING_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
-	abstractHandler,
+	AbstractUuid, abstractHandler,
  	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
 	handlerModule, handlerBundle,
  	pluginGenie
@@ -46,6 +46,7 @@
 			provide(id, function() { return factory; });
 		}
 
+		assignModule(MODULE_PREFIX_ABSTRACT + 'uuid', AbstractUuid);
 		assignModule(MODULE_PREFIX_ABSTRACT + 'handler', abstractHandler);
 		assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
 		assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
