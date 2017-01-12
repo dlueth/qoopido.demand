@@ -10,10 +10,8 @@
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
-			process: function() {
-				var self = this;
-
-				provide(function() { return self.source; });
+			process: function(dependency) {
+				provide(function() { return dependency.source; });
 			}
 		};
 

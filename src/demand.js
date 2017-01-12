@@ -118,17 +118,17 @@ global.demand = (function() {
 		.after(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
 	
-			pointer && pointer.call(dependency);
+			pointer && pointer(dependency);
 		})
 		.after(EVENT_POST_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPostRequest;
 	
-			pointer && pointer.call(dependency);
+			pointer && pointer(dependency);
 		})
 		.after(EVENT_PRE_PROCESS, function(dependency) {
 			var pointer = dependency.handler.onPreProcess;
 			
-			pointer && pointer.call(dependency);
+			pointer && pointer(dependency);
 			
 			dependency.pledge.then(function() {
 				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);

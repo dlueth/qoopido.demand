@@ -15,7 +15,7 @@
 				probe    = settings[self.path] && settings[self.path].probe,
 				result;
 
-			handlerModule.process.call(self);
+			handlerModule.process(self);
 
 			if(probe && (result = probe())) {
 				provide(function() { return result; });
@@ -27,26 +27,24 @@
 		function HandlerLegacy() {}
 
 		HandlerLegacy.prototype = {
-			onPreProcess: function() {
-				var self         = this,
-					dependencies = settings[self.path] && settings[self.path].dependencies;
+			onPreProcess: function(dependency) {
+				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
 
 				if(dependencies) {
-					self.enqueue = demand.apply(null, dependencies);
+					dependency.enqueue = demand.apply(null, dependencies);
 				}
 			},
-			process: function() {
-				var self         = this,
-					boundResolve = resolve.bind(self);
+			process: function(dependency) {
+				var boundResolve = resolve.bind(dependency);
 
-				if(self.enqueue === true) {
+				if(dependency.enqueue === true) {
 					boundResolve();
 				} else {
-					self.enqueue
+					dependency.enqueue
 						.then(
 							boundResolve,
 							function() {
-								self.deferred.reject(new Failure('error resolving', self.path, arguments));
+								dependency.deferred.reject(new Failure('error resolving', dependency.path, arguments));
 							}
 						)
 				}

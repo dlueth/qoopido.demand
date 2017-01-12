@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE
+	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE
 	linkElement,
 	regexMatchSourcemap, regexIsAbsoluteUri,
 	functionResolveUrl,
@@ -23,37 +23,35 @@ var handlerModule = (function() {
 		validate: function(type) {
 			return regexMatchType.test(type);
 		},
-		onPreRequest: function() {
-			var url = this.url;
+		onPreRequest: function(dependency) {
+			var url = dependency.url;
 
-			this.url = url.slice(-3) !== '.js' ? url + '.js' : url;
+			dependency.url = url.slice(-3) !== '.js' ? url + '.js' : url;
 		},
-		onPostRequest: function() {
-			var self = this,
-				match, replacement;
+		onPostRequest: function(dependency) {
+			var match, replacement;
 
-			while(match = regexMatchSourcemap.exec(self.source)) {
+			while(match = regexMatchSourcemap.exec(dependency.source)) {
 				if(regexIsAbsoluteUri.test(match[1])) {
-					linkElement.href = self.url;
+					linkElement.href = dependency.url;
 
 					replacement = linkElement.protocol + '//' + linkElement.host + match[1];
 				} else {
-					replacement = functionResolveUrl(self.url + '/../' + match[1]);
+					replacement = functionResolveUrl(dependency.url + '/../' + match[1]);
 				}
 
-				self.source = self.source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
+				dependency.source = dependency.source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
 			}
 		},
-		process: function() {
-			var self = this,
-				script;
+		process: function(dependency) {
+			var script;
 
-			if(self.source) {
+			if(dependency.source) {
 				script       = document.createElement('script');
 				script.async = TRUE;
-				script.text  = self.source;
+				script.text  = dependency.source;
 
-				script.setAttribute('demand-id', self.id);
+				script.setAttribute(DEMAND_ID + '-id', dependency.id);
 
 				target.appendChild(script);
 			}
