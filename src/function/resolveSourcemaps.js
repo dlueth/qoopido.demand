@@ -21,7 +21,7 @@ function functionResolveSourcemaps(url, source) {
 			replacement = linkElement.protocol + '//' + linkElement.host + linkElement.pathname;
 		}
 		
-		source = source.replace(match[0], match[1] + ' sourceMappingURL=' + replacement + '.map ' + match[3]);
+		source = source.replace(match[0], match[1] + ' sourceMappingURL=' + replacement + '.map' + (match[3] ? ' ' + match[3] : ''));
 	}
 	
 	return source;
