@@ -10,8 +10,6 @@
 function functionResolveSourcemaps(url, source) {
 	var match, replacement;
 	
-	console.log('> ', url);
-	
 	while(match = regexMatchSourcemap.exec(source)) {
 		linkElement.href = url;
 		
@@ -22,8 +20,6 @@ function functionResolveSourcemaps(url, source) {
 			
 			replacement = linkElement.protocol + '//' + linkElement.host + linkElement.pathname;
 		}
-		
-		console.log('=>', match[0], match[1] + ' sourceMappingURL=' + replacement + '.map' + (match[3] ? ' ' + match[3] : ''));
 		
 		source = source.replace(match[0], match[1] + ' sourceMappingURL=' + replacement + '.map ' + match[3]);
 	}
