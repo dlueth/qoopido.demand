@@ -8,7 +8,7 @@ module.exports = {
 		},
 		"dist": {
 			"watch": [ "src/**/*.js", "extras/**/*.js" ],
-			"build": [ "extras/**/*.js" ],
+			"build": [ "src/demand.js", "extras/**/*.js" ],
 			"dest": "dist/"
 		}
 	},

@@ -1,16 +1,12 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE
-	linkElement,
-	regexMatchSourcemap, regexIsAbsoluteUri,
-	functionResolveUrl,
+	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE,
+	functionResolveSourcemaps,
 	abstractHandler
 */
 
 //=require constants.js
-//=require shortcuts.js
-//=require variables.js
-//=require function/resolveUrl.js
+//=require function/resolveSourcemaps.js
 //=require abstract/handler.js
 
 var handlerModule = (function() {
@@ -29,22 +25,7 @@ var handlerModule = (function() {
 			dependency.url = url.slice(-3) !== '.js' ? url + '.js' : url;
 		},
 		onPostRequest: function(dependency) {
-			var match, replacement;
-
-			while(match = regexMatchSourcemap.exec(dependency.source)) {
-				if(regexIsAbsoluteUri.test(match[1])) {
-					linkElement.href = dependency.url;
-
-					replacement = linkElement.protocol + '//' + linkElement.host + match[1];
-				} else {
-					linkElement.href      = dependency.url;
-					linkElement.pathname += '/../' + match[1];
-
-					replacement = linkElement.protocol + '//' + linkElement.host + linkElement.pathname;
-				}
-
-				dependency.source = dependency.source.replace(match[0], '//# sourceMappingURL=' + replacement + '.map');
-			}
+			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
 		},
 		process: function(dependency) {
 			var script;
