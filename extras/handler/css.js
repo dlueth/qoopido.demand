@@ -1,7 +1,7 @@
 (function(document) {
 	'use strict';
 
-	function definition(abstractHandler) {
+	function definition(abstractHandler, functionResolveSourcemaps) {
 		var target              = document.getElementsByTagName('head')[0],
 			resolver            = document.createElement('a'),
 			regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
@@ -50,7 +50,7 @@
 					source = replaceUri(source, match, '@import "' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '"');
 				}
 
-				dependency.source = source;
+				dependency.source = functionResolveSourcemaps(dependency.url, source);
 			},
 			process: function(dependency) {
 				var element = document.querySelector('[demand-id="' + dependency.id + '"]');
@@ -78,5 +78,5 @@
 		return new (HandlerCss.extends(abstractHandler));
 	}
 
-	provide([ '/demand/abstract/handler' ], definition);
+	provide([ '/demand/abstract/handler', '/demand/function/resolveSourcemaps' ], definition);
 }(document));
