@@ -20,9 +20,9 @@ var ClassXhr = (function(XMLHttpRequest) {
 	}
 	
 	return function ClassXhr(url) {
-		var boundCheckState = checkState.bind(this),
-			deferred        = ClassPledge.defer(),
+		var deferred        = ClassPledge.defer(),
 			xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
+			boundCheckState = checkState.bind(xhr),
 			timeout         = settings.timeout,
 			pointer;
 
@@ -32,10 +32,10 @@ var ClassXhr = (function(XMLHttpRequest) {
 		xhr.onprogress = xhr.onreadystatechange = function() {
 			clearTimeout(pointer);
 
-			pointer = setTimeout(boundCheckState, settings.timeout);
+			pointer = setTimeout(boundCheckState, timeout);
 		};
 		xhr.onload = function() {
-			timeout = clearTimeout(timeout);
+			pointer = clearTimeout(pointer);
 
 			if(!('status' in xhr) || xhr.status === 200) {
 				deferred.resolve(xhr.responseText, xhr.getResponseHeader && xhr.getResponseHeader('content-type'));
@@ -47,7 +47,7 @@ var ClassXhr = (function(XMLHttpRequest) {
 		xhr.open('GET', url, TRUE);
 		xhr.send();
 		
-		pointer = setTimeout(boundCheckState, settings.timeout);
+		pointer = setTimeout(boundCheckState, timeout);
 		
 		return deferred.pledge;
 	};
