@@ -103,10 +103,11 @@ global.demand = (function() {
 		return demand;
 	};
 
-	demand.on     = singletonEvent.on.bind(demand);
-	demand.remove = ClassDependency.remove;
-	demand.list   = ClassDependency.list;
-	demand.clear  = singletonCache.clear;
+	demand.version = '{{gulp:package.version}}';
+	demand.on      = singletonEvent.on.bind(demand);
+	demand.remove  = ClassDependency.remove;
+	demand.list    = ClassDependency.list;
+	demand.clear   = singletonCache.clear;
 
 	singletonEvent
 		.after(EVENT_CACHE_MISS, function(dependency) {

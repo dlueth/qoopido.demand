@@ -22,7 +22,7 @@ module.exports = {
 	strings: {
 		banner: {
 			min: [
-				"/**! {{gulp:package.title}} {{gulp:package.version}} {{gulp:package.license}} | {{gulp:package.homepage}} | (c) {{gulp:date.year}} {{gulp:package.author.name}} */",
+				"/**! {{gulp:package.title}} {{gulp:package.version}} | {{gulp:package.homepage}} | (c) {{gulp:date.year}} {{gulp:package.author.name}} */",
 				""
 			].join('\n'),
 			max: [
