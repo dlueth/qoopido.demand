@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/dlueth/qoopido.demand/issues"
   },
-  "license": "(MIT OR GPL-3.0+)",
+  "license": "MIT",
   "main": "dist/demand.js",
   "filename": "demand.js",
   "autoupdate": {
