@@ -28,12 +28,18 @@ global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,
-			i = 0, uri, result;
-
+			i = 0, uri, deferred, result;
+		
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
-
+		
 		for(; (uri = dependencies[i]); i++) {
-			dependencies[i] = ClassDependency.resolve(uri, context).pledge;
+			if(typeof uri === 'string') {
+				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
+			} else {
+				dependencies[i] = (deferred = ClassPledge.defer()).pledge;
+				
+				deferred.resolve(uri);
+			}
 		}
 		
 		if(dependencies.length > 1) {
