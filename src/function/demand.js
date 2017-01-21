@@ -33,7 +33,7 @@ global.demand = (function() {
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
 		
 		for(; (uri = dependencies[i]); i++) {
-			if(typeof uri === 'string') {
+			if(validatorIsTypeOf(uri, STRING_STRING)) {
 				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 			} else {
 				dependencies[i] = (deferred = ClassPledge.defer()).pledge;

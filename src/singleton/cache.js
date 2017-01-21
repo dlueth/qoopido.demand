@@ -22,6 +22,7 @@ var singletonCache = (function(JSON) {
 		STORAGE_SUFFIX_VALUE   = '[value]',
 		regexMatchState        = new RegExp('^' + functionEscapeRegex(STORAGE_PREFIX) + '\\[(.+?)\\]' + functionEscapeRegex(STORAGE_SUFFIX_STATE) + '$'),
 		supportsLocalStorage   = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return FALSE; } }()),
+		localStorage           = supportsLocalStorage ? global.localStorage : NULL,
 		supportsRemainingSpace = supportsLocalStorage && 'remainingSpace' in localStorage,
 		storage                = {},
 		cache;
@@ -59,7 +60,24 @@ var singletonCache = (function(JSON) {
 		});
 
 		return match ? match.state : FALSE;
-
+	}
+	
+	function getKey(key) {
+		return localStorage.getItem(key);
+	}
+	
+	function setKey(key, value) {
+		localStorage[value ? 'setItem' : 'removeItem'](key, value);
+	}
+	
+	function getState(key) {
+		return JSON.parse(getKey(key));
+	}
+	
+	function setState(key, state) {
+		state.access = functionGetTimestamp();
+		
+		setKey(key, JSON.stringify(state));
 	}
 
 	function emit(event, dependency, state) {
@@ -78,10 +96,14 @@ var singletonCache = (function(JSON) {
 
 					if(enabled(dependency)) {
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
-						state = JSON.parse(localStorage.getItem(id + STORAGE_SUFFIX_STATE));
+						state = getState(id + STORAGE_SUFFIX_STATE);
 						
 						if(state && state.version === dependency.version && ((!state.expires && !dependency.lifetime) || state.expires > functionGetTimestamp())) {
-							dependency.source = localStorage.getItem(id + STORAGE_SUFFIX_VALUE);
+							dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
+							
+							functionDefer(function() {
+								setState(id + STORAGE_SUFFIX_STATE, state);
+							});
 
 							return TRUE;
 						}
@@ -114,7 +136,7 @@ var singletonCache = (function(JSON) {
 					var state, id, spaceBefore;
 
 					if(enabled(dependency)) {
-						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
+						state = { version: dependency.version, demand: demand.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
 						emit(EVENT_PRE_CACHE, dependency, state);
@@ -122,8 +144,8 @@ var singletonCache = (function(JSON) {
 						try {
 							spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
 
-							localStorage.setItem(id + STORAGE_SUFFIX_VALUE, dependency.source);
-							localStorage.setItem(id + STORAGE_SUFFIX_STATE, JSON.stringify(state));
+							setKey(id + STORAGE_SUFFIX_VALUE, dependency.source);
+							setState(id + STORAGE_SUFFIX_STATE, state);
 
 							// strict equality check with "===" is required due to spaceBefore might be "0"
 							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
@@ -147,9 +169,9 @@ var singletonCache = (function(JSON) {
 						var id  = functionResolveId(path),
 							key = STORAGE_PREFIX + '[' + id + ']';
 
-						if(localStorage[key + STORAGE_SUFFIX_STATE]) {
-							localStorage.removeItem(key + STORAGE_SUFFIX_STATE);
-							localStorage.removeItem(key + STORAGE_SUFFIX_VALUE);
+						if(getKey(key + STORAGE_SUFFIX_STATE)) {
+							setKey(key + STORAGE_SUFFIX_STATE);
+							setKey(key + STORAGE_SUFFIX_VALUE);
 
 							emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
 						}
@@ -183,7 +205,7 @@ var singletonCache = (function(JSON) {
 							match = property.match(regexMatchState);
 
 							if(match) {
-								state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE));
+								state = getState(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE);
 
 								if(state && state.expires > 0 && state.expires <= functionGetTimestamp()) {
 									self.path(match[1]);
