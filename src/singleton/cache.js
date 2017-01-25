@@ -33,6 +33,15 @@ var singletonCache = (function(JSON) {
 				cache.clear.path(dependency.id);
 			});
 		})
+		.on(EVENT_CACHE_EXCEED, function(dependency) {
+			demand('-!/demand/cache/dispose').then(function(cacheDispose) {
+				functionDefer(function() {
+					cacheDispose(dependency.source.length);
+
+					cache.set(dependency);
+				});
+			});
+		})
 		.on(EVENT_POST_REQUEST, function(dependency) {
 			if(dependency.source && enabled(dependency)) {
 				storage[dependency.id] = TRUE;
