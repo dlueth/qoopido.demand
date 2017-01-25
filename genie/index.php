@@ -8,7 +8,6 @@ if(isset($_GET['module']) && is_array($_GET['module'])) {
     $file = CACHE_DIRECTORY . sha1(json_encode($_GET['module'])) . '.js';
 
     if(file_exists($file)) {
-        echo '/* from cache */';
         @readfile($file);
     } else {
         if(!is_dir(CACHE_DIRECTORY)) {
