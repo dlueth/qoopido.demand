@@ -27,20 +27,22 @@ var handlerBundle = (function() {
 
 	demand
 		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
-			var i, dependency;
-
 			if(validatorIsObject(options)) {
 				settings = options;
 
-				functionIterate(settings, function(uri, dependencies) {
-					for(i = 0; (dependency = dependencies[i]); i++) {
-						if(validatorIsTypeOf(dependency, STRING_STRING)) {
-							dependencies[i] = functionResolveId(dependency);
-						}
-					}
-				});
+				functionIterate(settings, updateDependencies);
 			}
 		});
+
+	function updateDependencies(uri, dependencies) {
+		var i, dependency;
+
+		for(i = 0; (dependency = dependencies[i]); i++) {
+			if(validatorIsTypeOf(dependency, STRING_STRING)) {
+				dependencies[i] = functionResolveId(dependency);
+			}
+		}
+	}
 
 	function getType(dependencies) {
 		var type, i = 0, temp;

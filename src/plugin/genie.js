@@ -65,21 +65,43 @@ var pluginGenie = (function() {
 		}
 	}
 
+	function addPattern(property, value) {
+		pattern.push({ prefix: property, weight: property.length, fn: value });
+	}
+
+	function resolveBundles(property, value) {
+		var matches = value.matches,
+			i = 0, dependency;
+
+		if(matches.length > 1) {
+			value.id = path + '/' + functionHash(JSON.stringify(value.matches));
+
+			for(; (dependency = matches[i]); i++) {
+				matches[i] = new ClassDependency(dependency.uri);
+			}
+
+			demand.configure(generateConfiguration(value));
+			demand('bundle!' + value.id)
+				.then(
+					resolveDependencies.bind(matches),
+					rejectDependencies.bind(matches)
+				);
+		}
+	}
+
 	demand
 		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
 			if(validatorIsObject(options)) {
 				pattern.length = 0;
 
-				functionIterate(options, function(property, value) {
-					pattern.push({ prefix: property, weight: property.length, fn: value });
-				});
+				functionIterate(options, addPattern);
 			}
 		})
 		.on(EVENT_PRE_RESOLVE, function(dependencies, context) {
 			var bundles = {},
-				i, dependency, pattern, matches;
+				i = 0, dependency, pattern;
 
-			for(i = 0; (dependency = dependencies[i]); i++) {
+			for(; (dependency = dependencies[i]); i++) {
 				if(validatorIsTypeOf(dependency, STRING_STRING) && !regexMatchInternal.test(dependency) && !ClassDependency.get(dependency, context)) {
 					dependency = new ClassDependency(dependency, context, FALSE);
 
@@ -89,24 +111,7 @@ var pluginGenie = (function() {
 				}
 			}
 
-			functionIterate(bundles, function(property, value) {
-				matches = value.matches;
-
-				if(matches.length > 1) {
-					value.id = path + '/' + functionHash(JSON.stringify(value.matches));
-
-					for(i = 0; (dependency = matches[i]); i++) {
-						matches[i] = new ClassDependency(dependency.uri);
-					}
-
-					demand.configure(generateConfiguration(value));
-					demand('bundle!' + value.id)
-						.then(
-							resolveDependencies.bind(matches),
-							rejectDependencies.bind(matches)
-						);
-				}
-			});
+			functionIterate(bundles, resolveBundles);
 		});
 
 	return TRUE;

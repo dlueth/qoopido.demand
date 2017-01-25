@@ -10,6 +10,13 @@
 var ClassPattern = (function() {
 	var regexMatchTrailingSlash = /(.+)\/$/;
 
+	function setProperty(property, value) {
+		this[property] = {
+			url:   functionResolveUrl(value).replace(regexMatchTrailingSlash, '$1'),
+			match: new RegExp('^' + functionEscapeRegex(value))
+		};
+	}
+
 	function ClassPattern(pattern, url) {
 		var self = this;
 
@@ -17,12 +24,7 @@ var ClassPattern = (function() {
 		self.match    = new RegExp('^' + functionEscapeRegex(pattern));
 		self.location = [].concat(url);
 
-		functionIterate(self.location, function(property, value) {
-			self.location[property] = {
-				url:   functionResolveUrl(value).replace(regexMatchTrailingSlash, '$1'),
-				match: new RegExp('^' + functionEscapeRegex(value))
-			};
-		});
+		functionIterate(self.location, setProperty, self.location);
 	}
 
 	ClassPattern.prototype = {

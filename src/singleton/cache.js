@@ -33,6 +33,15 @@ var singletonCache = (function(JSON) {
 				cache.clear.path(dependency.id);
 			});
 		})
+		.on(EVENT_CACHE_EXCEED, function(dependency) {
+			demand('-!/demand/cache/dispose').then(function(cacheDispose) {
+				functionDefer(function() {
+					cacheDispose(dependency.source.length);
+
+					cache.set(dependency);
+				});
+			});
+		})
 		.on(EVENT_POST_REQUEST, function(dependency) {
 			if(dependency.source && enabled(dependency)) {
 				storage[dependency.id] = TRUE;
@@ -75,8 +84,9 @@ var singletonCache = (function(JSON) {
 	}
 	
 	function setState(key, state) {
+		state.demand = demand.version;
 		state.access = functionGetTimestamp();
-		
+
 		setKey(key, JSON.stringify(state));
 	}
 
@@ -136,7 +146,7 @@ var singletonCache = (function(JSON) {
 					var state, id, spaceBefore;
 
 					if(enabled(dependency)) {
-						state = { version: dependency.version, demand: demand.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime };
+						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime, size: dependency.source.length };
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
 						emit(EVENT_PRE_CACHE, dependency, state);
