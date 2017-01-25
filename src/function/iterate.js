@@ -16,7 +16,7 @@
  * @param {function} callback
  * @param context
  *
- * @return {object}
+ * @return mixed
  */
 
 function functionIterate(object, callback, context) {
@@ -28,4 +28,6 @@ function functionIterate(object, callback, context) {
 			break;
 		}
 	}
+
+	return context;
 }

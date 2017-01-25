@@ -25,6 +25,28 @@ var ClassDependency = (function() {
 		registry        = new ClassRegistry(),
 		placeholder     = [];
 
+	function setProperty(property, value) {
+		this[property] = value;
+	}
+
+	function addPending(id, dependency) {
+		if(dependency.pledge.isPending()) {
+			this.push(id);
+		}
+	}
+
+	function addResolved(id, dependency) {
+		if(dependency.pledge.isResolved()) {
+			this.push(id);
+		}
+	}
+
+	function addRejected(id, dependency) {
+		if(dependency.pledge.isRejected()) {
+			this.push(id);
+		}
+	}
+
 	function ClassDependency(uri, context, register) {
 		var self      = this,
 			parameter = uri.match(regexMatchParameter) || placeholder;
@@ -79,13 +101,7 @@ var ClassDependency = (function() {
 				switch(uri) {
 					case DEMAND_ID:
 						dependency.deferred.resolve((function() {
-							var scopedDemand = demand.bind(context);
-
-							functionIterate(demand, function(property, value) {
-								scopedDemand[property] = value;
-							});
-
-							return scopedDemand;
+							return functionIterate(demand, setProperty, demand.bind(context));
 						}()));
 
 						break;
@@ -139,37 +155,13 @@ var ClassDependency = (function() {
 			return Object.keys(registry.get());
 		},
 		pending:  function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isPending()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
+			return functionIterate(registry.get(), addPending, []);
 		},
 		resolved: function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isResolved()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
+			return functionIterate(registry.get(), addResolved, []);
 		},
 		rejected: function() {
-			var modules = [];
-
-			functionIterate(registry.get(), function(property, value) {
-				if(value.pledge.isRejected()) {
-					modules.push(property);
-				}
-			});
-
-			return modules;
+			return functionIterate(registry.get(), addRejected, []);
 		}
 	};
 

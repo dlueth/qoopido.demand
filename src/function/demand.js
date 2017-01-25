@@ -25,6 +25,24 @@
 //=require class/loader.js
 
 global.demand = (function() {
+	function updateCacheSettings(property, value) {
+		this[property] = { weight: property.length, state: value };
+	}
+
+	function updatePatternSettings(property, value) {
+		property !== 'base' && (this[property] = new ClassPattern(property, value));
+	}
+
+	function updateModuleSettings(property, value) {
+		var temp = this[property] = this[property] || {};
+
+		singletonEvent.emit(EVENT_PRE_CONFIGURE, property, temp);
+
+		functionMerge(temp, value);
+
+		singletonEvent.emit(EVENT_POST_CONFIGURE, property, temp);
+	}
+
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,
@@ -61,15 +79,12 @@ global.demand = (function() {
 			base     = options.base,
 			pattern  = options.pattern,
 			modules  = options.modules,
-			pointer  = settings.modules,
-			temp;
+			pointer  = settings.modules;
 
 		if(validatorIsTypeOf(cache, STRING_BOOLEAN)) {
 			settings.cache[''] = { weight: 0, state: cache };
 		} else if(validatorIsObject(cache)) {
-			functionIterate(cache, function(property, value) {
-				settings.cache[property] = { weight: property.length, state: value };
-			});
+			functionIterate(cache, updateCacheSettings, settings.cache);
 		}
 
 		if(validatorIsTypeOf(version, STRING_STRING)) {
@@ -89,21 +104,11 @@ global.demand = (function() {
 		}
 
 		if(validatorIsObject(pattern)) {
-			functionIterate(pattern, function(property, value) {
-				property !== 'base' && (settings.pattern[property] = new ClassPattern(property, value));
-			});
+			functionIterate(pattern, updatePatternSettings, settings.pattern);
 		}
 
 		if(validatorIsObject(modules)) {
-			functionIterate(modules, function(property, value) {
-				temp = pointer[property] = pointer[property] || {};
-
-				singletonEvent.emit(EVENT_PRE_CONFIGURE, property, temp);
-
-				functionMerge(temp, value);
-
-				singletonEvent.emit(EVENT_POST_CONFIGURE, property, temp);
-			});
+			functionIterate(modules, updateModuleSettings, pointer);
 		}
 
 		return demand;
