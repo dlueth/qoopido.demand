@@ -28,3 +28,4 @@ exclude_paths:
 - "demo/"
 - "gulp/"
 - "genie/"
+- "LICENSE"
