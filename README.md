@@ -6,7 +6,7 @@
 [![Code Climate](https://img.shields.io/codeclimate/github/dlueth/qoopido.demand.svg?style=flat-square)](https://codeclimate.com/github/dlueth/qoopido.demand)
 [![NPM downloads](https://img.shields.io/npm/dt/qoopido.demand.svg?style=flat-square&label=npm%20downloads)](https://www.npmjs.org/package/qoopido.demand)
 
-Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of roughly **6.8kB minified and gzipped**.
+Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of **~7kB minified and gzipped**.
 
 Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled. 
 
@@ -191,6 +191,8 @@ By default demand will invalidate a modules cache under the following conditions
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a specific cache if it gets requested and is found to be invalid for any reason.
 
+When localStorage quota is exceeded while trying to cache yet another module Qoopido.demand will load a special module ```/demand/cache/dispose``` and will try to free the required space by clearing existing caches in order of last  access time, from oldest to newest.
+
 Beside the automatic cache invalidation demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following methods to control the cache:
 
 ```javascript
@@ -205,7 +207,7 @@ demand.clear.all();
 ```
 
 **Sidenote**
-> Demand does use a prefix for its localStorage keys to prevent conflicts with other scripts. Each cache will consist of two keys, one to store the ```state``` information (as JSON) and one for the actual ```value``` (source) of the module. By separating the two only a very small string will have to get parsed as JSON which could lead to performance constraints if a potentially huge module would have to get parsed this way.
+> Demand does use a prefix for its localStorage keys to prevent conflicts with other scripts. Each cache will consist of two keys, one to store the ```state``` information and one for the actual ```value``` (source) of the module. By separating the two only a very small string will have to get parsed to retrieve the state.
 
 
 ## Demanding modules
