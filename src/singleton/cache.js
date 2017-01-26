@@ -84,7 +84,6 @@ var singletonCache = (function(JSON) {
 	}
 	
 	function setState(key, state) {
-		state.demand = demand.version;
 		state.access = functionGetTimestamp();
 
 		setKey(key, JSON.stringify(state));
@@ -146,7 +145,7 @@ var singletonCache = (function(JSON) {
 					var state, id, spaceBefore;
 
 					if(enabled(dependency)) {
-						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime, size: dependency.source.length };
+						state = { version: dependency.version, size: dependency.source.length, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime, demand: demand.version };
 						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
 						emit(EVENT_PRE_CACHE, dependency, state);
