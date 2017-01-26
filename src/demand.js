@@ -42,8 +42,8 @@
 		queue     = new ClassQueue();
 		processor = new ClassProcessor(queue);
 
-		function assignModule(id, factory) {
-			provide(id, function() { return factory; });
+		function assignModule(id, module) {
+			provide(id, function() { return module; });
 		}
 
 		assignModule(MODULE_PREFIX_ABSTRACT + 'uuid', AbstractUuid);
