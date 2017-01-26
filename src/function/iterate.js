@@ -1,9 +1,11 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	UNDEFINED, FALSE
+	UNDEFINED, FALSE,
+	object
 */
 
 //=require constants.js
+//=require shortcuts.js
 
 /**
  * iterate
@@ -19,12 +21,12 @@
  * @return mixed
  */
 
-function functionIterate(object, callback, context) {
-	var properties = Object.keys(object),
+function functionIterate(source, callback, context) {
+	var properties = object.keys(source),
 		i = 0, property;
 
 	for(; (property = properties[i]) !== UNDEFINED; i++) {
-		if(callback.call(context, property, object[property]) === FALSE) {
+		if(callback.call(context, property, source[property]) === FALSE) {
 			break;
 		}
 	}

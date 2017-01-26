@@ -1,6 +1,7 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
+	object,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
 	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
@@ -9,6 +10,7 @@
 */
 
 //=require constants.js
+//=require shortcuts.js
 //=require variables.js
 //=require validator/isPositive.js
 //=require function/resolvePath.js
@@ -152,7 +154,7 @@ var ClassDependency = (function() {
 
 	ClassDependency.list = {
 		all: function() {
-			return Object.keys(registry.get());
+			return object.keys(registry.get());
 		},
 		pending:  function() {
 			return functionIterate(registry.get(), addPending, []);
