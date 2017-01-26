@@ -1,13 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	EVENT_QUEUE_ENQUEUE, EVENT_QUEUE_DEQUEUE,
-	arrayPrototypeSlice,
+	functionToArray,
 	singletonEvent,
 	AbstractUuid
 */
 
 //=require constants.js
-//=require shortcuts.js
+//=require function/toArray.js
 //=require singleton/event.js
 //=require abstract/uuid.js
 
@@ -19,7 +19,7 @@ function ClassQueue() {
 	
 ClassQueue.prototype = {
 	enqueue: function() {
-		storage[this.uuid] = storage[this.uuid].concat(arrayPrototypeSlice.call(arguments));
+		storage[this.uuid] = storage[this.uuid].concat(functionToArray(arguments));
 
 		singletonEvent.emit(EVENT_QUEUE_ENQUEUE, this.uuid);
 	},

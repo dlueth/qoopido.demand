@@ -1,8 +1,8 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
  	FUNCTION_EMPTY, NULL,
-	arrayPrototypeSlice, arrayPrototypeConcat,
-	functionDefer, functionUuid,
+	arrayPrototypeConcat,
+	functionDefer, functionUuid, functionToArray,
 	AbstractUuid
 */
 
@@ -10,6 +10,7 @@
 //=require shortcuts.js
 //=require function/defer.js
 //=require function/uuid.js
+//=require function/toArray.js
 //=require abstract/uuid.js
 
 var ClassPledge = (function() {
@@ -52,14 +53,14 @@ var ClassPledge = (function() {
 	function observe(pledge, index, properties) {
 		pledge.then(
 			function() {
-				properties.resolved[index] = arrayPrototypeSlice.call(arguments);
+				properties.resolved[index] = functionToArray(arguments);
 
 				properties.count++;
 
 				check(properties);
 			},
 			function() {
-				properties.rejected.push(arrayPrototypeSlice.call(arguments));
+				properties.rejected.push(functionToArray(arguments));
 
 				check(properties);
 			}

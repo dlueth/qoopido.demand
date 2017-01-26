@@ -1,13 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	NULL, STRING_STRING, STRING_FUNCTION, EVENT_POST_CONFIGURE,
-	arrayPrototypeSlice,
-	validatorIsTypeOf
+	validatorIsTypeOf,
+	functionToArray
 */
 
 //=require constants.js
-//=require shortcuts.js
 //=require validator/isTypeOf.js
+//=require function/toArray.js
 
 var singletonEvent = (function() {
 	var TYPE_ON         = 'on',
@@ -43,7 +43,7 @@ var singletonEvent = (function() {
 				parameter, i, item;
 
 			if(pointer) {
-				parameter = arrayPrototypeSlice.call(arguments, 2);
+				parameter = functionToArray(arguments, 2);
 
 				for(i = 0; (item = pointer[TYPE_ON][i]); i++) {
 					if(!item.filter || item.filter === filter) {

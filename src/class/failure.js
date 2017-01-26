@@ -1,17 +1,17 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID,
-	arrayPrototypeSlice
+	functionToArray
 */
 
 //=require constants.js
-//=require shortcuts.js
+//=require function/toArray.js
 
 function ClassFailure(message, module, stack) {
 	this.message = message;
 		
 	module && (this.module = module);
-	stack && (this.stack = arrayPrototypeSlice.call(stack));
+	stack && (this.stack = functionToArray(stack));
 }
 	
 ClassFailure.prototype = {
