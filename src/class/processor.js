@@ -21,7 +21,7 @@ function ClassProcessor(queue) {
 ClassProcessor.prototype = {
 	process: function() {
 		var pointer = storage[this.uuid],
-				current;
+			current;
 
 		if(pointer.queue.length) {
 			current = pointer.current = pointer.queue.dequeue();
