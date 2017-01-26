@@ -14,14 +14,14 @@ function functionResolveSourcemaps(url, source) {
 		linkElement.href = url;
 		
 		if(regexIsAbsoluteUri.test(match[2])) {
-			replacement = linkElement.protocol + '//' + linkElement.host + match[2];
+			replacement = linkElement.protocol + '//' + linkElement.host + match[3];
 		} else {
-			linkElement.pathname += '/../' + match[2];
+			linkElement.pathname += '/../' + match[3];
 			
 			replacement = linkElement.protocol + '//' + linkElement.host + linkElement.pathname;
 		}
 		
-		source = source.replace(match[0], match[1] + ' sourceMappingURL=' + replacement + '.map' + (match[3] ? ' ' + match[3] : ''));
+		source = source.replace(match[0], match[1] + ' ' + match[2] + '=' + replacement + '.map' + (match[4] ? ' ' + match[4] : ''));
 	}
 	
 	return source;

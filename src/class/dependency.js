@@ -1,6 +1,7 @@
 /* global 
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
+	object,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
 	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
@@ -9,6 +10,7 @@
 */
 
 //=require constants.js
+//=require shortcuts.js
 //=require variables.js
 //=require validator/isPositive.js
 //=require function/resolvePath.js
@@ -59,8 +61,8 @@ var ClassDependency = (function() {
 		self.lifetime = (parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.id       = (self.mock ? MOCK_PREFIX : '' ) + self.type + '!' + self.path;
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
-		self.deferred = ClassPledge.defer();
-		self.pledge   = self.deferred.pledge;
+		self.dfd      = ClassPledge.defer();
+		self.pledge   = self.dfd.pledge;
 
 		(register !== FALSE) && registry.set(self.id, self);
 
@@ -78,7 +80,7 @@ var ClassDependency = (function() {
 		lifetime: NULL,
 	 	id:       NULL,
 	 	uri:      NULL,
-		deferred: NULL,
+		dfd:      NULL,
 		pledge:   NULL,
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
@@ -100,17 +102,17 @@ var ClassDependency = (function() {
 
 				switch(uri) {
 					case DEMAND_ID:
-						dependency.deferred.resolve((function() {
+						dependency.dfd.resolve((function() {
 							return functionIterate(demand, setProperty, demand.bind(context));
 						}()));
 
 						break;
 					case PROVIDE_ID:
-						dependency.deferred.resolve(provide.bind(context));
+						dependency.dfd.resolve(provide.bind(context));
 
 						break;
 					case PATH_ID:
-						dependency.deferred.resolve(context);
+						dependency.dfd.resolve(context);
 
 						break;
 				}
@@ -123,13 +125,13 @@ var ClassDependency = (function() {
 							dependency.handler = handler;
 
 							if(dependency.mock) {
-								dependency.deferred.resolve(handler);
+								dependency.dfd.resolve(handler);
 							} else {
 								singletonCache.resolve(dependency);
 							}
 						},
 						function() {
-							dependency.deferred.reject(new ClassFailure(ERROR_LOAD + ' (handler)', self.id));
+							dependency.dfd.reject(new ClassFailure(ERROR_LOAD + ' (handler)', self.id));
 						}
 					)
 			}
@@ -152,7 +154,7 @@ var ClassDependency = (function() {
 
 	ClassDependency.list = {
 		all: function() {
-			return Object.keys(registry.get());
+			return object.keys(registry.get());
 		},
 		pending:  function() {
 			return functionIterate(registry.get(), addPending, []);

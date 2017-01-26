@@ -14,7 +14,7 @@
 	'use strict';
 
 	/* eslint-disable no-unused-vars */
-	var settings = { cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
+	var settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
 		storage  = {},
 		queue, processor;
 	/* eslint-enable no-unused-vars */
@@ -42,8 +42,8 @@
 		queue     = new ClassQueue();
 		processor = new ClassProcessor(queue);
 
-		function assignModule(id, factory) {
-			provide(id, function() { return factory; });
+		function assignModule(id, module) {
+			provide(id, function() { return module; });
 		}
 
 		assignModule(MODULE_PREFIX_ABSTRACT + 'uuid', AbstractUuid);

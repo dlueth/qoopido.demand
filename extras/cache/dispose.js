@@ -2,18 +2,32 @@
 	'use strict';
 
 	function definition(functionIterate) {
-		var PREFIX          = 'demand',
-			SUFFIX          = 'state',
-			regexMatchState = new RegExp('^\\[' + PREFIX + '\\]\\[(.+?)\\]\\[' + SUFFIX + '\\]$');
+		var PREFIX               = 'demand',
+			SUFFIX               = 'state',
+			regexMatchState      = new RegExp('^\\[' + PREFIX + '\\]\\[(.+?)\\]\\[' + SUFFIX + '\\]$'),
+			regexMatchProperties = /^(.+?),(\d+),(\d*),(.+?),(\d+)$/;
+
+		function getState(key) {
+			var state = localStorage.getItem(key),
+				matches;
+
+			if(state && (matches = state.match(regexMatchProperties))) {
+				return Array.prototype.slice.call(matches, 1);
+			}
+		}
+
+		function getKey(id) {
+			return '[' + PREFIX + '][' + id + '][' + SUFFIX + ']';
+		}
 
 		functionIterate(localStorage, function(property) {
 			var match = property.match(regexMatchState),
 				state;
 
 			if(match) {
-				state = JSON.parse(localStorage.getItem('[' + PREFIX + '][' + match[1] + '][' + SUFFIX + ']'));
+				state = getState(getKey(match[1]));
 
-				if(!state.access) {
+				if(!state[4]) {
 					demand.clear.path(match[1]);
 				}
 			}
@@ -24,26 +38,26 @@
 				state;
 
 			if(match) {
-				state    = JSON.parse(localStorage.getItem('[' + PREFIX + '][' + match[1] + '][' + SUFFIX + ']'));
-				state.id = match[1];
+				state    = getState(getKey(match[1]));
+				state[5] = match[1];
 
 				this.push(state);
 			}
 		}
 
 		function compareAccess(a, b) {
-			if(a.access < b.access) {
+			if(a[4] < b[4]) {
 				return -1;
 			}
 
-			if(a.access > b.access) {
+			if(a[4] > b[4]) {
 				return 1;
 			}
 
 			return 0;
 		}
 
-		return function cacheDispose(bytes) {
+		return function cacheDispose(size) {
 			var states = [],
 				state;
 
@@ -51,11 +65,11 @@
 
 			states.sort(compareAccess);
 
-			while(bytes > 0 && states.length) {
+			while(size > 0 && states.length) {
 				state  = states.shift();
-				bytes -= state.size;
+				size  -= state[1];
 
-				demand.clear.path(state.id);
+				demand.clear.path(state[5]);
 			}
 		};
 	}

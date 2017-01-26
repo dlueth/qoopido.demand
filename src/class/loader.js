@@ -27,12 +27,12 @@ function ClassLoader(dependency) {
 
 			singletonEvent.emit(EVENT_POST_REQUEST, dependency.type, dependency);
 		} else {
-			dependency.deferred.reject(new ClassFailure(ERROR_LOAD + ' (content-type)', dependency.id));
+			dependency.dfd.reject(new ClassFailure(ERROR_LOAD + ' (content-type)', dependency.id));
 		}
 	}
 
 	function reject(status) {
-		dependency.deferred.reject(new ClassFailure(ERROR_LOAD + (status ? ' (status)' : ''), dependency.id));
+		dependency.dfd.reject(new ClassFailure(ERROR_LOAD + (status ? ' (status)' : ''), dependency.id));
 	}
 	
 	function addUrlParam(url, param, value) {

@@ -53,7 +53,7 @@ var pluginGenie = (function() {
 		var i = 0, dependency;
 
 		for(; (dependency = this[i]); i++) {
-			dependency.deferred.resolve(arguments[i]);
+			dependency.dfd.resolve(arguments[i]);
 		}
 	}
 
@@ -61,7 +61,7 @@ var pluginGenie = (function() {
 		var i = 0, dependency;
 
 		for(; (dependency = this[i]); i++) {
-			dependency.deferred.reject(new ClassFailure(ERROR_RESOLVE, dependency.id));
+			dependency.dfd.reject(new ClassFailure(ERROR_RESOLVE, dependency.id));
 		}
 	}
 

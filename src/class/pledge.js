@@ -1,8 +1,8 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
  	FUNCTION_EMPTY, NULL,
-	arrayPrototypeSlice, arrayPrototypeConcat,
-	functionDefer, functionUuid,
+	arrayPrototypeConcat,
+	functionDefer, functionUuid, functionToArray,
 	AbstractUuid
 */
 
@@ -10,6 +10,7 @@
 //=require shortcuts.js
 //=require function/defer.js
 //=require function/uuid.js
+//=require function/toArray.js
 //=require abstract/uuid.js
 
 var ClassPledge = (function() {
@@ -39,9 +40,9 @@ var ClassPledge = (function() {
 			result = pointer.handler.apply(NULL, properties.value);
 
 			if(result && typeof result.then === 'function') {
-				result.then(pointer.deferred.resolve, pointer.deferred.reject);
+				result.then(pointer.dfd.resolve, pointer.dfd.reject);
 			} else {
-				pointer.deferred[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
+				pointer.dfd[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
 			}
 		}
 
@@ -52,14 +53,14 @@ var ClassPledge = (function() {
 	function observe(pledge, index, properties) {
 		pledge.then(
 			function() {
-				properties.resolved[index] = arrayPrototypeSlice.call(arguments);
+				properties.resolved[index] = functionToArray(arguments);
 
 				properties.count++;
 
 				check(properties);
 			},
 			function() {
-				properties.rejected.push(arrayPrototypeSlice.call(arguments));
+				properties.rejected.push(functionToArray(arguments));
 
 				check(properties);
 			}
@@ -68,9 +69,9 @@ var ClassPledge = (function() {
 
 	function check(properties) {
 		if(properties.count === properties.total) {
-			properties.deferred.resolve.apply(NULL, arrayPrototypeConcat.apply([], properties.resolved));
+			properties.dfd.resolve.apply(NULL, arrayPrototypeConcat.apply([], properties.resolved));
 		} else if(properties.rejected.length + properties.count === properties.total) {
-			properties.deferred.reject.apply(NULL, arrayPrototypeConcat.apply([], properties.rejected));
+			properties.dfd.reject.apply(NULL, arrayPrototypeConcat.apply([], properties.rejected));
 		}
 	}
 
@@ -91,16 +92,16 @@ var ClassPledge = (function() {
 		},
 		then: function(resolveListener, rejectListener) {
 			var properties = storage[this.uuid],
-				deferred   = ClassPledge.defer();
+				dfd        = ClassPledge.defer();
 
-			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, deferred: deferred });
-			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, deferred: deferred });
+			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, dfd: dfd });
+			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, dfd: dfd });
 
 			if(properties.state !== PLEDGE_PENDING) {
 				functionDefer(properties.handle);
 			}
 
-			return deferred.pledge;
+			return dfd.pledge;
 		},
 		isPending: function() {
 			return storage[this.uuid].state === PLEDGE_PENDING;
@@ -125,35 +126,35 @@ var ClassPledge = (function() {
 	};
 
 	ClassPledge.all = function(pledges) {
-		var deferred   = ClassPledge.defer(),
+		var dfd = ClassPledge.defer(),
 			properties, i = 0, pledge;
 		
 		if(pledges.length) {
-			properties = (storage[functionUuid()] = { deferred: deferred, resolved: [], rejected: [], total: pledges.length, count: 0 })
+			properties = (storage[functionUuid()] = { dfd: dfd, resolved: [], rejected: [], total: pledges.length, count: 0 })
 			
 			for(; pledge = pledges[i]; i++) {
 				observe(pledge, i, properties)
 			}
 		} else {
-			deferred.resolve();
+			dfd.resolve();
 		}
 
-		return deferred.pledge;
+		return dfd.pledge;
 	};
 
 	ClassPledge.race = function(pledges) {
-		var deferred = ClassPledge.defer(),
+		var dfd = ClassPledge.defer(),
 			i = 0, pledge;
 
 		for(; pledge = pledges[i]; i++) {
-			pledge.then(deferred.resolve, deferred.reject);
+			pledge.then(dfd.resolve, dfd.reject);
 		}
 		
 		if(!pledges.length) {
-			deferred.resolve();
+			dfd.resolve();
 		}
 
-		return deferred.pledge;
+		return dfd.pledge;
 	};
 
 	return ClassPledge.extends(AbstractUuid);

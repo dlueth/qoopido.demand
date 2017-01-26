@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
-	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId,
+	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId, functionToArray,
 	ClassDependency,
 	singletonEvent
 */
@@ -14,13 +14,15 @@
 //=require function/iterate.js
 //=require function/defer.js
 //=require function/resolveId.js
+//=require function/toArray.js
 //=require singleton/event.js
 
-var singletonCache = (function(JSON) {
+var singletonCache = (function() {
 	var STORAGE_PREFIX         = '[' + DEMAND_ID + ']',
 		STORAGE_SUFFIX_STATE   = '[state]',
 		STORAGE_SUFFIX_VALUE   = '[value]',
 		regexMatchState        = new RegExp('^' + functionEscapeRegex(STORAGE_PREFIX) + '\\[(.+?)\\]' + functionEscapeRegex(STORAGE_SUFFIX_STATE) + '$'),
+		regexMatchProperties   = /^(.+?),(\d+),(\d*),(.+?),(\d+)$/,
 		supportsLocalStorage   = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return FALSE; } }()),
 		localStorage           = supportsLocalStorage ? global.localStorage : NULL,
 		supportsRemainingSpace = supportsLocalStorage && 'remainingSpace' in localStorage,
@@ -34,7 +36,7 @@ var singletonCache = (function(JSON) {
 			});
 		})
 		.on(EVENT_CACHE_EXCEED, function(dependency) {
-			demand('-!/demand/cache/dispose').then(function(cacheDispose) {
+			demand('-!/' + DEMAND_ID + '/cache/dispose').then(function(cacheDispose) {
 				functionDefer(function() {
 					cacheDispose(dependency.source.length);
 
@@ -80,14 +82,18 @@ var singletonCache = (function(JSON) {
 	}
 	
 	function getState(key) {
-		return JSON.parse(getKey(key));
+		var state = getKey(key),
+			matches;
+
+		if(state && (matches = state.match(regexMatchProperties))) {
+			return functionToArray(matches, 1);
+		}
 	}
 	
 	function setState(key, state) {
-		state.demand = demand.version;
-		state.access = functionGetTimestamp();
+		state[4] = functionGetTimestamp();
 
-		setKey(key, JSON.stringify(state));
+		setKey(key, state.join(','));
 	}
 
 	function emit(event, dependency, state) {
@@ -99,136 +105,98 @@ var singletonCache = (function(JSON) {
 	}
 
 	Cache.prototype = {
-		get: (function() {
-			if(supportsLocalStorage) {
-				return function get(dependency) {
-					var id, state;
+		get:     supportsLocalStorage ? function(dependency) {
+											var id, state;
 
-					if(enabled(dependency)) {
-						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
-						state = getState(id + STORAGE_SUFFIX_STATE);
-						
-						if(state && state.version === dependency.version && ((!state.expires && !dependency.lifetime) || state.expires > functionGetTimestamp())) {
-							dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
-							
-							functionDefer(function() {
-								setState(id + STORAGE_SUFFIX_STATE, state);
-							});
+											if(enabled(dependency)) {
+												id    = STORAGE_PREFIX + '[' + dependency.id + ']';
+												state = getState(id + STORAGE_SUFFIX_STATE);
 
-							return TRUE;
-						}
-					}
-				};
-			} else {
-				return FUNCTION_EMPTY;
-			}
-		}()),
-		resolve: (function() {
-			if(supportsLocalStorage) {
-				return function resolve(dependency) {
-					var self = this;
-					
-					if(self.get(dependency)) {
-						emit(EVENT_CACHE_HIT, dependency);
-					} else {
-						emit(EVENT_CACHE_MISS, dependency);
-					}
-				};
-			} else {
-				return function resolve(dependency) {
-					emit(EVENT_CACHE_MISS, dependency);
-				};
-			}
-		}()),
-		set: (function() {
-			if(supportsLocalStorage) {
-				return function set(dependency) {
-					var state, id, spaceBefore;
+												if(state && state[0] === dependency.version && ((!state[2] && !dependency.lifetime) || state[2] > functionGetTimestamp())) {
+													dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
 
-					if(enabled(dependency)) {
-						state = { version: dependency.version, expires: dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : dependency.lifetime, size: dependency.source.length };
-						id    = STORAGE_PREFIX + '[' + dependency.id + ']';
+													functionDefer(function() {
+														setState(id + STORAGE_SUFFIX_STATE, state);
+													});
 
-						emit(EVENT_PRE_CACHE, dependency, state);
-						
-						try {
-							spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
+													return TRUE;
+												}
+											}
+										} : FUNCTION_EMPTY,
+		resolve: supportsLocalStorage ? function(dependency) {
+											var self = this;
 
-							setKey(id + STORAGE_SUFFIX_VALUE, dependency.source);
-							setState(id + STORAGE_SUFFIX_STATE, state);
+											if(self.get(dependency)) {
+												emit(EVENT_CACHE_HIT, dependency);
+											} else {
+												emit(EVENT_CACHE_MISS, dependency);
+											}
+										} : function(dependency) { emit(EVENT_CACHE_MISS, dependency); },
+		set:     supportsLocalStorage ? function(dependency) {
+											var state, id, spaceBefore;
 
-							// strict equality check with "===" is required due to spaceBefore might be "0"
-							if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-								throw new Error('QUOTA_EXCEEDED_ERR');
-							}
+											if(enabled(dependency)) {
+												state = [ dependency.version, dependency.source.length, dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : NULL, demand.version ];
+												id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
-							emit(EVENT_POST_CACHE, dependency, state);
-						} catch(error) {
-							emit(EVENT_CACHE_EXCEED, dependency);
-						}
-					}
-				};
-			} else {
-				return FUNCTION_EMPTY;
-			}
-		}()),
+												emit(EVENT_PRE_CACHE, dependency, state);
+
+												try {
+													spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
+
+													setKey(id + STORAGE_SUFFIX_VALUE, dependency.source);
+													setState(id + STORAGE_SUFFIX_STATE, state);
+
+													// strict equality check with "===" is required due to spaceBefore might be "0"
+													if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
+														throw new Error();
+													}
+
+													emit(EVENT_POST_CACHE, dependency, state);
+												} catch(error) {
+													emit(EVENT_CACHE_EXCEED, dependency);
+												}
+											}
+										} : FUNCTION_EMPTY,
 		clear: {
-			path: (function() {
-				if(supportsLocalStorage) {
-					return function path(path) {
-						var id  = functionResolveId(path),
-							key = STORAGE_PREFIX + '[' + id + ']';
+			path:    supportsLocalStorage ? function(path) {
+												var id  = functionResolveId(path),
+													key = STORAGE_PREFIX + '[' + id + ']';
 
-						if(getKey(key + STORAGE_SUFFIX_STATE)) {
-							setKey(key + STORAGE_SUFFIX_STATE);
-							setKey(key + STORAGE_SUFFIX_VALUE);
+												if(getKey(key + STORAGE_SUFFIX_STATE)) {
+													setKey(key + STORAGE_SUFFIX_STATE);
+													setKey(key + STORAGE_SUFFIX_VALUE);
 
-							emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
-						}
-					}
-				} else {
-					return FUNCTION_EMPTY;
-				}
-			}()),
-			all: (function() {
-				if(supportsLocalStorage) {
-					return function all() {
-						var match;
+													emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
+												}
+											} : FUNCTION_EMPTY,
+			all:     supportsLocalStorage ? function() {
+												var match;
 
-						functionIterate(localStorage, function(property) {
-							match = property.match(regexMatchState);
+												functionIterate(localStorage, function(property) {
+													match = property.match(regexMatchState);
 
-							match && this.path(match[1]);
-						}, this);
-					}
-				} else {
-					return FUNCTION_EMPTY;
-				}
-			}()),
-			expired: (function() {
-				if(supportsLocalStorage) {
-					return function expired() {
-						var self = this,
-							match, state;
+													match && this.path(match[1]);
+												}, this);
+											} : FUNCTION_EMPTY,
+			expired: supportsLocalStorage ? function() {
+												var self = this,
+													match, state;
 
-						functionIterate(localStorage, function(property) {
-							match = property.match(regexMatchState);
+												functionIterate(localStorage, function(property) {
+													match = property.match(regexMatchState);
 
-							if(match) {
-								state = getState(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE);
+													if(match) {
+														state = getState(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE);
 
-								if(state && state.expires > 0 && state.expires <= functionGetTimestamp()) {
-									self.path(match[1]);
-								}
-							}
-						}, this);
-					}
-				} else {
-					return FUNCTION_EMPTY;
-				}
-			}())
+														if(state && state[2] > 0 && state[2] <= functionGetTimestamp()) {
+															self.path(match[1]);
+														}
+													}
+												}, this);
+											} : FUNCTION_EMPTY
 		}
 	};
 
 	return (cache = new Cache());
-}(JSON));
+}());

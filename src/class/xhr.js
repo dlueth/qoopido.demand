@@ -20,14 +20,14 @@ var ClassXhr = (function(XMLHttpRequest) {
 	}
 	
 	return function ClassXhr(url) {
-		var deferred        = ClassPledge.defer(),
+		var dfd             = ClassPledge.defer(),
 			xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
 			boundCheckState = checkState.bind(xhr),
 			timeout         = settings.timeout,
 			pointer;
 
 		xhr.ontimeout = xhr.onerror = xhr.onabort = function() {
-			deferred.reject(xhr.status);
+			dfd.reject(xhr.status);
 		};
 		xhr.onprogress = xhr.onreadystatechange = function() {
 			clearTimeout(pointer);
@@ -38,9 +38,9 @@ var ClassXhr = (function(XMLHttpRequest) {
 			pointer = clearTimeout(pointer);
 
 			if(!('status' in xhr) || xhr.status === 200) {
-				deferred.resolve(xhr.responseText, xhr.getResponseHeader && xhr.getResponseHeader('content-type'));
+				dfd.resolve(xhr.responseText, xhr.getResponseHeader && xhr.getResponseHeader('content-type'));
 			} else {
-				deferred.reject(xhr.status);
+				dfd.reject(xhr.status);
 			}
 		};
 
@@ -49,6 +49,6 @@ var ClassXhr = (function(XMLHttpRequest) {
 		
 		pointer = setTimeout(boundCheckState, timeout);
 		
-		return deferred.pledge;
+		return dfd.pledge;
 	};
 }(XMLHttpRequest));

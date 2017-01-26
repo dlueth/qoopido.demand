@@ -1,15 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
-	arrayPrototypeSlice,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf,
-	functionIterate, functionMerge, functionDefer,
+	functionIterate, functionMerge, functionDefer, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
 	singletonEvent, singletonCache
 */
 
 //=require constants.js
-//=require shortcuts.js
 //=require validator/isTypeOf.js
 //=require validator/isObject.js
 //=require validator/isPositive.js
@@ -17,6 +15,7 @@
 //=require function/iterate.js
 //=require function/merge.js
 //=require function/defer.js
+//=require function/toArray.js
 //=require singleton/event.js
 //=require singleton/cache.js
 //=require class/pledge.js
@@ -44,9 +43,9 @@ global.demand = (function() {
 	}
 
 	function demand() {
-		var dependencies = arrayPrototypeSlice.call(arguments),
+		var dependencies = functionToArray(arguments),
 			context      = this !== global ? this : NULL,
-			i = 0, uri, deferred, result;
+			i = 0, uri, dfd, result;
 		
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
 		
@@ -54,9 +53,9 @@ global.demand = (function() {
 			if(validatorIsTypeOf(uri, STRING_STRING)) {
 				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 			} else {
-				dependencies[i] = (deferred = ClassPledge.defer()).pledge;
-				
-				deferred.resolve(uri);
+				dependencies[i] = (dfd = ClassPledge.defer()).pledge;
+
+				dfd.resolve(uri);
 			}
 		}
 		

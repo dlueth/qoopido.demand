@@ -18,5 +18,5 @@
 		return new (HandlerText.extends(abstractHandler));
 	}
 
-	provide([ '/demand/abstract/handler' ],definition);
+	provide([ '/demand/abstract/handler' ], definition);
 }());
