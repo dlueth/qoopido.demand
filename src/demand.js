@@ -14,7 +14,7 @@
 	'use strict';
 
 	/* eslint-disable no-unused-vars */
-	var settings = { cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
+	var settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
 		storage  = {},
 		queue, processor;
 	/* eslint-enable no-unused-vars */
