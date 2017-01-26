@@ -33,11 +33,11 @@ global.provide = function provide() {
 			demand
 				.apply(module.path, dependencies)
 				.then(
-					function() { module.deferred.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
-					function() { module.deferred.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
+					function() { module.dfd.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
+					function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
 				);
 		} else {
-			module.deferred.resolve(isFunction ? definition() : definition);
+			module.dfd.resolve(isFunction ? definition() : definition);
 		}
 	} else {
 		/* eslint-disable no-console */

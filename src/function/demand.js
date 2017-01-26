@@ -46,7 +46,7 @@ global.demand = (function() {
 	function demand() {
 		var dependencies = arrayPrototypeSlice.call(arguments),
 			context      = this !== global ? this : NULL,
-			i = 0, uri, deferred, result;
+			i = 0, uri, dfd, result;
 		
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
 		
@@ -54,9 +54,9 @@ global.demand = (function() {
 			if(validatorIsTypeOf(uri, STRING_STRING)) {
 				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
 			} else {
-				dependencies[i] = (deferred = ClassPledge.defer()).pledge;
-				
-				deferred.resolve(uri);
+				dependencies[i] = (dfd = ClassPledge.defer()).pledge;
+
+				dfd.resolve(uri);
 			}
 		}
 		

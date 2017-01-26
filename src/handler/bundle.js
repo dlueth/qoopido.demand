@@ -69,14 +69,14 @@ var handlerBundle = (function() {
 		validate: handlerModule.validate,
 		onPreProcess: function(dependency) {
 			var source       = dependency.source,
-				deferred     = dependency.deferred,
+				dfd          = dependency.dfd,
 				dependencies = settings[dependency.path],
 				type, match, pledges, temp, i;
 
 			dependency.enqueue = false;
 
 			function reject() {
-				deferred.reject(new ClassFailure(ERROR_RESOLVE, dependency.id, arguments));
+				dfd.reject(new ClassFailure(ERROR_RESOLVE, dependency.id, arguments));
 			}
 
 			if(dependencies && (type = getType(dependencies))) {
@@ -110,7 +110,7 @@ var handlerBundle = (function() {
 							queue.enqueue.apply(queue, dependencies);
 						}
 
-						ClassPledge.all(pledges).then(deferred.resolve, reject);
+						ClassPledge.all(pledges).then(dfd.resolve, reject);
 					},
 					reject
 				);
