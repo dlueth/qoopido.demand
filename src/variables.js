@@ -13,4 +13,4 @@ var regexIsAbsoluteUri  = /^(http(s?):)?\/\//i,
 	regexMatchSourcemap = /((?:\/\/|\/\*)#)\s*sourceMappingURL\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map(?:\s+)?(\*\/)?/g,
 	regexMatchBaseUrl   = new RegExp('^' + functionEscapeRegex(functionResolveUrl('/'))),
 	regexMatchInternal  = new RegExp('^' + DEMAND_ID + '|' + PROVIDE_ID + '|' + PATH_ID + '$'),
-	regexMatchParameter = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(\d+\.\d+.\d+))?(?:#(\d+))?!/;
+	regexMatchParameter = /^(mock:)?([+-])?((?:[-\w]+\/?)+)?(?:@(.+?))?(?:#(\d+))?!/;
