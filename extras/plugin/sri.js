@@ -599,7 +599,7 @@
 
 				if(options = isEnabled(dependency.path)) {
 					if(hash(options.type, dependency.source) !== options.hash) {
-						dependency.deferred.reject(new Failure('error resolving (sri)', dependency.id));
+						dependency.dfd.reject(new Failure('error resolving (sri)', dependency.id));
 					}
 				}
 			});

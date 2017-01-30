@@ -10,9 +10,9 @@
 			});
 
 		function resolve() {
-			var self     = this,
-				deferred = self.deferred,
-				probe    = settings[self.path] && settings[self.path].probe,
+			var self  = this,
+				dfd   = self.dfd,
+				probe = settings[self.path] && settings[self.path].probe,
 				result;
 
 			handlerModule.process(self);
@@ -20,7 +20,7 @@
 			if(probe && (result = probe())) {
 				provide(function() { return result; });
 			} else {
-				deferred.reject(new Failure('error probing', self.path));
+				dfd.reject(new Failure('error probing', self.path));
 			}
 		}
 
@@ -44,7 +44,7 @@
 						.then(
 							boundResolve,
 							function() {
-								dependency.deferred.reject(new Failure('error resolving', dependency.path, arguments));
+								dependency.dfd.reject(new Failure('error resolving', dependency.path, arguments));
 							}
 						)
 				}
