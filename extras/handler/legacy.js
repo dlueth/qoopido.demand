@@ -37,7 +37,7 @@
 				}
 			},
 			onPreProcess: function(dependency) {
-				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;;
+				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
 
 				if(dependencies && typeof dependency.enqueue === 'boolean') {
 					dependency.enqueue = demand.apply(null, dependencies);
