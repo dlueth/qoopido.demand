@@ -10,9 +10,9 @@
 			});
 
 		function resolve() {
-			var self     = this,
-				deferred = self.deferred,
-				probe    = settings[self.path] && settings[self.path].probe,
+			var self  = this,
+				dfd   = self.dfd,
+				probe = settings[self.path] && settings[self.path].probe,
 				result;
 
 			handlerModule.process(self);
@@ -20,18 +20,31 @@
 			if(probe && (result = probe())) {
 				provide(function() { return result; });
 			} else {
-				deferred.reject(new Failure('error probing', self.path));
+				dfd.reject(new Failure('error probing', self.path));
 			}
 		}
 
 		function HandlerLegacy() {}
 
 		HandlerLegacy.prototype = {
-			onPreProcess: function(dependency) {
+			onPreRequest: function(dependency) {
 				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
+
+				handlerModule.onPreRequest(dependency);
 
 				if(dependencies) {
 					dependency.enqueue = demand.apply(null, dependencies);
+				}
+			},
+			onPreProcess: function(dependency) {
+				var dependencies;
+
+				if(!dependency.enqueue) {
+					dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
+
+					if(dependencies) {
+						dependency.enqueue = demand.apply(null, dependencies);
+					}
 				}
 			},
 			process: function(dependency) {
@@ -44,7 +57,7 @@
 						.then(
 							boundResolve,
 							function() {
-								dependency.deferred.reject(new Failure('error resolving', dependency.path, arguments));
+								dependency.dfd.reject(new Failure('error resolving', dependency.path, arguments));
 							}
 						)
 				}
