@@ -37,14 +37,10 @@
 				}
 			},
 			onPreProcess: function(dependency) {
-				var dependencies;
+				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;;
 
-				if(!dependency.enqueue) {
-					dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
-
-					if(dependencies) {
-						dependency.enqueue = demand.apply(null, dependencies);
-					}
+				if(dependencies && typeof dependency.enqueue === 'boolean') {
+					dependency.enqueue = demand.apply(null, dependencies);
 				}
 			},
 			process: function(dependency) {
