@@ -27,11 +27,24 @@
 		function HandlerLegacy() {}
 
 		HandlerLegacy.prototype = {
-			onPreProcess: function(dependency) {
+			onPreRequest: function(dependency) {
 				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
+
+				handlerModule.onPreRequest(dependency);
 
 				if(dependencies) {
 					dependency.enqueue = demand.apply(null, dependencies);
+				}
+			},
+			onPreProcess: function(dependency) {
+				var dependencies;
+
+				if(!dependency.enqueue) {
+					dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
+
+					if(dependencies) {
+						dependency.enqueue = demand.apply(null, dependencies);
+					}
 				}
 			},
 			process: function(dependency) {
