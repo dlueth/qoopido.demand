@@ -73,7 +73,7 @@ var handlerBundle = (function() {
 				dependencies = settings[dependency.path],
 				type, match, pledges, temp, i;
 
-			dependency.enqueue = false;
+			dependency.enqueue = FALSE;
 
 			function reject() {
 				dfd.reject(new ClassFailure(ERROR_RESOLVE, dependency.id, arguments));
