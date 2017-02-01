@@ -56,7 +56,7 @@
 			pattern: {
 				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
-				'/jquery/ui':         '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min',
+				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
 				'/leaflet':          '//cdn.jsdelivr.net/leaflet/0.7.3/leaflet.js',
 				'/velocity+leaflet': '//cdn.jsdelivr.net/g/velocity@1.2.3,leaflet@0.7.3'
@@ -180,11 +180,11 @@
 								log('demand', '/app/js/simple', 'rejected');
 							}
 						),
-					// load text (HTML in this case)
-					demand('text!../html/dummy.html')
+					// load html
+					demand('html!../html/dummy')
 						.then(
 							function(appHtmlDummy) {
-								log('demand', '/app/html/dummy', 'resolved', 'text, cookie, compress, sri');
+								log('demand', '/app/html/dummy', 'resolved', 'html, cookie, compress, sri');
 							},
 							function() {
 								log('demand', '/app/html/dummy', 'rejected');
@@ -242,6 +242,16 @@
 							function() {
 								log('demand', '/nucleus/dom/element', 'rejected');
 								log('demand', '/nucleus/dom/collection', 'rejected');
+							}
+						),
+					// load components
+					demand('component!/app/component/example')
+						.then(
+							function(primaryModule, secondaryModule, primaryCss, primaryHtml) {
+								log('demand', '/app/component/example', 'resolved', 'component, 2 modules, CSS & HTML');
+							},
+							function() {
+								log('demand', '/app/component/example', 'rejected');
 							}
 						)
 				])
