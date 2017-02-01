@@ -4,8 +4,8 @@
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
- 	ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor
-	handlerModule, handlerBundle,
+	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor,
+	handlerModule, handlerBundle, handlerComponent,
  	pluginGenie
 */
 
@@ -36,6 +36,7 @@
 		//=require class/processor.js
 		//=require handler/module.js
 		//=require handler/bundle.js
+		//=require handler/component.js
 		//=require plugin/genie.js
 
 	// initialize
@@ -50,6 +51,7 @@
 		assignModule(MODULE_PREFIX_ABSTRACT + 'handler', abstractHandler);
 		assignModule(MODULE_PREFIX_HANDLER + 'module', handlerModule);
 		assignModule(MODULE_PREFIX_HANDLER + 'bundle', handlerBundle);
+		assignModule(MODULE_PREFIX_HANDLER + 'component', handlerComponent);
 		assignModule(MODULE_PREFIX_PLUGIN + 'genie', pluginGenie);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isTypeOf', validatorIsTypeOf);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isArray', validatorIsArray);

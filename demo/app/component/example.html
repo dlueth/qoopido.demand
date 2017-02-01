@@ -1,0 +1,31 @@
+<script type="module">
+	(function() {
+		function definition() {
+			return function() {
+				console.log('main');
+			}
+		}
+
+		provide(definition);
+	}());
+</script>
+
+<script type="module" path="secondary">
+	(function() {
+		function definition() {
+			return function() {
+				console.log('secondary');
+			}
+		}
+
+		provide(definition);
+	}());
+</script>
+
+<script type="css">
+	#blubb { color: #f00; }
+</script>
+
+<script type="html">
+	<h1>Headline</h1>
+</script>

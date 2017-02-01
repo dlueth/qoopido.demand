@@ -82,6 +82,7 @@ var ClassDependency = (function() {
 	 	uri:      NULL,
 		dfd:      NULL,
 		pledge:   NULL,
+		value:    NULL, // set by provide
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
 	 	url:      NULL // optional, set by Loader
@@ -94,7 +95,8 @@ var ClassDependency = (function() {
 
 	ClassDependency.resolve = function(uri, context) {
 		var isInternal = context && regexMatchInternal.test(uri),
-			dependency = isInternal ? this.get(PREFIX_INTERNAL + context + '/' + uri) : this.get(uri, context);
+			dependency = isInternal ? this.get(PREFIX_INTERNAL + context + '/' + uri) : this.get(uri, context),
+			value;
 
 		if(!dependency) {
 			if(isInternal) {
@@ -102,20 +104,22 @@ var ClassDependency = (function() {
 
 				switch(uri) {
 					case DEMAND_ID:
-						dependency.dfd.resolve((function() {
+						value = (function() {
 							return functionIterate(demand, setProperty, demand.bind(context));
-						}()));
+						}());
 
 						break;
 					case PROVIDE_ID:
-						dependency.dfd.resolve(provide.bind(context));
+						value = provide.bind(context);
 
 						break;
 					case PATH_ID:
-						dependency.dfd.resolve(context);
+						value = context;
 
 						break;
 				}
+
+				dependency.dfd.resolve(value);
 			} else {
 				dependency = new ClassDependency(uri, context);
 
