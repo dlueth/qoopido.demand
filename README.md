@@ -389,7 +389,7 @@ In some cases you might want to load (e.g.) a CSS resource via ```demand``` (dir
 
 
 ## More about handlers
-```demand``` comes with handlers for ```modules```, ```legacy```scripts, ```bundles```, ```text```, ```css``` and ```json```. Handlers have four objectives:
+```demand``` comes with handlers for ```modules```, ```components```, ```legacy```scripts, ```bundles```, ```text```, ```html```, ```css``` and ```json```. Handlers have four objectives:
 
 - provide an optional function named ```onPreRequest``` that modifies the final URL (e.g. add a file extension like ```.js```) before requesting it via XHR/XDR
 - provide an optional function named ```onPostRequest``` that, if present, handles necessary conversion of the loaded source (e.g. CSS paths that are normally relative to the CSS-file path)
