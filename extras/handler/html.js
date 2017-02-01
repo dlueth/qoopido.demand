@@ -24,6 +24,11 @@
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
+			onPreRequest: function(dependency) {
+				var url  = dependency.url;
+
+				dependency.url = url.slice(-5) !== '.html' ? url + '.html' : url;
+			},
 			process: function(dependency) {
 				provide(function() { return parseHtml(dependency.source); });
 			}
