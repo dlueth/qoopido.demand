@@ -26,6 +26,9 @@ var handlerComponent = (function() {
 			
 			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 		},
+		onPostRequest: function(dependency) {
+			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
+		},
 		onPreProcess: function(dependency) {
 			var context   = dependency.path,
 				dfd       = dependency.dfd,
