@@ -1,11 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	FALSE, EVENT_POST_REQUEST, ERROR_RESOLVE,
+	functionResolveSourcemaps,
 	abstractHandler,
 	ClassDependency, ClassPledge, ClassFailure
 */
 
 //=require constants.js
+//=require function/resolveSourcemaps.js
 //=require abstract/handler.js
 //=require class/dependency.js
 //=require class/pledge.js
@@ -25,6 +27,9 @@ var handlerComponent = (function() {
 			var pathname = dependency.url.pathname;
 			
 			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
+		},
+		onPostRequest: function(dependency) {
+			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
 		},
 		onPreProcess: function(dependency) {
 			var context   = dependency.path,
