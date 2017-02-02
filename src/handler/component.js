@@ -1,11 +1,13 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	FALSE, EVENT_POST_REQUEST, ERROR_RESOLVE,
+	functionResolveSourcemaps,
 	abstractHandler,
 	ClassDependency, ClassPledge, ClassFailure
 */
 
 //=require constants.js
+//=require function/resolveSourcemaps.js
 //=require abstract/handler.js
 //=require class/dependency.js
 //=require class/pledge.js
