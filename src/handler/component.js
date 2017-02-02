@@ -12,7 +12,8 @@
 //=require class/Failure.js
 
 var handlerComponent = (function() {
-	var regexMatchType = /^text\/.+$/;
+	var suffix         = '.html',
+		regexMatchType = /^text\/.+$/;
 
 	function HandlerComponent() {}
 
@@ -21,9 +22,9 @@ var handlerComponent = (function() {
 			return regexMatchType.test(type);
 		},
 		onPreRequest: function(dependency) {
-			var url  = dependency.url;
-
-			dependency.url = url.slice(-5) !== '.html' ? url + '.html' : url;
+			var pathname = dependency.url.pathname;
+			
+			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 		},
 		onPreProcess: function(dependency) {
 			var context   = dependency.path,

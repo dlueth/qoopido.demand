@@ -2,7 +2,8 @@
 	'use strict';
 
 	function definition(abstractHandler, functionResolveSourcemaps) {
-		var target              = document.getElementsByTagName('head')[0],
+		var suffix              = '.css',
+			target              = document.getElementsByTagName('head')[0],
 			resolver            = document.createElement('a'),
 			regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
 			regexMatchImport    = /@import\s+["'](.+?)["']/gi,
@@ -31,9 +32,9 @@
 				return regexMatchType.test(type);
 			},
 			onPreRequest: function(dependency) {
-				var url  = dependency.url;
-
-				dependency.url = url.slice(-4) !== '.css' ? url + '.css' : url;
+				var pathname = dependency.url.pathname;
+				
+				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 			},
 			onPostRequest: function(dependency) {
 				var url     = resolveUrl(dependency.url + '/..'),

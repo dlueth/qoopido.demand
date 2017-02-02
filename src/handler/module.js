@@ -10,7 +10,8 @@
 //=require abstract/handler.js
 
 var handlerModule = (function() {
-	var target         = document.getElementsByTagName('head')[0],
+	var suffix         = '.js',
+		target         = document.getElementsByTagName('head')[0],
 		regexMatchType = /^(application|text)\/(x-)?javascript/;
 
 	function HandlerModule() {}
@@ -20,9 +21,9 @@ var handlerModule = (function() {
 			return regexMatchType.test(type);
 		},
 		onPreRequest: function(dependency) {
-			var url = dependency.url;
-
-			dependency.url = url.slice(-3) !== '.js' ? url + '.js' : url;
+			var pathname = dependency.url.pathname;
+			
+			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 		},
 		onPostRequest: function(dependency) {
 			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
