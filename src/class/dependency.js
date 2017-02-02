@@ -4,7 +4,7 @@
 	object,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
-	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate,
+	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate, functionToArray,
 	ClassRegistry, ClassPledge, ClassFailure,
 	singletonCache
 */
@@ -17,6 +17,7 @@
 //=require function/resolveId.js
 //=require function/resolveUrl.js
 //=require function/iterate.js
+//=require function/toArray.js
 //=require class/registry.js
 //=require class/pledge.js
 //=require class/failure.js
@@ -63,6 +64,10 @@ var ClassDependency = (function() {
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
 		self.dfd      = ClassPledge.defer();
 		self.pledge   = self.dfd.pledge;
+		
+		self.pledge.then(function() {
+			self.value = functionToArray(arguments);
+		});
 
 		(register !== FALSE) && registry.set(self.id, self);
 
@@ -82,7 +87,7 @@ var ClassDependency = (function() {
 	 	uri:      NULL,
 		dfd:      NULL,
 		pledge:   NULL,
-		value:    NULL, // set by provide
+		value:    NULL,
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
 	 	url:      NULL // optional, set by Loader
