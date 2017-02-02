@@ -132,6 +132,20 @@
 			.on('preProcess',    function(dependency)        { console.log('preProcess', dependency.id); })
 			.on('postProcess',   function(dependency)        { console.log('postProcess', dependency.id); })
 		*/
+		
+		var regexCleanupSearch = /^\?/;
+		
+		function addUrlParam(url, param, value) {
+			var query;
+			
+			url.search = (query = (url.search || '').replace(regexCleanupSearch, '')) + (query ? '&' : '?') + param + '=' + value;
+			
+			return url;
+		}
+		
+		demand.on('preRequest', function(dependency) {
+			dependency.url = addUrlParam(dependency.url, 'demand', +new Date());
+		});
 
 		// provide a simple inline module without dependencies
 			function definition1() {

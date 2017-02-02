@@ -2,7 +2,8 @@
 	'use strict';
 
 	function definition(abstractHandler) {
-		var regexMatchType = /^application\/json/;
+		var suffix         = '.json',
+			regexMatchType = /^application\/json/;
 
 		function HandlerJson() {}
 
@@ -11,9 +12,9 @@
 				return regexMatchType.test(type);
 			},
 			onPreRequest: function(dependency) {
-				var url = dependency.url;
-
-				dependency.url = url.slice(-5) !== '.json' ? url + '.json' : url;
+				var pathname = dependency.url.pathname;
+				
+				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 			},
 			process: function(dependency) {
 				var data = JSON.parse(dependency.source);

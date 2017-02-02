@@ -39,10 +39,6 @@ global.provide = function provide() {
 		} else {
 			module.dfd.resolve(isFunction ? definition() : definition);
 		}
-
-		module.pledge.then(function(value) {
-			module.value = value;
-		});
 	} else {
 		/* eslint-disable no-console */
 		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));

@@ -2,7 +2,8 @@
 	'use strict';
 
 	function definition(abstractHandler) {
-		var regexMatchType = /^text\/html/,
+		var suffix         = '.html',
+			regexMatchType = /^text\/html/,
 			container      = document.createElement('body');
 
 		function parseHtml(source) {
@@ -25,9 +26,9 @@
 				return regexMatchType.test(type);
 			},
 			onPreRequest: function(dependency) {
-				var url  = dependency.url;
-
-				dependency.url = url.slice(-5) !== '.html' ? url + '.html' : url;
+				var pathname = dependency.url.pathname;
+				
+				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 			},
 			process: function(dependency) {
 				provide(function() { return parseHtml(dependency.source); });

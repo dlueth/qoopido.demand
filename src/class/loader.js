@@ -18,8 +18,7 @@
 //=require class/failure.js
 
 function ClassLoader(dependency) {
-	var regexCleanupSearch = /^\?/,
-		pattern;
+	var pattern;
 
 	function resolve(response, type) {
 		if(!type || !dependency.handler.validate || dependency.handler.validate(type)) {
@@ -34,23 +33,16 @@ function ClassLoader(dependency) {
 	function reject(status) {
 		dependency.dfd.reject(new ClassFailure(ERROR_LOAD + (status ? ' (status)' : ''), dependency.id));
 	}
-	
-	function addUrlParam(url, param, value) {
-		var query;
-		
-		linkElement.href   = url;
-		linkElement.search = (query = (linkElement.search || '').replace(regexCleanupSearch, '')) + (query ? '&' : '?') + param + '=' + value;
-		
-		return linkElement.href;
-	}
 
 	function load(location) {
 		location       = location || 0;
-		dependency.url = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
+		dependency.url = document.createElement('a');
+		
+		dependency.url.href = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
 
 		singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
 
-		new ClassXhr(addUrlParam(dependency.url, DEMAND_ID, +new Date())).then(
+		new ClassXhr(dependency.url).then(
 			resolve,
 			(
 				pattern ?
