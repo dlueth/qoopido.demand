@@ -65,7 +65,7 @@ var handlerComponent = (function() {
 
 					for(; (module = modules[i]); i++) {
 						dependency         = ClassDependency.get(module.uri) || new ClassDependency(module.uri);
-						dependency.source  = module.source;
+						dependency.source  = functionResolveSourcemaps(dependency.url, module.source);
 						dependency.handler = arguments[i];
 
 						pledges.push(dependency.pledge);
