@@ -9,8 +9,6 @@ function ClassRegistry() {
 	this.parent.constructor.call(this);
 
 	storage[this.uuid] = {};
-
-	global.storage = storage[this.uuid];
 }
 
 ClassRegistry.prototype = {
