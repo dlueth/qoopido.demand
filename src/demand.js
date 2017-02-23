@@ -63,6 +63,7 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'iterate', functionIterate);
 		assignModule(MODULE_PREFIX_FUNCTION + 'hash', functionHash);
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
+		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
