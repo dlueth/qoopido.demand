@@ -124,16 +124,16 @@ global.demand = (function() {
 		.after(EVENT_CACHE_MISS, function(dependency) {
 			new ClassLoader(dependency);
 		})
+		.after(EVENT_POST_REQUEST, function(dependency) {
+			var pointer = dependency.handler.onPostRequest;
+
+			pointer && pointer(dependency);
+		})
 		.after(EVENT_CACHE_HIT + ' ' + EVENT_POST_REQUEST, function(dependency) {
 			singletonEvent.emit(EVENT_PRE_PROCESS, dependency.id, dependency);
 		})
 		.after(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
-	
-			pointer && pointer(dependency);
-		})
-		.after(EVENT_POST_REQUEST, function(dependency) {
-			var pointer = dependency.handler.onPostRequest;
 	
 			pointer && pointer(dependency);
 		})
