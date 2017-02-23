@@ -25,5 +25,6 @@
   "globals": {
     "demand": true,
     "provide": true
-  }
+  },
+  "root": true
 }
