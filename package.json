@@ -18,6 +18,10 @@
   "license": "MIT",
   "main": "dist/demand.js",
   "filename": "demand.js",
+  "scripts": {
+    "build": "yarn install && gulp:dist",
+    "start": "gulp watch"
+  },
   "autoupdate": {
     "source": "git",
     "target": "git://github.com/dlueth/qoopido.demand.git",
