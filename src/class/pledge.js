@@ -76,11 +76,13 @@ var ClassPledge = (function() {
 	}
 
 	function ClassPledge(executor) {
-		var self = this.parent.constructor.call(this);
+		var self = AbstractUuid.call(this);
 
 		storage[self.uuid] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
 
 		executor(resolve.bind(self), reject.bind(self));
+		
+		return self;
 	}
 
 	ClassPledge.prototype = {
