@@ -6,9 +6,11 @@
 //=require abstract/uuid.js
 
 function ClassRegistry() {
-	this.parent.constructor.call(this);
+	var self = AbstractUuid.call(this);
 
-	storage[this.uuid] = {};
+	storage[self.uuid] = {};
+	
+	return self;
 }
 
 ClassRegistry.prototype = {

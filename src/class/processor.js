@@ -9,13 +9,15 @@
 //=require abstract/uuid.js
 
 function ClassProcessor(queue) {
-	var self    = this.parent.constructor.call(this),
+	var self    = AbstractUuid.call(this),
 		pointer = storage[self.uuid] = { queue: queue, current: NULL };
 
 	demand
 		.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
 			!pointer.current && self.process();
 		});
+	
+	return self;
 }
 
 ClassProcessor.prototype = {
