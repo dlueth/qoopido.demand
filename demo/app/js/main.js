@@ -54,7 +54,7 @@
 		// example: configuration
 		demand.configure({
 			pattern: {
-				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/2.0.1/',
+				'/nucleus':          '//cdn.jsdelivr.net/qoopido.nucleus/3.0.4/',
 				'/jquery':           '//cdn.jsdelivr.net/jquery/1.11.3/jquery.min',
 				'/jquery/ui':        '//cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min',
 				'/velocity':         '//cdn.jsdelivr.net/velocity/1.2.3/velocity.min.js',
@@ -66,9 +66,9 @@
 					'/app/': function(dependencies) {
 						var fragments = [],
 							i = 0, dependency;
-
+						
 						for(; (dependency = dependencies[i]); i++) {
-							fragments.push(dependency.path);
+							fragments.push(dependency.path + '@' + dependency.version);
 						}
 
 						return '/genie/index.php?module[]=' + fragments.join('&module[]=');
@@ -81,7 +81,7 @@
 							fragments.push(dependency.path.replace(/^\/nucleus\//, '') + '.js');
 						}
 
-						return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
+						return '//cdn.jsdelivr.net/g/qoopido.nucleus@3.0.4(' + fragments.join('+') + ')';
 					}
 				},
 				'/demand/plugin/lzstring': {

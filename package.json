@@ -2,7 +2,7 @@
   "name": "qoopido.demand",
   "title": "Qoopido.demand",
   "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "homepage": "https://github.com/dlueth/qoopido.demand",
   "author": {
     "name": "Dirk Lueth",
@@ -18,6 +18,10 @@
   "license": "MIT",
   "main": "dist/demand.js",
   "filename": "demand.js",
+  "scripts": {
+    "build": "yarn install && gulp:dist",
+    "start": "gulp watch"
+  },
   "autoupdate": {
     "source": "git",
     "target": "git://github.com/dlueth/qoopido.demand.git",
