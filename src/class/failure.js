@@ -8,10 +8,14 @@
 //=require function/toArray.js
 
 function ClassFailure(message, module, stack) {
-	this.message = message;
+	var self = this;
+	
+	self.message = message;
 		
-	module && (this.module = module);
-	stack && (this.stack = functionToArray(stack));
+	module && (self.module = module);
+	stack && (self.stack = functionToArray(stack));
+	
+	return self;
 }
 	
 ClassFailure.prototype = {

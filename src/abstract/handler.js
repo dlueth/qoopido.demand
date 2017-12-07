@@ -18,5 +18,5 @@ var abstractHandler = (function() {
 		process: NULL
 	};
 
-	return new AbstractHandler();
+	return AbstractHandler;
 }());
