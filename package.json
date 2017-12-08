@@ -19,7 +19,7 @@
   "main": "dist/demand.js",
   "filename": "demand.js",
   "scripts": {
-    "build": "yarn install && gulp:dist",
+    "build": "gulp:dist",
     "start": "gulp watch"
   },
   "autoupdate": {
