@@ -1,4 +1,8 @@
 {
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "script"
+  },
   "extends": "eslint:recommended",
   "rules": {
     "no-cond-assign": 0,
