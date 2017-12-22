@@ -28,10 +28,14 @@ ClassProcessor.prototype = {
 		if(pointer.queue.length) {
 			current = pointer.current = pointer.queue.dequeue();
 
-			current.handler.process && current.handler.process(current);
-		} else {
-			pointer.current = NULL;
+			if(!current.pledge.isRejected()) {
+        current.handler.process && current.handler.process(current);
+
+        return;
+			}
 		}
+
+		pointer.current = NULL;
 	},
 	get current() {
 		return storage[this.uuid].current;
