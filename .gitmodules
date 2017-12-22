@@ -1,0 +1,6 @@
+[submodule "vendor/jsSHA"]
+	path = vendor/jsSHA
+	url = https://github.com/Caligatio/jsSHA.git
+[submodule "vendor/lz-string"]
+	path = vendor/lz-string
+	url = https://github.com/pieroxy/lz-string.git
