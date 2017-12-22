@@ -3,7 +3,6 @@
 [![GitHub version](https://img.shields.io/github/tag/dlueth/qoopido.demand.svg?style=flat-square&label=github)](https://github.com/dlueth/qoopido.demand)
 [![NPM version](https://img.shields.io/npm/v/qoopido.demand.svg?style=flat-square&label=npm)](https://www.npmjs.com/package/qoopido.demand)
 [![License](https://img.shields.io/npm/l/qoopido.demand.svg?style=flat-square)](https://github.com/dlueth/qoopido.demand)
-[![Code Climate](https://img.shields.io/codeclimate/github/dlueth/qoopido.demand.svg?style=flat-square)](https://codeclimate.com/github/dlueth/qoopido.demand)
 [![NPM downloads](https://img.shields.io/npm/dt/qoopido.demand.svg?style=flat-square&label=npm%20downloads)](https://www.npmjs.org/package/qoopido.demand)
 [![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/qoopido.demand/badge)](https://www.jsdelivr.com/package/npm/qoopido.demand)
 
@@ -377,7 +376,7 @@ Plugins have to be loaded manually by simply demanding them. They can be configu
 				'/app/do/not/compress': false
 			},
 			'/demand/plugin/sri': {
-				'/nucleus/dom/element': { type: 'sha256', hash: 'pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU=' }
+				'/nucleus/dom/element': { type: 'SHA-256', hash: 'pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU=' }
 			}
 		}
 	});

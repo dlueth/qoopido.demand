@@ -2,8 +2,7 @@ module.exports = {
 	tasks: {
 		bump: {
 			watch: [
-				"package.json",
-				"bower.json"
+				"package.json"
 			]
 		},
 		"dist": {
@@ -16,7 +15,7 @@ module.exports = {
 		include: {
 			extensions: "js",
 			hardFail: true,
-			includePaths: [ __dirname + "/../src" ]
+			includePaths: [ __dirname + "/../src", __dirname + "/.." ]
 		}
 	},
 	strings: {

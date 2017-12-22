@@ -61,12 +61,12 @@ var singletonEvent = (function() {
 			return this;
 		},
 		on: function(events, callback) {
-			addListener(TYPE_ON, events,callback);
+			addListener(TYPE_ON, events, callback);
 
 			return this;
 		},
 		after: function(events, callback) {
-			addListener(TYPE_AFTER, events,callback);
+			addListener(TYPE_AFTER, events, callback);
 
 			return this;
 		}
