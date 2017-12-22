@@ -2,10 +2,10 @@
 	jsSHA
 */
 
-(function() {
-	'use strict';
+//=include vendor/jssha/src/sha_dev.js
 
-  //=include vendor/jssha/src/sha_dev.js
+(function(global) {
+	'use strict';
 
 	function definition(path, Failure, iterate, isObject) {
 		var settings;
@@ -17,16 +17,16 @@
 				}
 			})
 			.on('postRequest', function(dependency) {
-				var options, sha;
+				var options, sha, hash;
 
 				if(options = isEnabled(dependency.path)) {
 					try {
-            sha = new jsSHA(options.type, 'TEXT');
+            sha = new global.jsSHA(options.type, 'TEXT');
 
             sha.update(dependency.source);
 
-            if(sha.getHash('HEX') !== options.hash) {
-              dependency.dfd.reject(new Failure('error resolving (sri)', dependency.id));
+            if((hash = sha.getHash('B64')) !== options.hash) {
+              dependency.dfd.reject(new Failure('hash mismatch, should be "' + options.hash + '" but is "' + hash + '" (sri)', dependency.id));
             }
 					} catch(error) {
             dependency.dfd.reject(new Failure('unsupported hashing algorithm (sri)', dependency.id));
@@ -48,8 +48,8 @@
 			return match || false;
 		}
 
-		return jsSHA;
+    return true;
 	}
 
 	provide([ 'path', '/demand/failure', '/demand/function/iterate', '/demand/validator/isObject' ], definition);
-}());
+}(this));

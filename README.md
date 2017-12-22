@@ -4,6 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/qoopido.demand.svg?style=flat-square&label=npm)](https://www.npmjs.com/package/qoopido.demand)
 [![License](https://img.shields.io/npm/l/qoopido.demand.svg?style=flat-square)](https://github.com/dlueth/qoopido.demand)
 [![NPM downloads](https://img.shields.io/npm/dt/qoopido.demand.svg?style=flat-square&label=npm%20downloads)](https://www.npmjs.org/package/qoopido.demand)
+[![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/qoopido.demand/badge)](https://www.jsdelivr.com/package/npm/qoopido.demand)
 
 Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of **~7kB minified and gzipped**.
 

@@ -91,8 +91,8 @@
 					'/app/': true
 				},
 				'/demand/plugin/sri': {
-					'/app/js/simple': { type: 'sha256', hash: 'DsUmscjFGZU+3H+7jzs+O8hcJfNkaDvgfYj5DvxH9zE=' },
-					'/app/html/dummy.html': { type: 'sha256', hash: 'SlRwOlHGx/06aQNPOeUwgfQxbmeESluIMyue3hIsW7A=' }
+					'/app/js/simple': { type: 'SHA-256', hash: 'DsUmscjFGZU+3H+7jzs+O8hcJfNkaDvgfYj5DvxH9zE=' },
+					'/app/html/dummy.html': { type: 'SHA-256', hash: 'SlRwOlHGx/06aQNPOeUwgfQxbmeESluIMyue3hIsW7A=' }
 				},
 				'/demand/handler/legacy': {
 					'/jquery': {

@@ -2,10 +2,10 @@
 	LZString
 */
 
-(function() {
-	'use strict';
+//=include vendor/lz-string/libs/lz-string.js
 
-  //=include vendor/lz-string/libs/lz-string.js
+(function(global) {
+	'use strict';
 
 	function definition(path, iterate, isObject, isTypeOf) {
 		var pattern = [ { pattern: path, weight: path.length, state: false }],
@@ -30,12 +30,12 @@
 			})
 			.on('preCache', function(dependency) {
 				if(isEnabled(dependency.path)) {
-					dependency.source = LZString.compressToUTF16(dependency.source);
+					dependency.source = global.LZString.compressToUTF16(dependency.source);
 				}
 			})
 			.on('preProcess', function(dependency) {
 				if(storage[dependency.id]) {
-					dependency.source = LZString.decompressFromUTF16(dependency.source);
+					dependency.source = global.LZString.decompressFromUTF16(dependency.source);
 				}
 			});
 
@@ -51,8 +51,8 @@
 			return match ? match.state : false;
 		}
 
-		return LZString;
+    return true;
 	}
 
 	provide([ 'path', '/demand/function/iterate', '/demand/validator/isObject', '/demand/validator/isTypeOf' ], definition);
-}());
+}(this));
