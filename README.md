@@ -375,7 +375,7 @@ Plugins have to be loaded manually by simply demanding them. They can be configu
 				'/app/do/not/compress': false
 			},
 			'/demand/plugin/sri': {
-				'/nucleus/dom/element': { type: 'sha256', hash: 'pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU=' }
+				'/nucleus/dom/element': { type: 'SHA-256', hash: 'pWpW0C5u/YafasONDfkNyRBA4ChXTsRMIk2CGi4wPaU=' }
 			}
 		}
 	});
