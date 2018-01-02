@@ -314,6 +314,8 @@ In addition to inline modules you just need some minimal boilerplate code and an
 
 This example illustrates a module named ```/app/test``` which we already know as the first dependency of the prior example. As with the inline module the ```definition``` function will receive all dependencies as arguments passed so they are in scope of the actual module.
 
+See these [gists](https://gist.github.com/search?utf8=%E2%9C%93&q=Qoopido.demand+user%3Adlueth&ref=searchresults) to find some skeletons for frequently used types of modules ;) 
+
 
 ## Path resolution
 Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
