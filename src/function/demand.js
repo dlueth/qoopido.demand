@@ -23,7 +23,8 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-global.demand = (function() {
+/*eslint no-global-assign: [2, { "exceptions": ["demand"] }]*/
+demand = global.demand = (function() {
 	function updateCacheSettings(property, value) {
 		this[property] = { weight: property.length, state: value };
 	}

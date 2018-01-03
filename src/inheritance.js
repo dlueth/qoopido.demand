@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor, functionPrototype,
+	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor,
 	ClassDescriptor
 */
 
@@ -8,6 +8,8 @@
 //=require class/descriptor.js
 
 (function() {
+	var descriptor;
+
 	function extend(parent) {
 		var self       = this,
 			prototype  = self.prototype,
@@ -25,5 +27,8 @@
 		return self;
 	}
 
-	objectDefineProperty(functionPrototype, 'extends', new ClassDescriptor(extend));
+	descriptor = new ClassDescriptor(extend);
+
+	objectDefineProperty(Function.prototype, 'extends', descriptor);
+	objectDefineProperty(global.Function.prototype, 'extends', descriptor);
 }());

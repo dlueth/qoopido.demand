@@ -11,7 +11,8 @@
 //=require class/dependency.js
 //=require class/failure.js
 
-global.provide = function provide() {
+/*eslint no-global-assign: [2, { "exceptions": ["provide"] }]*/
+provide = global.provide = function provide() {
 	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 		context      = this !== global ? this : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
@@ -24,7 +25,7 @@ global.provide = function provide() {
 
 		processor.process();
 	}
-	
+
 	if(uri) {
 		module     = module || new ClassDependency(uri, context);
 		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);

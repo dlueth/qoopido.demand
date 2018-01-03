@@ -10,13 +10,15 @@
 */
 
 /*eslint no-unused-vars: [2, { "vars": "local", "args": "none" }]*/
-(function(global, document, options, setTimeout, clearTimeout) {
+(function(global, setTimeout, clearTimeout) {
 	'use strict';
 
 	/* eslint-disable no-unused-vars */
-	var settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
+	var document = global.document,
+		options  = 'demand' in global && global.demand,
+		settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
 		storage  = {},
-		queue, processor;
+		demand, provide, queue, processor;
 	/* eslint-enable no-unused-vars */
 
 	// include inheritance
@@ -82,4 +84,4 @@
 					break;
 			}
 		}
-}(this, document, 'demand' in this && demand, setTimeout, clearTimeout));
+}(this.name === 'demand-loader' ? parent : this, setTimeout, clearTimeout));
