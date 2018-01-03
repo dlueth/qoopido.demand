@@ -12,5 +12,4 @@ var arrayPrototype                 = Array.prototype,
 	objectDefineProperty           = object.defineProperty,
 	objectGetOwnPropertyNames      = object.getOwnPropertyNames,
 	objectGetOwnPropertyDescriptor = object.getOwnPropertyDescriptor,
-	functionPrototype              = Function.prototype,
 	linkElement                    = document.createElement('a');

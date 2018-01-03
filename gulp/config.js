@@ -5,10 +5,16 @@ module.exports = {
 				"package.json"
 			]
 		},
-		"dist": {
-			"watch": [ "src/**/*.js", "extras/**/*.js" ],
-			"build": [ "src/demand.js", "extras/**/*.js" ],
-			"dest": "dist/"
+		dist: {
+			watch: [ "src/**/*.js", "extras/**/*.js" ],
+			build: [ "src/demand.js", "extras/**/*.js" ],
+			dest:  "dist/"
+		},
+		snippets: {
+			watch: [ "snippets/**/*.js", '!snippets/**/*.min.js' ],
+			build: [ "snippets/**/*.js", '!snippets/**/*.min.js' ],
+			clean: [ 'snippets/**/*.min.js' ],
+			dest:  "snippets/"
 		}
 	},
 	settings: {
