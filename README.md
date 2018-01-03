@@ -44,11 +44,21 @@ Qoopido.demand is available on GitHub as well as jsdelivr, npm and bower at the 
 Use the following minified code snippet in a standalone script tag before the closing body tag to include demand:
 
 ```javascript
-!function(a,b,c){!function(d,e,f,g,h){g=e.getElementsByTagName(f)[0],h=e.createElement(f),d.demand={url:a,main:b,settings:c},h.async=1,h.src=a,g.parentNode.insertBefore(h,g)}(window,document,"script")}
-("/src/demand.js","app/main",{base:"/demo",version:"1.0.0"});
+(function(url, main, settings) {
+	!function(e,n,t,r,s){r=n.getElementsByTagName(t)[0],s=n.createElement(t),e.demand={url:url,main:main,settings:settings},s.async=1,s.src=url,r.parentNode.insertBefore(s,r)}(window,document,"script");
+}('../dist/demand.js', 'app/main', { base: './', version: '1.0.0', cache: true }));
 ```
 
-The snippet is very similar to Google Analytics. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration object for demand.
+The snippet is very similar to Google Analytics. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration object for demand. The script tag that actually loads Qoopido.demand will be injected with its async attribute set.
+
+As an alternative to the above snippet Qoopido.demand can now also be loaded with an alternative snippet that uses an iframe. The async method above, while not blocking rendering, seems to delay the onload event at least on some browsers. The iframe method solves this minor annoyance.
+
+```javascript
+(function(url, main, settings) {
+	!function(e,t,n,o,i,d,a){e.demand={url:url,main:main,settings:settings},o=t.getElementsByTagName(n)[0],i=t.createElement("iframe"),i.src="javascript:void(0)",i.name="demand-loader",i.title="",i.role="presentation",(i.frameElement||i).style.cssText="display:none;width:0;height:0;border:0;",o.parentNode.insertBefore(i,o);try{i=i.contentWindow.document}catch(e){d=t.domain,i.src='javascript:var d=document.open();d.domain="'+d+'";void(0);',i=i.contentWindow.document}i.open()._=function(){d&&(this.domain=d),a=this.createElement(n),a.src=url,this.body.appendChild(a)},i.write('<body onload="document._();" />'),i.close()}(this,document,"script");
+}('../dist/demand.js', 'app/main', { base: './', version: '1.0.0', cache: true }));
+```
+Remember to adjust parameters according to the async method.
 
 ## Configuration
 The last parameter of the above code snippet is a configuration object. It just contains ```base``` and ```version``` as these are the properties you will most likely set. There are some more, less frequently used, options that can be either specified here or as part of a ```demand.configure``` call in your ```main``` module (being described in the next section):
