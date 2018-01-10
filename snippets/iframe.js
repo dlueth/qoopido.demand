@@ -32,4 +32,4 @@
 
 	frame.write('<body onload="document._();" />');
 	frame.close();
-}(this, document, 'script'))
+}(this, document, 'script'));
