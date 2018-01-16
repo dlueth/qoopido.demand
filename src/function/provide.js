@@ -41,7 +41,7 @@ provide = global.provide = function provide() {
 			module.dfd.resolve(isFunction ? definition() : definition);
 		}
 
-		return module.dfd;
+		return module.dfd.pledge;
 	} else {
 		/* eslint-disable no-console */
 		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));
