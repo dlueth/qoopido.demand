@@ -3,7 +3,7 @@
 	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, ERROR_LOAD,
 	regexIsAbsoluteUri,
 	linkElement,
-	functionIterate, functionResolveUrl,
+	functionIterate, functionResolveUrl, functionGetTimestamp,
 	ClassXhr, ClassFailure,
 	singletonEvent
 */
@@ -16,6 +16,8 @@
 //=require singleton/event.js
 //=require class/xhr.js
 //=require class/failure.js
+
+var regexMatchEmptySearch = /^(?:\?|)$/;
 
 function ClassLoader(dependency) {
 	var pattern;
@@ -39,7 +41,10 @@ function ClassLoader(dependency) {
 		dependency.url = document.createElement('a');
 
 		dependency.url.href    = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
-		dependency.url.search += ((!dependency.url.search || dependency.url.search === '?') ? '?v=' : '&v=') + dependency.version;
+
+		if(dependency.invalid) {
+			dependency.url.search += ((regexMatchEmptySearch.test(dependency.url.search)) ? '' : '&') + functionGetTimestamp();
+		}
 
 		singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
 
