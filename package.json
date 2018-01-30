@@ -1,74 +1,74 @@
 {
-  "name": "qoopido.demand",
-  "title": "Qoopido.demand",
-  "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
-  "version": "4.2.5",
-  "homepage": "https://github.com/dlueth/qoopido.demand",
-  "author": {
-    "name": "Dirk Lueth",
-    "email": "info@qoopido.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/dlueth/qoopido.demand.git"
-  },
-  "bugs": {
-    "url": "https://github.com/dlueth/qoopido.demand/issues"
-  },
-  "license": "MIT",
-  "main": "dist/demand.js",
-  "filename": "demand.js",
-  "scripts": {
-    "build": "gulp:dist",
-    "start": "gulp watch"
-  },
-  "autoupdate": {
-    "source": "git",
-    "target": "git://github.com/dlueth/qoopido.demand.git",
-    "basePath": "/dist",
-    "files": [
-      "**/*"
-    ]
-  },
-  "keywords": [
-    "module",
-    "modular",
-    "script",
-    "loader",
-    "javascript",
-    "css",
-    "promise",
-    "xhr",
-    "ajax",
-    "localStorage",
-    "cache",
-    "caching",
-    "asset",
-    "storage",
-    "require",
-    "basket"
-  ],
-  "devDependencies": {
-    "del": "3.0.0",
-    "gulp": "3.9.1",
-    "gulp-bump": "3.0.0",
-    "gulp-chmod": "2.0.0",
-    "gulp-devtools": "0.0.3",
-    "gulp-eslint": "4.0.0",
-    "gulp-header": "1.8.9",
-    "gulp-include": "2.3.1",
-    "gulp-insert": "0.5.0",
-    "gulp-livereload": "3.8.1",
-    "gulp-load-plugins": "1.5.0",
-    "gulp-plumber": "1.1.0",
-    "gulp-rename": "1.2.2",
-    "gulp-size": "3.0.0",
-    "gulp-sourcemaps": "2.6.3",
-    "gulp-uglify": "3.0.0",
-    "gulp-util": "3.0.8",
-    "gulp-wrap": "0.13.0",
-    "require-dir": "0.3.2",
-    "run-sequence": "2.2.1"
-  },
-  "dependencies": {}
+	"name": "qoopido.demand",
+	"title": "Qoopido.demand",
+	"description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
+	"version": "4.2.6",
+	"homepage": "https://github.com/dlueth/qoopido.demand",
+	"author": {
+		"name": "Dirk Lueth",
+		"email": "info@qoopido.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/dlueth/qoopido.demand.git"
+	},
+	"bugs": {
+		"url": "https://github.com/dlueth/qoopido.demand/issues"
+	},
+	"license": "MIT",
+	"main": "dist/demand.js",
+	"filename": "demand.js",
+	"scripts": {
+		"build": "gulp:dist",
+		"start": "gulp watch"
+	},
+	"autoupdate": {
+		"source": "git",
+		"target": "git://github.com/dlueth/qoopido.demand.git",
+		"basePath": "/dist",
+		"files": [
+			"**/*"
+		]
+	},
+	"keywords": [
+		"module",
+		"modular",
+		"script",
+		"loader",
+		"javascript",
+		"css",
+		"promise",
+		"xhr",
+		"ajax",
+		"localStorage",
+		"cache",
+		"caching",
+		"asset",
+		"storage",
+		"require",
+		"basket"
+	],
+	"devDependencies": {
+		"del": "3.0.0",
+		"gulp": "3.9.1",
+		"gulp-bump": "3.0.0",
+		"gulp-chmod": "2.0.0",
+		"gulp-devtools": "0.0.3",
+		"gulp-eslint": "4.0.1",
+		"gulp-header": "1.8.9",
+		"gulp-include": "2.3.1",
+		"gulp-insert": "0.5.0",
+		"gulp-livereload": "3.8.1",
+		"gulp-load-plugins": "1.5.0",
+		"gulp-plumber": "1.2.0",
+		"gulp-rename": "1.2.2",
+		"gulp-size": "3.0.0",
+		"gulp-sourcemaps": "2.6.3",
+		"gulp-uglify": "3.0.0",
+		"gulp-util": "3.0.8",
+		"gulp-wrap": "0.13.0",
+		"require-dir": "0.3.2",
+		"run-sequence": "2.2.1"
+	},
+	"dependencies": {}
 }

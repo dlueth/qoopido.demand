@@ -1,4 +1,4 @@
-/* global 
+/* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
@@ -72,15 +72,15 @@ var singletonCache = (function() {
 
 		return match ? match.state : FALSE;
 	}
-	
+
 	function getKey(key) {
 		return localStorage.getItem(key);
 	}
-	
+
 	function setKey(key, value) {
 		localStorage[value ? 'setItem' : 'removeItem'](key, value);
 	}
-	
+
 	function getState(key) {
 		var state = getKey(key),
 			matches;
@@ -89,7 +89,7 @@ var singletonCache = (function() {
 			return functionToArray(matches, 1);
 		}
 	}
-	
+
 	function setState(key, state) {
 		state[4] = functionGetTimestamp();
 
@@ -112,15 +112,23 @@ var singletonCache = (function() {
 												id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 												state = getState(id + STORAGE_SUFFIX_STATE);
 
-												if(state && state[0] === dependency.version && ((!state[2] && !dependency.lifetime) || state[2] > functionGetTimestamp())) {
-													dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
-
-													functionDefer(function() {
-														setState(id + STORAGE_SUFFIX_STATE, state);
-													});
-
-													return TRUE;
+												if(!state) {
+													return;
 												}
+
+												if(state[0] !== dependency.version || (state[2] && dependency.lifetime && state[2] <= functionGetTimestamp())) {
+													dependency.invalid = true;
+
+													return;
+												}
+
+												dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
+
+												functionDefer(function() {
+													setState(id + STORAGE_SUFFIX_STATE, state);
+												});
+
+												return TRUE;
 											}
 										} : FUNCTION_EMPTY,
 		resolve: supportsLocalStorage ? function(dependency) {

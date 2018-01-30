@@ -1,4 +1,4 @@
-/* global 
+/* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
 	object,
@@ -64,7 +64,8 @@ var ClassDependency = (function() {
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
 		self.dfd      = ClassPledge.defer();
 		self.pledge   = self.dfd.pledge;
-		
+		self.invalid  = false;
+
 		self.pledge.then(function() {
 			self.value = functionToArray(arguments);
 		});

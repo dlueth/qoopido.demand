@@ -29,7 +29,7 @@ gulp.task(id + ':build', function() {
 	return gulp.src(task.build || task.watch)
 		.pipe(plugins.plumber({ errorHandler: shared.handleError}))
 		.pipe(plugins.rename({ suffix: '.min' }))
-		.pipe(plugins.uglify({ preserveComments: 'none' }))
+		.pipe(plugins.uglify())
 		.pipe(plugins.wrap({ src: './snippets/wrapper.tpl'}))
 		.pipe(plugins.chmod(shared.rights))
 		.pipe(plugins.size({ showFiles: true, gzip: true }))
