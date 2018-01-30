@@ -21,15 +21,17 @@
 		frame     = frame.contentWindow.document;
 	}
 
-	frame.open()._ = function() {
-		domain && (this.domain = domain);
+	global.addEventListener('load', function() {
+		frame.open()._ = function() {
+			domain && (this.domain = domain);
 
-		script     = this.createElement(type);
-		script.src = url;
+			script     = this.createElement(type);
+			script.src = url;
 
-		this.body.appendChild(script);
-	};
+			this.body.appendChild(script);
+		};
 
-	frame.write('<body onload="document._();" />');
-	frame.close();
+		frame.write('<body onload="document._();" />');
+		frame.close();
+	});
 }(this, document, 'script'));

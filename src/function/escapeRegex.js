@@ -3,6 +3,7 @@
 */
 
 var functionEscapeRegex = (function() {
+	// eslint-disable-next-line no-useless-escape
 	var regexMatchRegex = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
 
 	return function functionEscapeRegex(value) {

@@ -10,4 +10,4 @@
 	script.src   = url;
 
 	target.parentNode.insertBefore(script, target);
-}(window, document, 'script'))
+}(window, document, 'script'));
