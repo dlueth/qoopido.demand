@@ -37,8 +37,9 @@ function ClassLoader(dependency) {
 	function load(location) {
 		location       = location || 0;
 		dependency.url = document.createElement('a');
-		
-		dependency.url.href = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
+
+		dependency.url.href    = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
+		dependency.url.search += ((!dependency.url.search || dependency.url.search === '?') ? '?v=' : '&v=') + dependency.version;
 
 		singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
 

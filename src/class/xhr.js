@@ -12,13 +12,13 @@
 
 var ClassXhr = (function(XMLHttpRequest) {
 	var XDomainRequest = 'XDomainRequest' in global && global.XDomainRequest || XMLHttpRequest;
-	
+
 	function checkState() {
 		if(this.readyState < 4) {
 			this.abort();
 		}
 	}
-	
+
 	return function ClassXhr(url) {
 		var dfd             = ClassPledge.defer(),
 			xhr             = regexMatchBaseUrl.test(url) ? new XMLHttpRequest() : new XDomainRequest(),
@@ -46,9 +46,9 @@ var ClassXhr = (function(XMLHttpRequest) {
 
 		xhr.open('GET', url, TRUE);
 		xhr.send();
-		
+
 		pointer = setTimeout(boundCheckState, timeout);
-		
+
 		return dfd.pledge;
 	};
 }(XMLHttpRequest));
