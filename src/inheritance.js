@@ -10,6 +10,8 @@
 //=require class/descriptor.js
 
 (function(strPrototype) {
+	var descriptor;
+
 	function functionExtends(source) {
 		var self       = this,
 			prototype  = self[strPrototype],
@@ -36,5 +38,8 @@
 		return self;
 	}
 
-	objectDefineProperty(Function[strPrototype], 'extends', new ClassDescriptor(functionExtends));
+	descriptor = new ClassDescriptor(functionExtends);
+
+	objectDefineProperty(Function.prototype, 'extends', descriptor);
+	objectDefineProperty(global.Function.prototype, 'extends', descriptor);
 }('prototype'));
