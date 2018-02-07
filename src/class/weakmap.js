@@ -10,7 +10,7 @@
 //=require abstract/uuid.js
 //=require class/descriptor.js
 
-var ClassWeakMap = 'WeakMap' in global ? global.WeakMap : (function() {
+var ClassWeakMap = 'WeakMap' in global ? global.WeakMap : global.WeakMap = (function() {
 	var prefix = 'weakmap-';
 
 	function ClassWeakMap() {
