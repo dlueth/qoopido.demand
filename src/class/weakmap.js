@@ -19,35 +19,34 @@ var ClassWeakMap = 'WeakMap' in global ? global.WeakMap : global.WeakMap = (func
 
 	ClassWeakMap.prototype = {
 		set: function(key, value) {
-			var self = this,
-				entry;
+			var entry;
 
-			if((entry = key[self.uuid]) && entry[0] === key) {
+			if((entry = key[this.uuid]) && entry[0] === key) {
 				entry[1] = value;
 			} else {
-				objectDefineProperty(key, prefix + self.uuid, new ClassDescriptor([ key, value ]));
+				objectDefineProperty(key, prefix + this.uuid, new ClassDescriptor([ key, value ]));
 			}
 
-			return self;
+			return this;
 		},
 		get: function(key) {
 			var entry;
 
-			if((entry = key[prefix + self.uuid]) && entry[0] === key) {
+			if((entry = key[prefix + this.uuid]) && entry[0] === key) {
 				return entry[1];
 			}
 		},
 		delete: function(key) {
 			var entry;
 
-			if((entry = key[prefix + self.uuid])) {
+			if((entry = key[prefix + this.uuid])) {
 				entry.length = 0;
 			}
 		},
 		has: function(key) {
 			var entry;
 
-			return !!(entry = key[prefix + self.uuid]) && entry[0] === key;
+			return !!(entry = key[prefix + this.uuid]) && entry[0] === key;
 		}
 	};
 
