@@ -3,8 +3,7 @@
 */
 
 var functionUuid = (function() {
-	var regex   = new RegExp('[xy]', 'g'),
-		storage = {};
+	var regex = new RegExp('[xy]', 'g');
 
 	function randomize(character) {
 		var r = Math.random() * 16 | 0;
@@ -13,14 +12,6 @@ var functionUuid = (function() {
 	}
 
 	return function functionUuid() {
-		var uuid;
-
-		do {
-			uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(regex, randomize);
-		} while(storage[uuid]);
-
-		storage[uuid] = 1;
-
-		return uuid;
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(regex, randomize);
 	};
 }());
