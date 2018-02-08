@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, ERROR_LOAD,
 	regexIsAbsoluteUri,
 	linkElement,
@@ -17,10 +17,9 @@
 //=require class/xhr.js
 //=require class/failure.js
 
-var regexMatchEmptySearch = /^(?:\?|)$/;
-
 function ClassLoader(dependency) {
-	var pattern;
+	var regexMatchEmptySearch   = /^(?:\?|)$/,
+		pattern;
 
 	function resolve(response, type) {
 		if(!type || !dependency.handler.validate || dependency.handler.validate(type)) {

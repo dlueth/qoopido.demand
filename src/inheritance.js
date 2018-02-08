@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	TRUE,
 	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor,
 	ClassDescriptor
@@ -10,7 +10,9 @@
 //=require class/descriptor.js
 
 (function(strPrototype) {
-	var descriptor;
+	function objectDefine(name, value, writable, configurable, enumerable) {
+		objectDefineProperty(this, name, new ClassDescriptor(value, writable, configurable, enumerable));
+	}
 
 	function functionExtends(source) {
 		var self       = this,
@@ -38,8 +40,9 @@
 		return self;
 	}
 
-	descriptor = new ClassDescriptor(functionExtends);
+	objectDefine.call(Object.prototype, 'define', objectDefine);
+	objectDefine.call(global.Object.prototype, 'define', objectDefine);
 
-	objectDefineProperty(Function.prototype, 'extends', descriptor);
-	objectDefineProperty(global.Function.prototype, 'extends', descriptor);
+	Function.prototype.define('extends', functionExtends);
+	global.Function.prototype.define('extends', functionExtends);
 }('prototype'));

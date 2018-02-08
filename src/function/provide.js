@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsArray,
 	ClassDependency, ClassFailure
@@ -43,8 +43,6 @@ provide = global.provide = function provide() {
 
 		return module.dfd.pledge;
 	} else {
-		/* eslint-disable no-console */
-		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));
-		/* eslint-enable no-console */
+		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS)); // eslint-disable-line no-console
 	}
 };

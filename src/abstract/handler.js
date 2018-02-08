@@ -1,22 +1,18 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL
 */
 
 //=require constants.js
 
-var abstractHandler = (function() {
-	function AbstractHandler() {
+function abstractHandler() {
 
-	}
+}
 
-	AbstractHandler.prototype = {
-		validate: NULL,
-		onPreRequest: NULL,
-		onPostRequest: NULL,
-		onPreProcess: NULL,
-		process: NULL
-	};
-
-	return AbstractHandler;
-}());
+abstractHandler.prototype = {
+	validate: NULL,
+	onPreRequest: NULL,
+	onPostRequest: NULL,
+	onPreProcess: NULL,
+	process: NULL
+};

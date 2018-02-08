@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, TRUE,
 	functionResolveSourcemaps,
 	abstractHandler
@@ -22,7 +22,7 @@ var handlerModule = (function() {
 		},
 		onPreRequest: function(dependency) {
 			var pathname = dependency.url.pathname;
-			
+
 			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
 		},
 		onPostRequest: function(dependency) {
