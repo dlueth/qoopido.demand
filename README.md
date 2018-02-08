@@ -203,17 +203,17 @@ Demand will, in addition, do its best to keep leftover garbage to a minimum. It 
 
 When localStorage quota is exceeded while trying to cache yet another module Qoopido.demand will load a special module ```/demand/cache/dispose``` and will try to free the required space by clearing existing caches in order of last  access time, from oldest to newest.
 
-Beside the automatic cache invalidation demand still offers manual control by registering a ```demand.clear``` object to the global demand function. This object offers the following methods to control the cache:
+Beside the automatic cache invalidation demand still offers manual control by registering a ```demand.cache``` object to the global demand function. This object offers the following methods to control the cache:
 
 ```javascript
 // only clear a single module's cache
-demand.clear.path('[module path]');
+demand.cache.clear('[module path]');
 
 // clear all expired caches
-demand.clear.expired();
+demand.cache.clear.expired();
 
 // completely clear the cache
-demand.clear.all();
+demand.cache.clear.all();
 ```
 
 **Sidenote**

@@ -119,7 +119,9 @@ demand = global.demand = (function() {
 	demand.get     = function(uri, context) { var dependency = ClassDependency.get(uri, context); return dependency && dependency.value; };
 	demand.list    = ClassDependency.list;
 	demand.remove  = ClassDependency.remove;
-	demand.clear   = singletonCache.clear;
+	demand.cache   = {
+		clear: singletonCache.clear
+	};
 
 	singletonEvent
 		.after(EVENT_CACHE_MISS, function(dependency) {
