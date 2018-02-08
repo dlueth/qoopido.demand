@@ -32,7 +32,7 @@ var singletonCache = (function() {
 	singletonEvent
 		.on(EVENT_CACHE_MISS, function(dependency) {
 			functionDefer(function() {
-				cache.clear.path(dependency.id);
+				cache.clear(dependency.id);
 			});
 		})
 		.on(EVENT_CACHE_EXCEED, function(dependency) {
