@@ -17,8 +17,7 @@
 	var document = global.document,
 		options  = 'demand' in global && global.demand,
 		settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
-		demand, provide, queue, processor;
-	/* eslint-enable no-unused-vars */
+		queue, processor;
 
 	// include inheritance
 		//=require inheritance.js

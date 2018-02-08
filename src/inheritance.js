@@ -40,9 +40,6 @@
 		return self;
 	}
 
-	objectDefine.call(Object.prototype, 'define', objectDefine);
 	objectDefine.call(global.Object.prototype, 'define', objectDefine);
-
-	Function.prototype.define('extends', functionExtends);
 	global.Function.prototype.define('extends', functionExtends);
 }('prototype'));
