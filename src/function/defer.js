@@ -5,7 +5,7 @@
  */
 
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL, TRUE, FALSE,
 	functionUuid
 */
@@ -38,13 +38,15 @@ var functionDefer = (function() {
 
 	if(!hasSetImmediate && 'postMessage' in global && !('importScripts' in global) && 'addEventListener' in global) {
 		return (function() {
+			var storage = {};
+
 			function onMessage(event) {
 				var fn;
 
-				if(event.source === global && event.data && (fn = storage.get(event.data))) {
+				if(event.source === global && event.data && (fn = storage[event.data])) {
 					fn();
 
-					storage.delete(event.data);
+					delete storage[event.data];
 				}
 			}
 
@@ -53,7 +55,7 @@ var functionDefer = (function() {
 			return function functionDefer(fn) {
 				var uuid = functionUuid();
 
-				storage.set(uuid, fn);
+				storage[uuid] = fn;
 
 				global.postMessage(uuid, '*');
 			};
@@ -73,9 +75,7 @@ var functionDefer = (function() {
 		};
 	}
 
-	/* eslint-disable no-undef */
-	fallback = hasSetImmediate ? setImmediate : setTimeout;
-	/* eslint-enable no-undef */
+	fallback = hasSetImmediate ? setImmediate : setTimeout; // eslint-disable-line no-undef
 
 	return function functionDefer(fn) {
 		fallback(fn);

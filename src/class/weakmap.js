@@ -1,56 +1,58 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	objectDefineProperty,
-	AbstractUuid,
-	ClassDescriptor
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	functionUuid,
 */
 
 //=require constants.js
-//=require shortcuts.js
-//=require abstract/uuid.js
-//=require class/descriptor.js
+//=require function/uuid.js
 
 var ClassWeakmap = 'WeakMap' in global ? global.WeakMap : (function() {
 	var prefix = 'weakmap-';
 
+	function getEntry(context, key) {
+		var entry;
+
+		if((entry = key[context.id]) && entry[0] === key) {
+			return entry;
+		}
+	}
+
 	function ClassWeakmap() {
-		return AbstractUuid.call(this);
+		this.define('id', prefix + functionUuid());
 	}
 
 	ClassWeakmap.prototype = {
 		set: function(key, value) {
-			var entry;
+			var entry = getEntry(this, key);
 
-			if((entry = key[this.uuid]) && entry[0] === key) {
+			if(entry) {
 				entry[1] = value;
 			} else {
-				objectDefineProperty(key, prefix + this.uuid, new ClassDescriptor([ key, value ]));
+				key.define(this.id, [ key, value ]);
 			}
 
 			return this;
 		},
 		get: function(key) {
-			var entry;
+			var entry = getEntry(this, key);
 
-			if((entry = key[prefix + this.uuid]) && entry[0] === key) {
+			if(entry) {
 				return entry[1];
 			}
 		},
 		delete: function(key) {
-			var entry;
+			var entry = getEntry(this, key);
 
-			if((entry = key[prefix + this.uuid])) {
+			if(entry) {
 				entry.length = 0;
 
-				delete key[prefix + this.uuid];
+				delete key[this.id];
 			}
 		},
 		has: function(key) {
-			var entry;
-
-			return !!(entry = key[prefix + this.uuid]) && entry[0] === key;
+			return !!getEntry(this, key);
 		}
 	};
 
-	return ClassWeakmap.extends(AbstractUuid);
+	return ClassWeakmap;
 }());

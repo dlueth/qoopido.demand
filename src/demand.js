@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, MODULE_PREFIX_ABSTRACT, STRING_STRING, STRING_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionHash, functionUuid,
@@ -17,15 +17,11 @@
 	var document = global.document,
 		options  = 'demand' in global && global.demand,
 		settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
-		storage, demand, provide, queue, processor;
+		demand, provide, queue, processor;
 	/* eslint-enable no-unused-vars */
 
 	// include inheritance
 		//=require inheritance.js
-
-	// include weakmap
-		//=require class/weakmap.js
-		storage = new ClassWeakmap();
 
 	// include main components
 		//=require function/demand.js

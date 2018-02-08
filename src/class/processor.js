@@ -1,43 +1,49 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	EVENT_QUEUE_ENQUEUE, NULL,
-	singletonEvent
+	singletonEvent,
+	ClassWeakmap
 */
 
 //=require constants.js
+//=require class/weakmap.js
 
-function ClassProcessor(queue) {
-	var self       = this,
-		properties = { queue: queue, current: NULL };
+var ClassProcessor = (function() {
+	var storage = new ClassWeakmap();
 
-	storage.set(self, properties);
+	function ClassProcessor(queue) {
+		var self       = this,
+			properties = { queue: queue, current: NULL };
 
-	demand
-		.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
-			!properties.current && self.process();
-		});
-}
+		storage.set(self, properties);
 
-ClassProcessor.prototype = {
-	process: function() {
-		var properties = storage.get(this),
-			current;
-
-		if(properties.queue.length) {
-			current = properties.current = properties.queue.dequeue();
-
-			if(!current.pledge.isRejected()) {
-				current.handler.process && current.handler.process(current);
-
-				return;
-			}
-		}
-
-		properties.current = NULL;
-	},
-	get current() {
-		return storage.get(this).current;
+		demand
+			.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
+				!properties.current && self.process();
+			});
 	}
-};
 
-ClassProcessor;
+	ClassProcessor.prototype = {
+		process: function() {
+			var properties = storage.get(this),
+				current;
+
+			if(properties.queue.length) {
+				current = properties.current = properties.queue.dequeue();
+
+				if(!current.pledge.isRejected()) {
+					current.handler.process && current.handler.process(current);
+
+					return;
+				}
+			}
+
+			properties.current = NULL;
+		},
+		get current() {
+			return storage.get(this).current;
+		}
+	};
+
+	return ClassProcessor;
+}());

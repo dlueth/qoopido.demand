@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX_PLUGIN, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_PRE_RESOLVE, STRING_STRING, ERROR_RESOLVE, FALSE, TRUE,
 	regexMatchInternal,
 	validatorIsObject, validatorIsTypeOf,

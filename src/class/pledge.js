@@ -1,19 +1,22 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
  	FUNCTION_EMPTY, NULL,
 	arrayPrototypeConcat,
-	functionDefer, functionToArray
+	functionDefer, functionToArray,
+	ClassWeakmap
 */
 
 //=require constants.js
 //=require shortcuts.js
 //=require function/defer.js
 //=require function/toArray.js
+//=require class/weakmap.js
 
 var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
 		PLEDGE_RESOLVED = 'resolved',
-		PLEDGE_REJECTED = 'rejected';
+		PLEDGE_REJECTED = 'rejected',
+		storage         = new ClassWeakmap();
 
 	function resolve() {
 		storage.get(this).handle(PLEDGE_RESOLVED, arguments);
