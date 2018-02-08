@@ -10,14 +10,14 @@
 //=require abstract/uuid.js
 //=require class/descriptor.js
 
-var ClassWeakMap = 'WeakMap' in global ? global.WeakMap : (function() {
+var ClassWeakmap = 'WeakMap' in global ? global.WeakMap : (function() {
 	var prefix = 'weakmap-';
 
-	function ClassWeakMap() {
+	function ClassWeakmap() {
 		return AbstractUuid.call(this);
 	}
 
-	ClassWeakMap.prototype = {
+	ClassWeakmap.prototype = {
 		set: function(key, value) {
 			var entry;
 
@@ -52,5 +52,5 @@ var ClassWeakMap = 'WeakMap' in global ? global.WeakMap : (function() {
 		}
 	};
 
-	return ClassWeakMap.extends(AbstractUuid);
+	return ClassWeakmap.extends(AbstractUuid);
 }());

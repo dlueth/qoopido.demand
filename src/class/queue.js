@@ -14,28 +14,28 @@
 function ClassQueue() {
 	var self = AbstractUuid.call(this);
 
-	storage[self.uuid] = [];
-	
+	storage.set(self, []);
+
 	return self;
 }
-	
+
 ClassQueue.prototype = {
 	enqueue: function() {
-		storage[this.uuid] = storage[this.uuid].concat(functionToArray(arguments));
+		storage.set(this, storage.get(this).concat(functionToArray(arguments)));
 
 		singletonEvent.emit(EVENT_QUEUE_ENQUEUE, this.uuid);
 	},
 	dequeue: function() {
 		singletonEvent.emit(EVENT_QUEUE_DEQUEUE, this.uuid);
 
-		return storage[this.uuid].shift();
+		return storage.get(this).shift();
 	},
 	get current() {
-		return storage[this.uuid][0];
+		return storage.get(this)[0];
 	},
 	get length() {
-		return storage[this.uuid].length;
+		return storage.get(this).length;
 	}
 };
-	
+
 ClassQueue.extends(AbstractUuid);

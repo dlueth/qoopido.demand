@@ -1,45 +1,43 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
 	EVENT_QUEUE_ENQUEUE, NULL,
-	singletonEvent,
-	AbstractUuid
+	singletonEvent
 */
 
 //=require constants.js
-//=require abstract/uuid.js
 
 function ClassProcessor(queue) {
-	var self    = AbstractUuid.call(this),
-		pointer = storage[self.uuid] = { queue: queue, current: NULL };
+	var self       = this,
+		properties = { queue: queue, current: NULL };
+
+	storage.set(self, properties);
 
 	demand
 		.on(EVENT_QUEUE_ENQUEUE + ':' + queue.uuid, function() {
-			!pointer.current && self.process();
+			!properties.current && self.process();
 		});
-	
-	return self;
 }
 
 ClassProcessor.prototype = {
 	process: function() {
-		var pointer = storage[this.uuid],
+		var properties = storage.get(this),
 			current;
 
-		if(pointer.queue.length) {
-			current = pointer.current = pointer.queue.dequeue();
+		if(properties.queue.length) {
+			current = properties.current = properties.queue.dequeue();
 
 			if(!current.pledge.isRejected()) {
-        current.handler.process && current.handler.process(current);
+				current.handler.process && current.handler.process(current);
 
-        return;
+				return;
 			}
 		}
 
-		pointer.current = NULL;
+		properties.current = NULL;
 	},
 	get current() {
-		return storage[this.uuid].current;
+		return storage.get(this).current;
 	}
 };
-	
-ClassProcessor.extends(AbstractUuid);
+
+ClassProcessor;

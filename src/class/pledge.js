@@ -2,33 +2,29 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
  	FUNCTION_EMPTY, NULL,
 	arrayPrototypeConcat,
-	functionDefer, functionUuid, functionToArray,
-	AbstractUuid
+	functionDefer, functionToArray
 */
 
 //=require constants.js
 //=require shortcuts.js
 //=require function/defer.js
-//=require function/uuid.js
 //=require function/toArray.js
-//=require abstract/uuid.js
 
 var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
 		PLEDGE_RESOLVED = 'resolved',
-		PLEDGE_REJECTED = 'rejected',
-		storage         = {};
+		PLEDGE_REJECTED = 'rejected';
 
 	function resolve() {
-		storage[this.uuid].handle(PLEDGE_RESOLVED, arguments);
+		storage.get(this).handle(PLEDGE_RESOLVED, arguments);
 	}
 
 	function reject() {
-		storage[this.uuid].handle(PLEDGE_REJECTED, arguments);
+		storage.get(this).handle(PLEDGE_REJECTED, arguments);
 	}
 
 	function handle(state, parameter) {
-		var properties = storage[this.uuid],
+		var properties = storage.get(this),
 			pointer, result;
 
 		if(properties.state === PLEDGE_PENDING) {
@@ -76,12 +72,12 @@ var ClassPledge = (function() {
 	}
 
 	function ClassPledge(executor) {
-		var self = AbstractUuid.call(this);
+		var self = this;
 
-		storage[self.uuid] = { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 };
+		storage.set(this, { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 });
 
 		executor(resolve.bind(self), reject.bind(self));
-		
+
 		return self;
 	}
 
@@ -93,7 +89,7 @@ var ClassPledge = (function() {
 			return this.then(alwaysListener, alwaysListener);
 		},
 		then: function(resolveListener, rejectListener) {
-			var properties = storage[this.uuid],
+			var properties = storage.get(this),
 				dfd        = ClassPledge.defer();
 
 			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, dfd: dfd });
@@ -106,13 +102,13 @@ var ClassPledge = (function() {
 			return dfd.pledge;
 		},
 		isPending: function() {
-			return storage[this.uuid].state === PLEDGE_PENDING;
+			return storage.get(this).state === PLEDGE_PENDING;
 		},
 		isResolved: function() {
-			return storage[this.uuid].state === PLEDGE_RESOLVED;
+			return storage.get(this).state === PLEDGE_RESOLVED;
 		},
 		isRejected: function() {
-			return storage[this.uuid].state === PLEDGE_REJECTED;
+			return storage.get(this).state === PLEDGE_REJECTED;
 		}
 	};
 
@@ -130,10 +126,10 @@ var ClassPledge = (function() {
 	ClassPledge.all = function(pledges) {
 		var dfd = ClassPledge.defer(),
 			properties, i = 0, pledge;
-		
+
 		if(pledges.length) {
-			properties = (storage[functionUuid()] = { dfd: dfd, resolved: [], rejected: [], total: pledges.length, count: 0 })
-			
+			properties = { dfd: dfd, resolved: [], rejected: [], total: pledges.length, count: 0 };
+
 			for(; pledge = pledges[i]; i++) {
 				observe(pledge, i, properties)
 			}
@@ -151,7 +147,7 @@ var ClassPledge = (function() {
 		for(; pledge = pledges[i]; i++) {
 			pledge.then(dfd.resolve, dfd.reject);
 		}
-		
+
 		if(!pledges.length) {
 			dfd.resolve();
 		}
@@ -159,5 +155,5 @@ var ClassPledge = (function() {
 		return dfd.pledge;
 	};
 
-	return ClassPledge.extends(AbstractUuid);
+	return ClassPledge;
 }());

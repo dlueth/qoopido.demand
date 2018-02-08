@@ -39,10 +39,12 @@ var functionDefer = (function() {
 	if(!hasSetImmediate && 'postMessage' in global && !('importScripts' in global) && 'addEventListener' in global) {
 		return (function() {
 			function onMessage(event) {
-				if(event.source === global && event.data && storage[event.data]) {
-					storage[event.data]();
+				var fn;
 
-					delete storage[event.data];
+				if(event.source === global && event.data && (fn = storage.get(event.data))) {
+					fn();
+
+					storage.delete(event.data);
 				}
 			}
 
@@ -51,7 +53,7 @@ var functionDefer = (function() {
 			return function functionDefer(fn) {
 				var uuid = functionUuid();
 
-				storage[uuid] = fn;
+				storage.set(uuid, fn);
 
 				global.postMessage(uuid, '*');
 			};
