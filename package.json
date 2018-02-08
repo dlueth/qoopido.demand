@@ -51,7 +51,7 @@
 	"devDependencies": {
 		"del": "3.0.0",
 		"gulp": "3.9.1",
-		"gulp-bump": "3.0.0",
+		"gulp-bump": "3.1.0",
 		"gulp-chmod": "2.0.0",
 		"gulp-devtools": "0.0.3",
 		"gulp-eslint": "4.0.2",
@@ -67,7 +67,7 @@
 		"gulp-uglify": "3.0.0",
 		"gulp-util": "3.0.8",
 		"gulp-wrap": "0.13.0",
-		"require-dir": "0.3.2",
+		"require-dir": "1.0.0",
 		"run-sequence": "2.2.1",
 		"uglify-js": "3.3.9"
 	},
