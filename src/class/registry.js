@@ -1,28 +1,28 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
-	AbstractUuid
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	ClassWeakmap
 */
 
-//=require abstract/uuid.js
+//=require class/weakmap.js
 
-function ClassRegistry() {
-	var self = AbstractUuid.call(this);
+var ClassRegistry = (function() {
+	var storage = new ClassWeakmap();
 
-	storage[self.uuid] = {};
-	
-	return self;
-}
-
-ClassRegistry.prototype = {
-	get: function(key) {
-		return key ? storage[this.uuid][key] : storage[this.uuid];
-	},
-	set: function(key, value) {
-		storage[this.uuid][key] = value;
-	},
-	remove: function(key) {
-		delete storage[this.uuid][key];
+	function ClassRegistry() {
+		storage.set(this, {});
 	}
-};
 
-ClassRegistry.extends(AbstractUuid);
+	ClassRegistry.prototype = {
+		get: function(key) {
+			return key ? storage.get(this)[key] : storage.get(this);
+		},
+		set: function(key, value) {
+			storage.get(this)[key] = value;
+		},
+		remove: function(key) {
+			delete storage.get(this)[key];
+		}
+	};
+
+	return ClassRegistry;
+}());

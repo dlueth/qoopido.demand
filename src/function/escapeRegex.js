@@ -1,10 +1,9 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout
 */
 
 var functionEscapeRegex = (function() {
-	// eslint-disable-next-line no-useless-escape
-	var regexMatchRegex = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
+	var regexMatchRegex = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g; // eslint-disable-line no-useless-escape
 
 	return function functionEscapeRegex(value) {
 		return value.replace(regexMatchRegex, '\\$&');

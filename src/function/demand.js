@@ -1,9 +1,9 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf,
 	functionIterate, functionMerge, functionDefer, functionToArray,
-	ClassPledge, ClassDependency, ClassPattern, ClassLoader, 
+	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
 	singletonEvent, singletonCache
 */
 
@@ -47,9 +47,9 @@ demand = global.demand = (function() {
 		var dependencies = functionToArray(arguments),
 			context      = this !== global ? this : NULL,
 			i = 0, uri, dfd, result;
-		
+
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
-		
+
 		for(; (uri = dependencies[i]); i++) {
 			if(validatorIsTypeOf(uri, STRING_STRING)) {
 				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
@@ -59,13 +59,13 @@ demand = global.demand = (function() {
 				dfd.resolve(uri);
 			}
 		}
-		
+
 		if(dependencies.length > 1) {
 			result = ClassPledge.all(dependencies);
 		} else {
 			result = dependencies[0];
 		}
-		
+
 		return result.always(function() {
 			singletonEvent.emit(EVENT_POST_RESOLVE, NULL, dependencies, context);
 		});
@@ -135,14 +135,14 @@ demand = global.demand = (function() {
 		})
 		.after(EVENT_PRE_REQUEST, function(dependency) {
 			var pointer = dependency.handler.onPreRequest;
-	
+
 			pointer && pointer(dependency);
 		})
 		.after(EVENT_PRE_PROCESS, function(dependency) {
 			var pointer = dependency.handler.onPreProcess;
-			
+
 			pointer && pointer(dependency);
-			
+
 			dependency.pledge.then(function() {
 				singletonEvent.emit(EVENT_POST_PROCESS, dependency.id, dependency);
 			});

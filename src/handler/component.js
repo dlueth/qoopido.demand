@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, storage,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	FALSE, EVENT_POST_REQUEST, ERROR_RESOLVE,
 	functionResolveSourcemaps,
 	abstractHandler,
