@@ -11,6 +11,7 @@
 //=require class/dependency.js
 //=require class/failure.js
 
+/*eslint no-global-assign: [2, { "exceptions": ["provide"] }] */
 provide = function provide() {
 	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 		context      = this !== global ? this : NULL,
