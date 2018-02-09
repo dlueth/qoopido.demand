@@ -159,7 +159,7 @@ var ClassDependency = (function() {
 
 		node && node.parentNode.removeChild(node);
 
-		(cache !== FALSE) && singletonCache.clear.path(id);
+		(cache !== FALSE) && singletonCache.clear(id);
 	};
 
 	ClassDependency.list = {

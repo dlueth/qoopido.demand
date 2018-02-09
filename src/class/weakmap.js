@@ -3,7 +3,6 @@
 	functionUuid,
 */
 
-//=require constants.js
 //=require function/uuid.js
 
 var ClassWeakmap = 'WeakMap' in global ? global.WeakMap : (function() {

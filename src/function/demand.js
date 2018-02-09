@@ -23,8 +23,8 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-/*eslint no-global-assign: [2, { "exceptions": ["demand"] }]*/
-demand = global.demand = (function() {
+/*eslint no-global-assign: [2, { "exceptions": ["demand"] }] */
+demand = (function() {
 	function updateCacheSettings(property, value) {
 		this[property] = { weight: property.length, state: value };
 	}
@@ -117,9 +117,11 @@ demand = global.demand = (function() {
 	demand.version = '{{gulp:package.version}}';
 	demand.on      = singletonEvent.on.bind(demand);
 	demand.get     = function(uri, context) { var dependency = ClassDependency.get(uri, context); return dependency && dependency.value; };
-	demand.remove  = ClassDependency.remove;
 	demand.list    = ClassDependency.list;
-	demand.clear   = singletonCache.clear;
+	demand.remove  = ClassDependency.remove;
+	demand.cache   = {
+		clear: singletonCache.clear
+	};
 
 	singletonEvent
 		.after(EVENT_CACHE_MISS, function(dependency) {
@@ -155,4 +157,6 @@ demand = global.demand = (function() {
 		});
 
 	return demand;
-}());
+}())
+
+global.define('demand', demand);

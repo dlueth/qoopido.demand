@@ -27,9 +27,11 @@ gulp.task(id + ':clean', function(callback) {
 
 gulp.task(id + ':build', function() {
 	return gulp.src(task.build || task.watch)
-		.pipe(plugins.sourcemaps.init())
 		.pipe(plugins.plumber({ errorHandler: shared.handleError}))
 		.pipe(plugins.include(config.settings.include))
+		.pipe(plugins.uglify({ compress: false, mangle: false }))
+		.pipe(plugins.jsbeautifier())
+		.pipe(plugins.sourcemaps.init())
 		.pipe(plugins.uglify())
 		.pipe(plugins.header(config.strings.banner.min))
 		.pipe(plugins.insert.transform(shared.transform))
