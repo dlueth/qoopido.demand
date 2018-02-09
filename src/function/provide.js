@@ -11,7 +11,7 @@
 //=require class/dependency.js
 //=require class/failure.js
 
-global.define('provide', function provide() {
+provide = function provide() {
 	var uri          = validatorIsTypeOf(arguments[0], STRING_STRING) ? arguments[0] : NULL,
 		context      = this !== global ? this : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
@@ -44,4 +44,6 @@ global.define('provide', function provide() {
 	} else {
 		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS)); // eslint-disable-line no-console
 	}
-});
+}
+
+global.define('provide', provide);

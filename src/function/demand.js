@@ -23,7 +23,7 @@
 //=require class/pattern.js
 //=require class/loader.js
 
-global.define('demand', (function() {
+demand = (function() {
 	function updateCacheSettings(property, value) {
 		this[property] = { weight: property.length, state: value };
 	}
@@ -156,4 +156,6 @@ global.define('demand', (function() {
 		});
 
 	return demand;
-}()));
+}())
+
+global.define('demand', demand);
