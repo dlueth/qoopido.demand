@@ -32,7 +32,7 @@ var singletonCache = (function() {
 	singletonEvent
 		.on(EVENT_CACHE_MISS, function(dependency) {
 			functionDefer(function() {
-				cache.clear.path(dependency.id);
+				cache.clear(dependency.id);
 			});
 		})
 		.on(EVENT_CACHE_EXCEED, function(dependency) {
@@ -105,106 +105,105 @@ var singletonCache = (function() {
 	}
 
 	Cache.prototype = {
-		get:     supportsLocalStorage ? function(dependency) {
-											var id, state;
+		get: supportsLocalStorage ? function(dependency) {
+				var id, state;
 
-											if(enabled(dependency)) {
-												id    = STORAGE_PREFIX + '[' + dependency.id + ']';
-												state = getState(id + STORAGE_SUFFIX_STATE);
+				if(enabled(dependency)) {
+					id    = STORAGE_PREFIX + '[' + dependency.id + ']';
+					state = getState(id + STORAGE_SUFFIX_STATE);
 
-												if(!state) {
-													return;
-												}
+					if(!state) {
+						return;
+					}
 
-												if(state[0] !== dependency.version || (state[2] && dependency.lifetime && state[2] <= functionGetTimestamp())) {
-													dependency.invalid = true;
+					if(state[0] !== dependency.version || (state[2] && dependency.lifetime && state[2] <= functionGetTimestamp())) {
+						dependency.invalid = true;
 
-													return;
-												}
+						return;
+					}
 
-												dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
+					dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
 
-												functionDefer(function() {
-													setState(id + STORAGE_SUFFIX_STATE, state);
-												});
+					functionDefer(function() {
+						setState(id + STORAGE_SUFFIX_STATE, state);
+					});
 
-												return TRUE;
-											}
-										} : FUNCTION_EMPTY,
+					return TRUE;
+				}
+			} : FUNCTION_EMPTY,
 		resolve: supportsLocalStorage ? function(dependency) {
-											var self = this;
+				var self = this;
 
-											if(self.get(dependency)) {
-												emit(EVENT_CACHE_HIT, dependency);
-											} else {
-												emit(EVENT_CACHE_MISS, dependency);
-											}
-										} : function(dependency) { emit(EVENT_CACHE_MISS, dependency); },
-		set:     supportsLocalStorage ? function(dependency) {
-											var state, id, spaceBefore;
+				if(self.get(dependency)) {
+					emit(EVENT_CACHE_HIT, dependency);
+				} else {
+					emit(EVENT_CACHE_MISS, dependency);
+				}
+			} : function(dependency) { emit(EVENT_CACHE_MISS, dependency); },
+		set: supportsLocalStorage ? function(dependency) {
+				var state, id, spaceBefore;
 
-											if(enabled(dependency)) {
-												state = [ dependency.version, dependency.source.length, dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : NULL, demand.version ];
-												id    = STORAGE_PREFIX + '[' + dependency.id + ']';
+				if(enabled(dependency)) {
+					state = [ dependency.version, dependency.source.length, dependency.lifetime ? functionGetTimestamp() + dependency.lifetime : NULL, demand.version ];
+					id    = STORAGE_PREFIX + '[' + dependency.id + ']';
 
-												emit(EVENT_PRE_CACHE, dependency, state);
+					emit(EVENT_PRE_CACHE, dependency, state);
 
-												try {
-													spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
+					try {
+						spaceBefore = supportsRemainingSpace ? localStorage.remainingSpace : NULL;
 
-													setKey(id + STORAGE_SUFFIX_VALUE, dependency.source);
-													setState(id + STORAGE_SUFFIX_STATE, state);
+						setKey(id + STORAGE_SUFFIX_VALUE, dependency.source);
+						setState(id + STORAGE_SUFFIX_STATE, state);
 
-													// strict equality check with "===" is required due to spaceBefore might be "0"
-													if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
-														throw new Error();
-													}
+						// strict equality check with "===" is required due to spaceBefore might be "0"
+						if(spaceBefore !== NULL && localStorage.remainingSpace === spaceBefore) {
+							throw new Error();
+						}
 
-													emit(EVENT_POST_CACHE, dependency, state);
-												} catch(error) {
-													emit(EVENT_CACHE_EXCEED, dependency);
-												}
-											}
-										} : FUNCTION_EMPTY,
-		clear: {
-			path:    supportsLocalStorage ? function(path) {
-												var id  = functionResolveId(path),
-													key = STORAGE_PREFIX + '[' + id + ']';
+						emit(EVENT_POST_CACHE, dependency, state);
+					} catch(error) {
+						emit(EVENT_CACHE_EXCEED, dependency);
+					}
+				}
+			} : FUNCTION_EMPTY,
+		clear: supportsLocalStorage ? function(path) {
+				var id  = functionResolveId(path),
+					key = STORAGE_PREFIX + '[' + id + ']';
 
-												if(getKey(key + STORAGE_SUFFIX_STATE)) {
-													setKey(key + STORAGE_SUFFIX_STATE);
-													setKey(key + STORAGE_SUFFIX_VALUE);
+				if(getKey(key + STORAGE_SUFFIX_STATE)) {
+					setKey(key + STORAGE_SUFFIX_STATE);
+					setKey(key + STORAGE_SUFFIX_VALUE);
 
-													emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
-												}
-											} : FUNCTION_EMPTY,
-			all:     supportsLocalStorage ? function() {
-												var match;
-
-												functionIterate(localStorage, function(property) {
-													match = property.match(regexMatchState);
-
-													match && this.path(match[1]);
-												}, this);
-											} : FUNCTION_EMPTY,
-			expired: supportsLocalStorage ? function() {
-												var self = this,
-													match, state;
-
-												functionIterate(localStorage, function(property) {
-													match = property.match(regexMatchState);
-
-													if(match) {
-														state = getState(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE);
-
-														if(state && state[2] > 0 && state[2] <= functionGetTimestamp()) {
-															self.path(match[1]);
-														}
-													}
-												}, this);
-											} : FUNCTION_EMPTY
-		}
+					emit(EVENT_CACHE_CLEAR, ClassDependency.get(id) || new ClassDependency(id, NULL, FALSE));
+				}
+			} : function() {}
 	};
+
+	Cache.prototype.clear.all = supportsLocalStorage ? function() {
+			var match;
+
+			functionIterate(localStorage, function(property) {
+				match = property.match(regexMatchState);
+
+				match && this(match[1]);
+			}, this);
+		} : FUNCTION_EMPTY;
+
+	Cache.prototype.clear.expired = supportsLocalStorage ? function() {
+			var match, state;
+
+			functionIterate(localStorage, function(property) {
+				match = property.match(regexMatchState);
+
+				if(match) {
+					state = getState(STORAGE_PREFIX + '[' + match[1] + ']' + STORAGE_SUFFIX_STATE);
+
+					if(state && state[2] > 0 && state[2] <= functionGetTimestamp()) {
+						this(match[1]);
+					}
+				}
+			}, this);
+		} : FUNCTION_EMPTY;
 
 	return (cache = new Cache());
 }());
