@@ -1,3 +1,3 @@
-/**! Qoopido.demand 5.0.0 | https://github.com/dlueth/qoopido.demand | (c) 2018 Dirk Lueth */
-!function(){"use strict";provide(["/demand/abstract/handler"],function(t){var n=/^text\/.+/;function e(){}return e.prototype={validate:function(t){return n.test(t)},process:function(t){provide(function(){return t.source})}},new(e.extends(t))})}();
+/**! Qoopido.demand 5.0.1 | https://github.com/dlueth/qoopido.demand | (c) 2018 Dirk Lueth */
+!function(){"use strict";provide(["/demand/abstract/handler"],function(t){function n(){}var e=/^text\/.+/;return n.prototype={validate:function(t){return e.test(t)},process:function(t){provide(function(){return t.source})}},new(n.extends(t))})}();
 //# sourceMappingURL=text.js.map
