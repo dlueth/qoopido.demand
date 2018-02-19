@@ -1,3 +1,5 @@
+var package = require('../package.json');
+
 module.exports = {
 	tasks: {
 		bump: {
@@ -6,45 +8,48 @@ module.exports = {
 			]
 		},
 		dist: {
-			watch: [ "src/**/*.js", "extras/**/*.js" ],
-			build: [ "src/demand.js", "extras/**/*.js" ],
-			dest:  "dist/"
+			watch:   [ "src/**/*.js", "addon/**/*.js" ],
+			process: [ "src/demand.js", "addon/**/*.js" ],
+			clean:   [ 'dist/**/*' ],
+			dest:    "dist/"
 		},
 		snippets: {
 			watch: [ "snippets/**/*.js", '!snippets/**/*.min.js' ],
-			build: [ "snippets/**/*.js", '!snippets/**/*.min.js' ],
 			clean: [ 'snippets/**/*.min.js' ],
 			dest:  "snippets/"
 		}
 	},
+	permissions: {
+		owner: {
+			read: true,
+			write: true,
+			execute: false
+		},
+		group: {
+			read: true,
+			write: false,
+			execute: false
+		},
+		others: {
+			read: true,
+			write: false,
+			execute: false
+		}
+	},
 	settings: {
+		size: {
+			showFiles: true,
+			gzip: true,
+			pretty: true
+		},
 		include: {
 			extensions: "js",
 			hardFail: true,
 			includePaths: [ __dirname + "/../src", __dirname + "/.." ]
 		}
 	},
-	strings: {
-		banner: {
-			min: [
-				"/**! {{gulp:package.title}} {{gulp:package.version}} | {{gulp:package.homepage}} | (c) {{gulp:date.year}} {{gulp:package.author.name}} */",
-				""
-			].join('\n'),
-			max: [
-				"/**!",
-				" * {{gulp:package.title}}",
-				" *",
-				" * version: {{gulp:package.version}}",
-				" * module:  {{gulp:module}}",
-				" * date:    {{gulp:date.year}}-{{gulp:date.month}}-{{gulp:date.day}}",
-				" * author:  {{gulp:package.author.name}} <{{gulp:package.author.email}}>",
-				" * website: {{gulp:package.homepage}}",
-				" * license: {{gulp:package.license}}",
-				" *",
-				" * Copyright (c) {{gulp:date.year}} {{gulp:package.author.name}}",
-				" */",
-				""
-			].join('\n')
-		}
-	}
+	banner: [
+		"/**! " + package.title + " " + package.version + " | " + package.homepage + " | (c) " + (new Date()).getFullYear() + " " + package.author.name + " */",
+		""
+	].join('\n')
 };

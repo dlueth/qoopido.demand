@@ -29,10 +29,10 @@ var ClassPattern = (function() {
 
 	ClassPattern.prototype = {
 		/* only for reference
-		 weight:   0,
-		 match:    NULL,
-		 location: NULL,
-		 */
+		weight:   0,
+		match:    NULL,
+		location: NULL,
+		*/
 		matches: function(path) {
 			return this.match.test(path);
 		},

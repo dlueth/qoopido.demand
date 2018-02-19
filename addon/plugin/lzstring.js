@@ -9,7 +9,7 @@
 
 	function definition(path, iterate, isObject, isTypeOf) {
 		var pattern = [ { pattern: path, weight: path.length, state: false }],
-				storage = {};
+			storage = {};
 
 		demand
 			.on('postConfigure:' + path, function(options) {
