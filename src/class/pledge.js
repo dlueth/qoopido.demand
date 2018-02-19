@@ -77,7 +77,7 @@ var ClassPledge = (function() {
 	function ClassPledge(executor) {
 		var self = this;
 
-		storage.set(this, { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 });
+		storage.set(self, { state: PLEDGE_PENDING, handle: handle.bind(self), value: NULL, resolved: [], rejected: [], count: 0 });
 
 		executor(resolve.bind(self), reject.bind(self));
 
@@ -86,7 +86,7 @@ var ClassPledge = (function() {
 
 	ClassPledge.prototype = {
 		'catch': function(listener) {
-			return this.then(FUNCTION_EMPTY, listener);
+			return this.then(function() {}, listener);
 		},
 		always: function(alwaysListener) {
 			return this.then(alwaysListener, alwaysListener);

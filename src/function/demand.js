@@ -114,7 +114,7 @@ demand = (function() {
 		return demand;
 	};
 
-	demand.version = '{{gulp:package.version}}';
+	demand.version = '{{package.version}}';
 	demand.on      = singletonEvent.on.bind(demand);
 	demand.get     = function(uri, context) { var dependency = ClassDependency.get(uri, context); return dependency && dependency.value; };
 	demand.list    = ClassDependency.list;
