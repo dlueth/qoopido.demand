@@ -130,7 +130,7 @@ var singletonCache = (function() {
 
 					return TRUE;
 				}
-			} : FUNCTION_EMPTY,
+			} : function() {},
 		resolve: supportsLocalStorage ? function(dependency) {
 				var self = this;
 
@@ -165,7 +165,7 @@ var singletonCache = (function() {
 						emit(EVENT_CACHE_EXCEED, dependency);
 					}
 				}
-			} : FUNCTION_EMPTY,
+			} : function() {},
 		clear: supportsLocalStorage ? function(path) {
 				var id  = functionResolveId(path),
 					key = STORAGE_PREFIX + '[' + id + ']';
@@ -187,7 +187,7 @@ var singletonCache = (function() {
 
 				match && this(match[1]);
 			}, this);
-		} : FUNCTION_EMPTY;
+		} : function() {};
 
 	Cache.prototype.clear.expired = supportsLocalStorage ? function() {
 			var match, state;
@@ -203,7 +203,7 @@ var singletonCache = (function() {
 					}
 				}
 			}, this);
-		} : FUNCTION_EMPTY;
+		} : function() {};
 
 	return (cache = new Cache());
 }());

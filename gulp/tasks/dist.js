@@ -1,42 +1,97 @@
-var gulp     = require('gulp'),
-	sequence = require('run-sequence').use(gulp),
-	plugins  = require('gulp-load-plugins')(),
-	path     = require('path'),
-	clean    = require('del'),
-	shared   = require('../shared'),
-	config   = require('../config'),
-	filename = path.basename(__filename),
-	id       = filename.substr(0, filename.indexOf('.')),
-	task     = config.tasks[id];
+var id         = 'dist',
+	gulp       = require('gulp'),
+	pump       = require('pump'),
+	del        = require('del'),
+	path       = require('path'),
+	plugins    = require('gulp-load-plugins')(),
+	livereload = require('gulp-livereload'),
+	config     = require('../config'),
+	settings   = config.tasks[id];
 
-module.exports = gulp;
+function watch() {
+	livereload.listen();
 
-gulp.task(id, function(callback) {
-	return sequence(id + ':lint', id + ':clean', id + ':build', callback);
-});
+	return gulp.watch(settings.watch, gulp.series(id + ':lint', id + ':build'))
+		.on('unlink', function(file) {
+			/*
+			var relpath  = path.relative(path.resolve('src'), file),
+				resolved = path.resolve('build', relpath);
 
-gulp.task(id + ':lint', function() {
-	return gulp.src(task.lint || task.watch)
+			console.log(file, relpath, resolved);
+			*/
+			//del.sync(resolved);
+		});
+}
+
+function lint() {
+	return gulp.src(settings.watch)
 		.pipe(plugins.eslint())
-		.pipe(plugins.eslint.format());
-});
+		.pipe(plugins.eslint.format())
+		.pipe(plugins.eslint.failAfterError())
+		.pipe(plugins.size(config.settings.size));
+}
 
-gulp.task(id + ':clean', function(callback) {
-	return clean(task.clean || task.dest + '/**/*', callback);
-});
+function clean() {
+	return del(settings.clean, { force: true });
+}
 
-gulp.task(id + ':build', function() {
-	return gulp.src(task.build || task.watch)
-		.pipe(plugins.plumber({ errorHandler: shared.handleError}))
-		.pipe(plugins.include(config.settings.include))
-		.pipe(plugins.uglify({ compress: false, mangle: false }))
-		.pipe(plugins.jsbeautifier())
-		.pipe(plugins.sourcemaps.init())
-		.pipe(plugins.uglify())
-		.pipe(plugins.header(config.strings.banner.min))
-		.pipe(plugins.insert.transform(shared.transform))
-		.pipe(plugins.chmod(shared.rights))
-		.pipe(plugins.size({ showFiles: true, gzip: true }))
-		.pipe(plugins.sourcemaps.write('.'))
-		.pipe(gulp.dest(task.dest));
-});
+function build(done) {
+	pump([
+		gulp.src(settings.process || settings.watch),
+		// beautify
+		plugins.include(config.settings.include),
+		plugins.injectVersion({ prepend: '', replace: '{{package.version}}' }),
+		plugins.uglify({
+			mangle: false,
+			compress: {
+				'booleans':     false,
+				'comparisons':  false,
+				'conditionals': false,
+				'hoist_funs':   true,
+				'hoist_props':  false,
+				'hoist_vars':   true,
+				'inline':       false,
+				'loops':        false,
+				'negate_iife':  false,
+				'passes':       5,
+				'reduce_funcs': false,
+				'reduce_vars':  false,
+				'sequences':    false,
+				'typeofs':      false
+			}
+		}),
+		plugins.jsbeautifier({
+			'indent_with_tabs':      true,
+			'space_in_empty_paren':  false,
+			'end_with_newline':      true,
+			'preserve_newlines':     true,
+			'jslint_happy':          true,
+			'break_chained_methods': true,
+			'good_stuff':            true
+		}),
+		plugins.header(config.banner),
+		// generate minified
+		plugins.sourcemaps.init({ largeFile: true }),
+		plugins.uglify({
+			compress: {
+				'passes':  5,
+				'typeofs': false
+			}
+		}),
+		plugins.header(config.banner),
+		plugins.chmod(config.permissions),
+		plugins.size(config.settings.size),
+		plugins.sourcemaps.write('.'),
+		gulp.dest(settings.dest),
+		plugins.touchFd()
+	], function() {
+		livereload.reload();
+		done();
+	});
+}
+
+gulp.task(id + ':watch', watch);
+gulp.task(id + ':lint', lint);
+gulp.task(id + ':clean', clean);
+gulp.task(id + ':build', build);
+gulp.task(id, gulp.series(id + ':lint', id + ':clean', id + ':build'));
