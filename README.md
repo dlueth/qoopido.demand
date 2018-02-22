@@ -89,7 +89,7 @@ The last parameter of the above code snippet is a configuration object. It just 
 	lifetime: 60,
 				
 	// sets the timeout for XHR requests
-	// optional, defaults to "8" (limited to "2" up to "12")
+	// optional, defaults to "8" (limited to "2" up to "20")
 	// unit: seconds
 	timeout: 8, 
 				

@@ -92,7 +92,7 @@ demand = (function() {
 		}
 
 		if(validatorIsPositive(timeout)) {
-			settings.timeout = Math.min(Math.max(timeout, 2), 12) * 1000;
+			settings.timeout = Math.min(Math.max(timeout, 2), 20) * 1000;
 		}
 
 		if(validatorIsPositive(lifetime) && lifetime > 0) {
