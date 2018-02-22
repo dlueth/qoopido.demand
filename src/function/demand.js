@@ -1,6 +1,7 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
+	regexMatchSemver,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf,
 	functionIterate, functionMerge, functionDefer, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
@@ -8,6 +9,7 @@
 */
 
 //=require constants.js
+//=require variables.js
 //=require validator/isTypeOf.js
 //=require validator/isObject.js
 //=require validator/isPositive.js
@@ -87,7 +89,7 @@ demand = (function() {
 			functionIterate(cache, updateCacheSettings, settings.cache);
 		}
 
-		if(validatorIsTypeOf(version, STRING_STRING)) {
+		if(validatorIsTypeOf(version, STRING_STRING) && regexMatchSemver.test(version)) {
 			settings.version = version;
 		}
 

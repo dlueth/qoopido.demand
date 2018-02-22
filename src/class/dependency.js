@@ -5,7 +5,7 @@
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
 	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate, functionToArray,
-	ClassRegistry, ClassPledge, ClassFailure,
+	ClassRegistry, ClassPledge, ClassFailure, ClassSemver,
 	singletonCache
 */
 
@@ -21,6 +21,7 @@
 //=require class/registry.js
 //=require class/pledge.js
 //=require class/failure.js
+//=require class/semver.js
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
@@ -58,7 +59,7 @@ var ClassDependency = (function() {
 		self.mock     = parameter[1] ? TRUE : FALSE;
 		self.cache    = parameter[2] ? parameter[1] === '+' : NULL;
 		self.type     = parameter[3] || settings.handler;
-		self.version  = parameter[4] || settings.version;
+		self.version  = new ClassSemver(parameter[4] || settings.version);
 		self.lifetime = (parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.id       = (self.mock ? MOCK_PREFIX : '' ) + self.type + '!' + self.path;
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
