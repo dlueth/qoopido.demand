@@ -423,7 +423,7 @@ Demand also provides means to get information of the state of modules. Similar t
 ```javascript
 // get a list of all handlers and their modules ...
 	// ... regardless of state
-	demand.list.all();
+	demand.list();
 
 	// ... being currently loaded/resolved
 	demand.list.pending();
