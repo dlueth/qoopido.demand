@@ -25,7 +25,7 @@
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
-	var PREFIX_INTERNAL = 'internal!',
+	var PREFIX_INTERNAL = 'internal:',
 		registry        = new ClassRegistry(),
 		placeholder     = [];
 
