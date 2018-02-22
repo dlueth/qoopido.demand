@@ -27,29 +27,52 @@
 var ClassDependency = (function() {
 	var PREFIX_INTERNAL = 'internal:',
 		registry        = new ClassRegistry(),
+		matchInternal   = /^(?:mock|internal):/i,
 		placeholder     = [];
 
 	function setProperty(property, value) {
 		this[property] = value;
 	}
 
+	function add(id) {
+		if(!matchInternal.test(id)) {
+			this.push(id);
+		}
+	}
+
 	function addPending(id, dependency) {
-		if(dependency.pledge.isPending()) {
+		if(!matchInternal.test(id) && dependency.pledge.isPending()) {
 			this.push(id);
 		}
 	}
 
 	function addResolved(id, dependency) {
-		if(dependency.pledge.isResolved()) {
+		if(!matchInternal.test(id) && dependency.pledge.isResolved()) {
 			this.push(id);
 		}
 	}
 
 	function addRejected(id, dependency) {
-		if(dependency.pledge.isRejected()) {
+		if(!matchInternal.test(id) && dependency.pledge.isRejected()) {
 			this.push(id);
 		}
 	}
+
+	function list() {
+		return functionIterate(registry.get(), add, []);
+	}
+
+	list.prototype = {
+		pending:  function() {
+			return functionIterate(registry.get(), addPending, []);
+		},
+		resolved: function() {
+			return functionIterate(registry.get(), addResolved, []);
+		},
+		rejected: function() {
+			return functionIterate(registry.get(), addRejected, []);
+		}
+	};
 
 	function ClassDependency(uri, context, register) {
 		var self      = this,
@@ -163,20 +186,7 @@ var ClassDependency = (function() {
 		(cache !== FALSE) && singletonCache.clear(id);
 	};
 
-	ClassDependency.list = {
-		all: function() {
-			return object.keys(registry.get());
-		},
-		pending:  function() {
-			return functionIterate(registry.get(), addPending, []);
-		},
-		resolved: function() {
-			return functionIterate(registry.get(), addResolved, []);
-		},
-		rejected: function() {
-			return functionIterate(registry.get(), addRejected, []);
-		}
-	};
+	ClassDependency.list = list;
 
 	return ClassDependency;
 }());
