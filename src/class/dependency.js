@@ -25,9 +25,9 @@
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
-	var PREFIX_INTERNAL = 'internal:',
+	var PREFIX_INTERNAL = 'internal!',
 		registry        = new ClassRegistry(),
-		matchInternal   = /^(?:mock|internal):/i,
+		matchInternal   = /^(?:mock:|internal!)/i,
 		placeholder     = [];
 
 	function setProperty(property, value) {
