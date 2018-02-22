@@ -5,7 +5,7 @@
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
 	functionResolvePath, functionResolveId, functionResolveUrl, functionIterate, functionToArray,
-	ClassRegistry, ClassPledge, ClassFailure,
+	ClassRegistry, ClassPledge, ClassFailure, ClassSemver,
 	singletonCache
 */
 
@@ -21,34 +21,58 @@
 //=require class/registry.js
 //=require class/pledge.js
 //=require class/failure.js
+//=require class/semver.js
 //=require singleton/cache.js
 
 var ClassDependency = (function() {
 	var PREFIX_INTERNAL = 'internal!',
 		registry        = new ClassRegistry(),
+		matchInternal   = /^(?:mock:|internal!)/i,
 		placeholder     = [];
 
 	function setProperty(property, value) {
 		this[property] = value;
 	}
 
+	function add(id) {
+		if(!matchInternal.test(id)) {
+			this.push(id);
+		}
+	}
+
 	function addPending(id, dependency) {
-		if(dependency.pledge.isPending()) {
+		if(!matchInternal.test(id) && dependency.pledge.isPending()) {
 			this.push(id);
 		}
 	}
 
 	function addResolved(id, dependency) {
-		if(dependency.pledge.isResolved()) {
+		if(!matchInternal.test(id) && dependency.pledge.isResolved()) {
 			this.push(id);
 		}
 	}
 
 	function addRejected(id, dependency) {
-		if(dependency.pledge.isRejected()) {
+		if(!matchInternal.test(id) && dependency.pledge.isRejected()) {
 			this.push(id);
 		}
 	}
+
+	function list() {
+		return functionIterate(registry.get(), add, []);
+	}
+
+	list.prototype = {
+		pending:  function() {
+			return functionIterate(registry.get(), addPending, []);
+		},
+		resolved: function() {
+			return functionIterate(registry.get(), addResolved, []);
+		},
+		rejected: function() {
+			return functionIterate(registry.get(), addRejected, []);
+		}
+	};
 
 	function ClassDependency(uri, context, register) {
 		var self      = this,
@@ -58,7 +82,7 @@ var ClassDependency = (function() {
 		self.mock     = parameter[1] ? TRUE : FALSE;
 		self.cache    = parameter[2] ? parameter[1] === '+' : NULL;
 		self.type     = parameter[3] || settings.handler;
-		self.version  = parameter[4] || settings.version;
+		self.version  = new ClassSemver(parameter[4] || settings.version);
 		self.lifetime = (parameter[5] && parameter[5] * 1000) || settings.lifetime;
 		self.id       = (self.mock ? MOCK_PREFIX : '' ) + self.type + '!' + self.path;
 		self.uri      = (self.mock ? MOCK_PREFIX : '' ) + self.type + '@' + self.version + (validatorIsPositive(self.lifetime) && self.lifetime > 0 ? '#' + self.lifetime : '' ) + '!' + self.path;
@@ -162,20 +186,7 @@ var ClassDependency = (function() {
 		(cache !== FALSE) && singletonCache.clear(id);
 	};
 
-	ClassDependency.list = {
-		all: function() {
-			return object.keys(registry.get());
-		},
-		pending:  function() {
-			return functionIterate(registry.get(), addPending, []);
-		},
-		resolved: function() {
-			return functionIterate(registry.get(), addResolved, []);
-		},
-		rejected: function() {
-			return functionIterate(registry.get(), addRejected, []);
-		}
-	};
+	ClassDependency.list = list;
 
 	return ClassDependency;
 }());

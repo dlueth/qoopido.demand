@@ -3,8 +3,9 @@
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
 	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionResolveId, functionToArray,
+	singletonEvent,
 	ClassDependency,
-	singletonEvent
+	ClassSemver
 */
 
 //=require constants.js
@@ -15,6 +16,7 @@
 //=require function/defer.js
 //=require function/resolveId.js
 //=require function/toArray.js
+//=require class/semver.js
 //=require singleton/event.js
 
 var singletonCache = (function() {
@@ -116,7 +118,7 @@ var singletonCache = (function() {
 						return;
 					}
 
-					if(state[0] !== dependency.version || (state[2] && dependency.lifetime && state[2] <= functionGetTimestamp())) {
+					if(dependency.version.compare(new ClassSemver(state[0])) === 1 || (state[2] && dependency.lifetime && state[2] <= functionGetTimestamp())) {
 						dependency.invalid = true;
 
 						return;
