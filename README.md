@@ -89,7 +89,7 @@ The last parameter of the above code snippet is a configuration object. It just 
 	lifetime: 60,
 				
 	// sets the timeout for XHR requests
-	// optional, defaults to "8" (limited to "2" up to "12")
+	// optional, defaults to "8" (limited to "2" up to "20")
 	// unit: seconds
 	timeout: 8, 
 				
@@ -423,7 +423,7 @@ Demand also provides means to get information of the state of modules. Similar t
 ```javascript
 // get a list of all handlers and their modules ...
 	// ... regardless of state
-	demand.list.all();
+	demand.list();
 
 	// ... being currently loaded/resolved
 	demand.list.pending();
