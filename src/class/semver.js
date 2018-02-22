@@ -1,11 +1,11 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_UNDEFINED, STRING_STRING,
-	regexMatchSemver
+	validatorIsSemver
 */
 
 //=require constants.js
-//=require variables.js
+//=require validator/isSemver.js
 
 // see https://semver.org/#semantic-versioning-specification-semver
 
@@ -69,7 +69,7 @@ var ClassSemver = (function() {
 	}
 
 	function ClassSemver(version) {
-		if(!regexMatchSemver.test(version)) {
+		if(!validatorIsSemver(version)) {
 			throw new TypeError('"version" must be a valid semver version string');
 		}
 
