@@ -28,7 +28,7 @@
 				state = getState(getKey(match[1]));
 
 				if(!state[4]) {
-					demand.clear.path(match[1]);
+					demand.cache.clear(match[1]);
 				}
 			}
 		});
