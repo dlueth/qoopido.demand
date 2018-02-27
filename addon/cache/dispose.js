@@ -69,7 +69,7 @@
 				state  = states.shift();
 				size  -= state[1];
 
-				demand.clear.path(state[5]);
+				demand.cache.clear(state[5]);
 			}
 		};
 	}
