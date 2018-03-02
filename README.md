@@ -201,7 +201,7 @@ By default demand will invalidate a modules cache under the following conditions
 
 Demand will, in addition, do its best to keep leftover garbage to a minimum. It does so by starting an automatic garbage collection for expired caches on load. In addition it will also clear a specific cache if it gets requested and is found to be invalid for any reason.
 
-When localStorage quota is exceeded while trying to cache yet another module Qoopido.demand will load a special module ```/demand/cache/dispose``` and will try to free the required space by clearing existing caches in order of last  access time, from oldest to newest.
+When localStorage quota is exceeded while trying to cache yet another module Qoopido.demand will load a special module ```/demand/cache/dispose``` and will try to free the required space by clearing existing caches in order of last access time, from oldest to newest.
 
 Beside the automatic cache invalidation demand still offers manual control by registering a ```demand.cache``` object to the global demand function. This object offers the following methods to control the cache:
 

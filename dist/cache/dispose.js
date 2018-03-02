@@ -1,3 +1,3 @@
-/**! Qoopido.demand 5.0.2 | https://github.com/dlueth/qoopido.demand | (c) 2018 Dirk Lueth */
-!function(t){"use strict";provide(["/demand/function/iterate"],function(n){function r(n){var r,e=t.getItem(n);if(e&&(r=e.match(d)))return Array.prototype.slice.call(r,1)}function e(t){return"["+i+"]["+t+"]["+o+"]"}function a(t){var n,a=t.match(u);a&&((n=r(e(a[1])))[5]=a[1],this.push(n))}function c(t,n){return t[4]<n[4]?-1:t[4]>n[4]?1:0}var i="demand",o="state",u=new RegExp("^\\["+i+"\\]\\[(.+?)\\]\\["+o+"\\]$"),d=/^(.+?),(\d+),(\d*),(.+?),(\d+)$/;return n(t,function(t){var n=t.match(u);n&&(r(e(n[1]))[4]||demand.clear.path(n[1]))}),function(r){var e,i=[];for(n(t,a,i),i.sort(c);r>0&&i.length;)r-=(e=i.shift())[1],demand.clear.path(e[5])}})}(localStorage);
+/**! Qoopido.demand 5.0.3 | https://github.com/dlueth/qoopido.demand | (c) 2018 Dirk Lueth */
+!function(){"use strict";provide(["/demand/function/iterate","./states"],function(e,c){function t(e,c){return e.accessed<c.accessed?-1:e.accessed>c.accessed?1:0}return function(e){var n,s=c();for(s.sort(t);e>0&&s.length;)e-=(n=s.shift()).size,demand.cache.clear(n.id)}})}();
 //# sourceMappingURL=dispose.js.map
