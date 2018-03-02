@@ -1,4 +1,4 @@
-(function(localStorage) {
+(function() {
 	'use strict';
 
 	function definition(functionIterate, cacheStates) {
@@ -30,4 +30,4 @@
 	}
 
 	provide([ '/demand/function/iterate', './states' ], definition);
-}(localStorage));
+}());
