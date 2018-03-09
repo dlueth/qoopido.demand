@@ -53,7 +53,7 @@
 		"gulp-bump": "3.1.0",
 		"gulp-chmod": "2.0.0",
 		"gulp-eslint": "4.0.2",
-		"gulp-header": "2.0.1",
+		"gulp-header": "2.0.5",
 		"gulp-include": "2.3.1",
 		"gulp-inject-version": "1.0.1",
 		"gulp-jsbeautifier": "2.1.2",
