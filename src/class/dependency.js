@@ -62,16 +62,16 @@ var ClassDependency = (function() {
 		return functionIterate(registry.get(), add, []);
 	}
 
-	list.prototype = {
-		pending:  function() {
-			return functionIterate(registry.get(), addPending, []);
-		},
-		resolved: function() {
-			return functionIterate(registry.get(), addResolved, []);
-		},
-		rejected: function() {
-			return functionIterate(registry.get(), addRejected, []);
-		}
+	list.pending = function() {
+		return functionIterate(registry.get(), addPending, []);
+	};
+
+	list.resolved = function() {
+		return functionIterate(registry.get(), addResolved, []);
+	};
+
+	list.rejected = function() {
+		return functionIterate(registry.get(), addRejected, []);
 	};
 
 	function ClassDependency(uri, context, register) {
