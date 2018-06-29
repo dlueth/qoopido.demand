@@ -26,14 +26,18 @@ var ClassQueue = (function() {
 
 	ClassQueue.prototype = {
 		enqueue: function() {
-			storage.set(this, storage.get(this).concat(functionToArray(arguments)));
+			var items = functionToArray(arguments);
 
-			singletonEvent.emit(EVENT_QUEUE_ENQUEUE, this.uuid);
+			storage.set(this, storage.get(this).concat(items));
+
+			singletonEvent.emit(EVENT_QUEUE_ENQUEUE, this.uuid, items);
 		},
 		dequeue: function() {
-			singletonEvent.emit(EVENT_QUEUE_DEQUEUE, this.uuid);
+			var item = storage.get(this).shift();
 
-			return storage.get(this).shift();
+			singletonEvent.emit(EVENT_QUEUE_DEQUEUE, this.uuid, item);
+
+			return item;
 		},
 		get current() {
 			return storage.get(this)[0];
