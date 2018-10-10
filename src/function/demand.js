@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf, validatorIsSemver,
-	functionIterate, functionMerge, functionDefer, functionToArray,
+	functionIterate, functionMerge, functionDefer, functionIdle, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
 	singletonEvent, singletonCache
 */
@@ -16,6 +16,7 @@
 //=require function/iterate.js
 //=require function/merge.js
 //=require function/defer.js
+//=require function/idle.js
 //=require function/toArray.js
 //=require singleton/event.js
 //=require singleton/cache.js
@@ -158,6 +159,6 @@ demand = (function() {
 		});
 
 	return demand;
-}())
+}());
 
 global.define('demand', demand);

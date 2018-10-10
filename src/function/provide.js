@@ -45,6 +45,6 @@ provide = function provide() {
 	} else {
 		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS)); // eslint-disable-line no-console
 	}
-}
+};
 
 global.define('provide', provide);
