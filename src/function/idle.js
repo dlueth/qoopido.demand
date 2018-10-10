@@ -25,8 +25,6 @@ var functionIdle = (function() {
 		var fn;
 
 		if(queue.length && (event.type !== 'visibilitychange' || document.visibilityState === 'hidden')) {
-			global.removeEventListener(eventName, onVisibilitychange, TRUE);
-
 			current = cancelIdleCallback(current);
 
 			do {
