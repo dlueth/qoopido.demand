@@ -27,7 +27,7 @@ var ClassSemver = (function() {
 		return (a < b) ? -1 : ((a > b) ? 1 : 0);
 	}
 
-	function compareIdentifier(a, b) {
+	function compareIdentifier(a, b) { /* eslint-disable no-empty */
 		var i = 0, pa, pb, tpa, tpb;
 
 		if(a.length && !b.length) {
@@ -51,7 +51,7 @@ var ClassSemver = (function() {
 			} else if(tpa === STRING_UNDEFINED) {
 				return -1;
 			} else if(pa === pb) {
-				continue;
+
 			} else {
 				if(tpa === STRING_STRING && tpb !== STRING_STRING) {
 					return 1;
