@@ -1,71 +1,71 @@
 {
-	"name": "qoopido.demand",
-	"title": "Qoopido.demand",
-	"description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
-	"version": "5.2.0",
-	"homepage": "https://github.com/dlueth/qoopido.demand",
-	"author": {
-		"name": "Dirk Lueth",
-		"email": "info@qoopido.com"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/dlueth/qoopido.demand.git"
-	},
-	"bugs": {
-		"url": "https://github.com/dlueth/qoopido.demand/issues"
-	},
-	"license": "MIT",
-	"filename": "demand.js",
-	"scripts": {
-		"build": "gulp:dist",
-		"start": "gulp watch"
-	},
-	"autoupdate": {
-		"source": "git",
-		"target": "git://github.com/dlueth/qoopido.demand.git",
-		"basePath": "/dist",
-		"files": [
-			"**/*"
-		]
-	},
-	"keywords": [
-		"module",
-		"modular",
-		"script",
-		"loader",
-		"javascript",
-		"css",
-		"promise",
-		"xhr",
-		"ajax",
-		"localStorage",
-		"cache",
-		"caching",
-		"asset",
-		"storage",
-		"require",
-		"basket"
-	],
-	"devDependencies": {
-		"del": "3.0.0",
-		"gulp": "4.0.0",
-		"gulp-bump": "3.1.1",
-		"gulp-chmod": "2.0.0",
-		"gulp-eslint": "5.0.0",
-		"gulp-header": "2.0.7",
-		"gulp-include": "2.3.1",
-		"gulp-inject-version": "1.0.1",
-		"gulp-jsbeautifier": "2.1.2",
-		"gulp-livereload": "4.0.1",
-		"gulp-load-plugins": "1.5.0",
-		"gulp-rename": "1.4.0",
-		"gulp-size": "3.0.0",
-		"gulp-sourcemaps": "2.6.4",
-		"gulp-touch-fd": "2.0.0",
-		"gulp-uglify": "3.0.1",
-		"gulp-wrap": "0.14.0",
-		"require-dir": "1.2.0"
-	},
-	"dependencies": {}
+  "name": "qoopido.demand",
+  "title": "Qoopido.demand",
+  "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
+  "version": "5.2.1",
+  "homepage": "https://github.com/dlueth/qoopido.demand",
+  "author": {
+    "name": "Dirk Lueth",
+    "email": "info@qoopido.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dlueth/qoopido.demand.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dlueth/qoopido.demand/issues"
+  },
+  "license": "MIT",
+  "filename": "demand.js",
+  "scripts": {
+    "build": "gulp:dist",
+    "start": "gulp watch"
+  },
+  "autoupdate": {
+    "source": "git",
+    "target": "git://github.com/dlueth/qoopido.demand.git",
+    "basePath": "/dist",
+    "files": [
+      "**/*"
+    ]
+  },
+  "keywords": [
+    "module",
+    "modular",
+    "script",
+    "loader",
+    "javascript",
+    "css",
+    "promise",
+    "xhr",
+    "ajax",
+    "localStorage",
+    "cache",
+    "caching",
+    "asset",
+    "storage",
+    "require",
+    "basket"
+  ],
+  "devDependencies": {
+    "del": "3.0.0",
+    "gulp": "4.0.0",
+    "gulp-bump": "3.1.1",
+    "gulp-chmod": "2.0.0",
+    "gulp-eslint": "5.0.0",
+    "gulp-header": "2.0.7",
+    "gulp-include": "2.3.1",
+    "gulp-inject-version": "1.0.1",
+    "gulp-jsbeautifier": "2.1.2",
+    "gulp-livereload": "4.0.1",
+    "gulp-load-plugins": "1.5.0",
+    "gulp-rename": "1.4.0",
+    "gulp-size": "3.0.0",
+    "gulp-sourcemaps": "2.6.4",
+    "gulp-touch-fd": "2.0.0",
+    "gulp-uglify": "3.0.1",
+    "gulp-wrap": "0.14.0",
+    "require-dir": "1.2.0"
+  },
+  "dependencies": {}
 }
