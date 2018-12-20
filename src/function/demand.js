@@ -76,6 +76,7 @@ demand = (function() {
 	demand.configure = function(options) {
 		var cache    = options.cache,
 			version  = options.version,
+			delay    = options.delay,
 			timeout  = options.timeout,
 			lifetime = options.lifetime,
 			base     = options.base,
@@ -91,6 +92,10 @@ demand = (function() {
 
 		if(validatorIsSemver(version)) {
 			settings.version = version;
+		}
+
+		if(validatorIsPositive(delay)) {
+			settings.delay = delay * 1000;
 		}
 
 		if(validatorIsPositive(timeout)) {
