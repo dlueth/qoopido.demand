@@ -13,6 +13,7 @@
  * but guarantee execution when browser window gets closed
  *
  * @param {function} function
+ * @param {number}   [delay]
  */
 var functionIdle = (function() {
 	var eventName           = (typeof global.safari === 'object' && global.safari.pushNotification) ? 'beforeunload' : 'visibilitychange',
@@ -33,7 +34,7 @@ var functionIdle = (function() {
 		}
 	}
 
-	function requestIdleCallbackShim(fn) {
+	function requestIdleCallbackShim(fn, options) {
 		var start = +new Date();
 
 		return setTimeout(function () {
@@ -43,7 +44,7 @@ var functionIdle = (function() {
 					return Math.max(0, 50 - (+new Date() - start));
 				}
 			});
-		});
+		}, options && options.timeout);
 	}
 
 	function cancelIdleCallbackShim(id) {
@@ -53,14 +54,14 @@ var functionIdle = (function() {
 	function process() {
 		queue.dequeue()();
 
-		queue.length && (current = requestIdleCallback(process));
+		current = queue.length && requestIdleCallback(process);
 	}
 
 	global.addEventListener(eventName, onVisibilitychange, TRUE);
 
-	return function functionIdle(fn) {
+	return function functionIdle(fn, delay) {
 		queue.enqueue(fn);
 
-		!current && queue.length && (current = requestIdleCallback(process));
+		!current && queue.length && (current = requestIdleCallback(process, { timeout: delay }));
 	};
 }());

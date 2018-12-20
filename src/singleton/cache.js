@@ -44,7 +44,7 @@ var singletonCache = (function() {
 					cacheDispose(dependency.source.length);
 
 					cache.set(dependency);
-				});
+				}, settings.delay);
 			});
 		})
 		.on(EVENT_POST_REQUEST, function(dependency) {
@@ -56,7 +56,7 @@ var singletonCache = (function() {
 			if(storage[dependency.id]) {
 				functionIdle(function() {
 					cache.set(dependency);
-				});
+				}, settings.delay);
 			}
 		});
 
@@ -104,7 +104,7 @@ var singletonCache = (function() {
 	}
 
 	function Cache() {
-		functionIdle(this.clear.expired.bind(this.clear));
+		functionIdle(this.clear.expired.bind(this.clear), settings.delay);
 	}
 
 	Cache.prototype = {
@@ -129,7 +129,7 @@ var singletonCache = (function() {
 
 					functionIdle(function() {
 						setState(id + STORAGE_SUFFIX_STATE, state);
-					});
+					}, settings.delay);
 
 					return TRUE;
 				}
