@@ -41,7 +41,9 @@ function build(done) {
 		// beautify
 		plugins.include(config.settings.include),
 		plugins.injectVersion({ prepend: '', replace: '{{package.version}}' }),
-		plugins.uglify({
+		/*
+		plugins.terser({
+			ecma: 5,
 			mangle: false,
 			compress: {
 				'booleans':     false,
@@ -70,9 +72,11 @@ function build(done) {
 			'good_stuff':            true
 		}),
 		plugins.header(config.banner),
+		*/
 		// generate minified
 		plugins.sourcemaps.init({ largeFile: true }),
-		plugins.uglify({
+		plugins.terser({
+			ecma: 5,
 			compress: {
 				'passes':  5,
 				'typeofs': false
