@@ -75,10 +75,10 @@ var ClassSemver = (function() {
 
 		version = parse(version);
 
-		this.major      = version.slice(0, 1);
-		this.minor      = version.slice(1, 2);
-		this.patch      = version.slice(2, 3);
-		this.identifier = version.slice(3);
+		this.major      = version.shift();
+		this.minor      = version.shift();
+		this.patch      = version.shift();
+		this.identifier = version.shift();
 	}
 
 	ClassSemver.prototype = {
