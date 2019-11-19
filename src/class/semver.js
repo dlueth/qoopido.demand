@@ -78,7 +78,7 @@ var ClassSemver = (function() {
 		this.major      = version.shift();
 		this.minor      = version.shift();
 		this.patch      = version.shift();
-		this.identifier = version.shift();
+		this.identifier = version;
 	}
 
 	ClassSemver.prototype = {
