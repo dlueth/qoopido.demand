@@ -5,24 +5,7 @@
 
 //=require function/uuid.js
 
-var ClassWeakmap = 'WeakMap' in global ? (function() {
-		if(((new global.WeakMap()).set(function() {}, false) instanceof global.WeakMap)) {
-			return global.WeakMap;
-		}
-
-		return function WeakMapFill() {
-			var weakmap = new global.WeakMap();
-
-			weakmap.set = function set() {
-				global.WeakMap.prototype.set.apply(this, arguments);
-
-				return this;
-			};
-
-			return weakmap;
-		};
-	}())
-	:
+var ClassWeakmap = 'WeakMap' in global && !('ActiveXObject' in global) ? global.WeakMap :
 	(function() {
 		var prefix = 'weakmap-';
 
