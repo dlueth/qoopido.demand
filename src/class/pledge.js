@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
- 	FUNCTION_EMPTY, NULL,
+ 	FUNCTION_EMPTY, UNDEFINED, STRING_UNDEFINED, NULL,
 	arrayPrototypeConcat,
 	functionDefer, functionToArray,
 	ClassWeakmap
@@ -36,12 +36,24 @@ var ClassPledge = (function() {
 		}
 
 		while(pointer = properties[properties.state].shift()) {
-			result = pointer.handler.apply(NULL, properties.value);
+			try {
+				result = pointer.handler.apply(NULL, properties.value);
 
-			if(result && typeof result.then === 'function') {
-				result.then(pointer.dfd.resolve, pointer.dfd.reject);
-			} else {
-				pointer.dfd[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
+				if(result && typeof result.then === 'function') {
+					result.then(pointer.dfd.resolve, pointer.dfd.reject);
+
+					continue;
+				}
+
+				if(typeof result === STRING_UNDEFINED) {
+					pointer.dfd[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
+
+					continue;
+				}
+
+				pointer.dfd.resolve(result);
+			} catch(error) {
+				pointer.dfd.reject(error);
 			}
 		}
 
@@ -86,17 +98,58 @@ var ClassPledge = (function() {
 
 	ClassPledge.prototype = {
 		'catch': function(listener) {
-			return this.then(function() {}, listener);
+			return this.then(UNDEFINED, function() {
+				var dfd = ClassPledge.defer(),
+					result;
+
+				try {
+					result = listener.apply(NULL, arguments);
+
+					if(result && typeof result.then === 'function') {
+						result.then(dfd.resolve, dfd.reject);
+					} else {
+						dfd.resolve(result);
+					}
+				} catch(error) {
+					dfd.reject(error);
+				}
+
+				return dfd.pledge;
+			});
 		},
-		always: function(alwaysListener) {
-			return this.then(alwaysListener, alwaysListener);
+		always: function(listener) {
+			return this.then(listener, function() {
+				var dfd = ClassPledge.defer(),
+					result;
+
+				try {
+					result = listener.apply(NULL, arguments);
+
+					if(result && typeof result.then === 'function') {
+						result.then(dfd.resolve, dfd.reject);
+					} else {
+						dfd.reject.apply(NULL, arguments);
+					}
+				} catch(error) {
+					dfd.reject(error);
+				}
+
+				return dfd.pledge;
+			});
 		},
 		then: function(resolveListener, rejectListener) {
 			var properties = storage.get(this),
 				dfd        = ClassPledge.defer();
 
-			resolveListener && properties[PLEDGE_RESOLVED].push({ handler: resolveListener, dfd: dfd });
-			rejectListener && properties[PLEDGE_REJECTED].push({ handler: rejectListener, dfd: dfd });
+			properties[PLEDGE_RESOLVED].push({
+				handler: resolveListener || function() { return ClassPledge.resolve.apply(NULL, arguments) },
+				dfd: dfd
+			});
+
+			properties[PLEDGE_REJECTED].push({
+				handler: rejectListener || function() { return ClassPledge.reject.apply(NULL, arguments) },
+				dfd: dfd
+			});
 
 			if(properties.state !== PLEDGE_PENDING) {
 				functionDefer(properties.handle);
@@ -114,6 +167,8 @@ var ClassPledge = (function() {
 			return storage.get(this).state === PLEDGE_REJECTED;
 		}
 	};
+
+	ClassPledge.prototype.finally = ClassPledge.prototype.always;
 
 	ClassPledge.defer = function() {
 		var self = {};
@@ -154,6 +209,22 @@ var ClassPledge = (function() {
 		if(!pledges.length) {
 			dfd.resolve();
 		}
+
+		return dfd.pledge;
+	};
+
+	ClassPledge.resolve = function() {
+		var dfd = ClassPledge.defer();
+
+		dfd.resolve.apply(NULL, arguments);
+
+		return dfd.pledge;
+	};
+
+	ClassPledge.reject = function() {
+		var dfd = ClassPledge.defer();
+
+		dfd.reject.apply(NULL, arguments);
 
 		return dfd.pledge;
 	};

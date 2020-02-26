@@ -1,12 +1,14 @@
 (function() {
 	'use strict';
 
-	function definition(path, Failure, handlerModule, isObject) {
-		var settings = {};
+	function definition(path, Failure, handlerModule, isObject, merge) {
+		var settings = { suffix: '.js' };
 
 		demand
 			.on('postConfigure:' + path, function(options) {
-				settings = isObject(options) ? options : {};
+				if(isObject(options)) {
+					merge(settings, options);
+				}
 			});
 
 		function resolve() {
@@ -17,20 +19,32 @@
 
 			handlerModule.process(self);
 
-			if(probe && (result = probe())) {
-				provide(function() { return result; });
-			} else {
+			function resolve(module) {
+				provide(function() { return module; });
+			}
+
+			function reject() {
 				dfd.reject(new Failure('error probing', self.path));
+			}
+
+			if(probe) {
+				if((result = probe(resolve, reject))) {
+					resolve(result);
+				}
+			} else {
+				reject();
 			}
 		}
 
 		function HandlerLegacy() {}
 
 		HandlerLegacy.prototype = {
-			onPreRequest: function(dependency) {
+			onPreRequest: function(dependency, suffix) {
 				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
 
-				handlerModule.onPreRequest(dependency);
+				suffix = (typeof suffix !== 'undefined') ? suffix : settings.suffix;
+
+				handlerModule.onPreRequest(dependency, suffix || false);
 
 				if(dependencies) {
 					dependency.enqueue = demand.apply(null, dependencies);
@@ -63,5 +77,5 @@
 		return new (HandlerLegacy.extends(handlerModule));
 	}
 
-	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject' ], definition);
+	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject', '/demand/function/merge' ], definition);
 }());

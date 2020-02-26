@@ -1,7 +1,8 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	FALSE, EVENT_POST_REQUEST, ERROR_RESOLVE,
-	functionResolveSourcemaps,
+	FALSE, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_POST_REQUEST, ERROR_RESOLVE,
+	validatorIsObject,
+	functionResolveSourcemaps, functionMerge,
 	abstractHandler,
 	ClassDependency, ClassPledge, ClassFailure
 */
@@ -14,8 +15,16 @@
 //=require class/Failure.js
 
 var handlerComponent = (function() {
-	var suffix         = '.html',
-		regexMatchType = /^text\/.+$/;
+	var path           = MODULE_PREFIX_HANDLER + 'component',
+		regexMatchType = /^text\/.+$/,
+		settings       = { suffix: '.html' };
+
+	demand
+		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
+			if(validatorIsObject(options)) {
+				functionMerge(settings, options);
+			}
+		});
 
 	function HandlerComponent() {}
 
@@ -23,10 +32,16 @@ var handlerComponent = (function() {
 		validate: function(type) {
 			return regexMatchType.test(type);
 		},
-		onPreRequest: function(dependency) {
-			var pathname = dependency.url.pathname;
-			
-			dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
+		onPreRequest: function(dependency, suffix) {
+			var pathname;
+
+			suffix = (typeof suffix !== STRING_UNDEFINED) ? suffix : settings.suffix;
+
+			if(suffix) {
+				pathname = dependency.url.pathname;
+
+				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
+			}
 		},
 		onPostRequest: function(dependency) {
 			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);

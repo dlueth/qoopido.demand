@@ -1,15 +1,22 @@
 (function(document) {
 	'use strict';
 
-	function definition(abstractHandler, functionResolveSourcemaps) {
-		var suffix              = '.css',
-			target              = document.getElementsByTagName('head')[0],
+	function definition(path, abstractHandler, functionResolveSourcemaps, isObject, merge) {
+		var target              = document.getElementsByTagName('head')[0],
 			resolver            = document.createElement('a'),
 			regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
 			regexMatchImport    = /@import\s+["'](.+?)["']/gi,
 			regexIsAbsolutePath = /^\//i,
 			regexIsAbsoluteUri  = /^data:|http(s?):|\/\//i,
-			regexMatchType      = /^text\/css/;
+			regexMatchType      = /^text\/css/,
+			settings            = { suffix: '.css' };
+
+		demand
+			.on('postConfigure:' + path, function(options) {
+				if(isObject(options)) {
+					merge(settings, options);
+				}
+			});
 
 		function resolveUrl(url) {
 			resolver.href = url;
@@ -31,10 +38,16 @@
 			validate: function(type) {
 				return regexMatchType.test(type);
 			},
-			onPreRequest: function(dependency) {
-				var pathname = dependency.url.pathname;
-				
-				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
+			onPreRequest: function(dependency, suffix) {
+				var pathname;
+
+				suffix = (typeof suffix !== 'undefined') ? suffix : settings.suffix;
+
+				if(suffix) {
+					pathname = dependency.url.pathname;
+
+					dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;
+				}
 			},
 			onPostRequest: function(dependency) {
 				var url     = resolveUrl(dependency.url + '/..'),
@@ -79,5 +92,5 @@
 		return new (HandlerCss.extends(abstractHandler));
 	}
 
-	provide([ '/demand/abstract/handler', '/demand/function/resolveSourcemaps' ], definition);
+	provide([ 'path', '/demand/abstract/handler', '/demand/function/resolveSourcemaps', '/demand/validator/isObject', '/demand/function/merge' ], definition);
 }(document));
