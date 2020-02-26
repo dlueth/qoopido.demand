@@ -21,6 +21,7 @@
     "build": "gulp:dist",
     "start": "gulp watch"
   },
+  "browser": "/dist/demand.js",
   "autoupdate": {
     "source": "git",
     "target": "git://github.com/dlueth/qoopido.demand.git",
