@@ -11,7 +11,7 @@
 //=require abstract/handler.js
 
 var handlerModule = (function() {
-	var path           = MODULE_PREFIX_HANDLER + 'component',
+	var path           = MODULE_PREFIX_HANDLER + 'module',
 		target         = document.getElementsByTagName('head')[0],
 		regexMatchType = /^(application|text)\/(x-)?javascript/,
 		settings       = { suffix: '.js' };

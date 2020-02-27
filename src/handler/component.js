@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	FALSE, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_POST_REQUEST, ERROR_RESOLVE,
+	STRING_UNDEFINED, FALSE, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_POST_REQUEST, ERROR_RESOLVE,
 	validatorIsObject,
 	functionResolveSourcemaps, functionMerge,
 	abstractHandler,
