@@ -74,21 +74,33 @@ var handlerComponent = (function() {
 
 			ClassPledge.all(pledges).then(
 				function() {
-					var i = 0, module, dependency;
+					var components = [],
+						i, module, component;
 
 					pledges.length = 0;
 
-					for(; (module = modules[i]); i++) {
-						dependency         = ClassDependency.get(module.uri) || new ClassDependency(module.uri);
-						dependency.source  = functionResolveSourcemaps(dependency.url, module.source);
-						dependency.handler = arguments[i];
+					for(i = 0; (module = modules[i]); i++) {
+						component         = ClassDependency.get(module.uri) || new ClassDependency(module.uri);
+						component.source  = functionResolveSourcemaps(component.url, module.source);
+						component.handler = arguments[i];
 
-						pledges.push(dependency.pledge);
+						components.push(component);
+						pledges.push(component.pledge);
 
-						queue.enqueue(dependency);
+						queue.enqueue(component);
 					}
 
-					ClassPledge.all(pledges).then(dfd.resolve, reject);
+					ClassPledge.all(pledges)
+						.then(function() {
+							var offset    = dependency.path.length + 1,
+								component = {};
+
+							for(i = 0; (module = arguments[i]); i++) {
+								component[components[i].path.substr(offset) || 'main'] = module;
+							}
+
+							dfd.resolve(component);
+						}, reject);
 				},
 				reject
 			);
