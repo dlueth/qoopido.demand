@@ -12,7 +12,7 @@
 var singletonEvent = (function() {
 	var TYPE_ON         = 'on',
 		TYPE_AFTER      = 'after',
-		regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Resolve|Configure|Request|Process|Cache)$/,
+		regexMatchEvent = /^cache(Miss|Hit|Clear|Exceed)|queue(En|De)queue|(pre|post)(Resolve|Configure|Request|Process|Cache)|provide|reject$/,
 		listener        = {};
 
 	function addListener(type, events, callback) {

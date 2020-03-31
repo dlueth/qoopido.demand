@@ -1,13 +1,15 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
+	EVENT_PROVIDE, EVENT_REJECT, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsArray,
+	singletonEvent,
 	ClassDependency, ClassFailure
 */
 
 //=require constants.js
 //=require validator/isTypeOf.js
 //=require validator/isArray.js
+//=require singleton/event.js
 //=require class/dependency.js
 //=require class/failure.js
 
@@ -40,6 +42,11 @@ provide = function provide() {
 		} else {
 			module.dfd.resolve(isFunction ? definition() : definition);
 		}
+
+		module.dfd.pledge.then(
+			function() { singletonEvent.emit(EVENT_PROVIDE, module.path, module); },
+			function() { singletonEvent.emit(EVENT_REJECT, module.path, module); }
+		);
 
 		return module.dfd.pledge;
 	} else {
