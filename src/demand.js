@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, MODULE_PREFIX_ABSTRACT, STRING_STRING, STRING_FUNCTION, TRUE,
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver,
-	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionIdle, functionHash, functionUuid,
+	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionIdle, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
 	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor, ClassWeakmap, ClassSemver,
 	handlerModule, handlerBundle, handlerComponent,
@@ -66,6 +66,7 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'defer', functionDefer);
 		assignModule(MODULE_PREFIX_FUNCTION + 'idle', functionIdle);
 		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
+		assignModule(MODULE_PREFIX_FUNCTION + 'toArray', functionToArray);
 		assignModule(MODULE_PREFIX + 'weakmap', ClassWeakmap);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
