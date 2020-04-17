@@ -4,7 +4,7 @@
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionIdle, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
-	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
+	ClassLogger, ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
 	handlerModule, handlerBundle, handlerComponent,
  	pluginGenie
 */
@@ -17,7 +17,28 @@
 	var document = global.document,
 		options  = 'demand' in global && global.demand,
 		settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
-		demand, provide, queue, processor;
+		demand, provide, queue, processor, log;
+
+	/*
+	function _log(method, message, color) {
+		typeof console !== 'undefined' && console[method]('%c' + prefix + '%c' + message.toString(), 'display:inline-block;padding:0.5em;line-height:1;font-weight:bold;color:#fff;background-color:' + color + ';border-radius:3px;', 'display:inline-block;padding:0.5em;line-height:1;');
+	}
+
+	log = {
+		info: function(message) {
+			_log('info', message, '#95ba00');
+		},
+		warning: function(message) {
+			_log('warn', message, '#f49d0c');
+		},
+		error: function(message) {
+			_log('error', message, '#af0032');
+		}
+	}
+	*/
+
+	// include logger
+		//=require class/logger.js
 
 	// include inheritance
 		//=require inheritance.js
@@ -27,6 +48,7 @@
 		//=require function/provide.js
 
 	// process initial configuration
+		log = new ClassLogger('qoopido.demand');
 		demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
 		options && options.settings && demand.configure(options.settings);
 
@@ -67,6 +89,7 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'idle', functionIdle);
 		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX_FUNCTION + 'toArray', functionToArray);
+		assignModule(MODULE_PREFIX + 'logger', ClassLogger);
 		assignModule(MODULE_PREFIX + 'task', ClassTask);
 		assignModule(MODULE_PREFIX + 'weakmap', ClassWeakmap);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);

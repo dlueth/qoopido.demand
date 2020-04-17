@@ -1,5 +1,5 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
 	EVENT_PROVIDE, EVENT_REJECT, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsInstanceOf, validatorIsArray,
 	singletonEvent,
@@ -57,7 +57,7 @@ provide = function provide() {
 
 		return module.dfd.pledge;
 	} else {
-		!validatorIsTypeOf(console, STRING_UNDEFINED) && console.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS)); // eslint-disable-line no-console
+		log.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));
 	}
 };
 

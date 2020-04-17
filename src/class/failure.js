@@ -26,7 +26,7 @@ ClassFailure.prototype = {
 	 */
 	toString: function() {
 		var self   = this,
-			result = DEMAND_ID + ': ' + self.message + ' ' + (self.module ? '"' + self.module + '"' : '');
+			result = self.message + ' ' + (self.module ? '"' + self.module + '"' : '');
 
 		if(self.stack) {
 			result = ClassFailure.traverse(self.stack, result, 1);
