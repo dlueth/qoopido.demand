@@ -10,9 +10,9 @@ function abstractHandler() {
 }
 
 abstractHandler.prototype = {
-	validate: NULL,
-	onPreRequest: NULL,
+	validate:      NULL,
+	onPreRequest:  NULL,
 	onPostRequest: NULL,
-	onPreProcess: NULL,
-	process: NULL
+	onPreProcess:  NULL,
+	process:       NULL
 };

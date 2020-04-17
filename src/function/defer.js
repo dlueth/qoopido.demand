@@ -1,9 +1,3 @@
-/**
- * Based on setAsap:
- *   Repo:    https://github.com/taylorhakes/setAsap
- *   License: https://github.com/taylorhakes/setAsap/blob/master/LICENSE
- */
-
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	NULL, TRUE, FALSE,
@@ -22,62 +16,35 @@
  * @param {function} function
  */
 var functionDefer = (function() {
-	var hasSetImmediate = 'setImmediate' in global,
-		element, fallback;
+	var storage, observer, element;
 
-	if('MutationObserver' in global) {
+	if('setImmediate' in global && typeof global.setImmediate === 'function') {
+		return global.setImmediate;
+	}
+
+	if('MutationObserver' in global && typeof global.MutationObserver === 'function') {
+		storage  = {};
+		element  = document.createElement('div');
+		observer = new MutationObserver(function(records) {
+			records.forEach(function(record) {
+				var uuid = record.attributeName.substr(1);
+
+				storage[uuid] && storage[uuid]();
+
+				delete storage[uuid];
+			});
+		});
+
+		observer.observe(element, { attributes: TRUE });
+
 		return function functionDefer(fn) {
-			element = document.createElement('div');
+			var uuid = functionUuid();
 
-			new MutationObserver(function() { fn(); })
-				.observe(element, { attributes: TRUE });
+			storage[uuid] = fn;
 
-			element.setAttribute('i', '1');
+			element.setAttribute('i' + uuid, 1);
 		};
 	}
 
-	if(!hasSetImmediate && 'postMessage' in global && !('importScripts' in global) && 'addEventListener' in global) {
-		return (function() {
-			var storage = {};
-
-			function onMessage(event) {
-				var fn;
-
-				if(event.source === global && event.data && (fn = storage[event.data])) {
-					fn();
-
-					delete storage[event.data];
-				}
-			}
-
-			global.addEventListener('message', onMessage, FALSE);
-
-			return function functionDefer(fn) {
-				var uuid = functionUuid();
-
-				storage[uuid] = fn;
-
-				global.postMessage(uuid, '*');
-			};
-		}());
-	}
-
-	if(!hasSetImmediate && 'onreadystatechange' in (element = document.createElement('script'))) {
-		return function functionDefer(fn) {
-			element.onreadystatechange = function onreadystatechange() {
-				element.onreadystatechange = NULL;
-				element.parentNode.removeChild(element);
-
-				fn();
-			};
-
-			document.body.appendChild(element);
-		};
-	}
-
-	fallback = hasSetImmediate ? setImmediate : setTimeout; // eslint-disable-line no-undef
-
-	return function functionDefer(fn) {
-		fallback(fn);
-	};
+	return setTimeout;
 }());

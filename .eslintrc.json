@@ -29,7 +29,8 @@
   },
   "globals": {
     "demand": true,
-    "provide": true
+    "provide": true,
+    "ArrayBuffer": true
   },
   "root": true
 }

@@ -4,7 +4,7 @@
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionIdle, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
-	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassXhr, ClassFailure, ClassDescriptor, ClassWeakmap, ClassSemver,
+	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
 	handlerModule, handlerBundle, handlerComponent,
  	pluginGenie
 */
@@ -67,11 +67,11 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'idle', functionIdle);
 		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX_FUNCTION + 'toArray', functionToArray);
+		assignModule(MODULE_PREFIX + 'task', ClassTask);
 		assignModule(MODULE_PREFIX + 'weakmap', ClassWeakmap);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
-		assignModule(MODULE_PREFIX + 'xhr', ClassXhr);
 		assignModule(MODULE_PREFIX + 'failure', ClassFailure);
 		assignModule(MODULE_PREFIX + 'semver', ClassSemver);
 

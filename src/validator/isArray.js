@@ -1,9 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	objectPrototypeToString
 */
-
-//=require shortcuts.js
 
 /**
  * isArray
@@ -16,5 +13,5 @@
  */
 
 function validatorIsArray(value) {
-	return objectPrototypeToString.call(value) === '[object Array]';
+	return Array.isArray(value);
 }

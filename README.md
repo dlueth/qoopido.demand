@@ -8,7 +8,7 @@
 
 Qoopido.demand is a modular, flexible and 100% async JavaScript module loader with a promise like interface that utilizes localStorage as a caching layer. It comes in a rather tiny package of **~7kB minified and gzipped**.
 
-Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled. 
+Qoopido.demand originated from my daily use of require.js for the initial development of my Qoopido.nucleus library which is strictly atomic by nature, unbundled.
 
 ## Key features in detail
 - promise like interface (no native promise support required)
@@ -25,14 +25,16 @@ Qoopido.demand originated from my daily use of require.js for the initial develo
 
 
 ## Compatibility
-Qoopido.demand is developed for Chrome, Firefox, Safari, Opera and IE9+.
+Qoopido.demand is developed for Chrome, Firefox, Safari, Edge, Opera and IE11+.
+
+Active Support for IE9 and IE10 has been removed in Qoopido.demand 6.0.0 due to upcoming refactorings/cleanups and the lack of market share of these browsers today.
 
 Support for IE8 has been actively removed in Qoopido.demand 4.0.0 due to the lack of justifiable polyfills for parts of some underlying pattern.
 
 I do test on MacOS Sierra where Qoopido.demand is fully working on Chrome, Firefox, Safari and Opera. IE9, 10, 11 as well as Edge are testet on the official Microsoft VMs via VirtualBox.
 
 ## Requirements
-Due to modules getting loaded via XHR/XDR a remote server has to have CORS enabled. Be assured that most of the usual CDNs have CORS enabled by default.
+Due to modules getting loaded via XHR a remote server has to have CORS enabled. Be assured that most of the usual CDNs have CORS enabled by default.
 
 ## External dependencies
 None!
@@ -68,9 +70,9 @@ The last parameter of the above code snippet is a configuration object. It just 
 	// enables or disables caching in general (when true/false)
 	// optional, defaults to "true"
 	cache: true,
-	
+
 	// fine grained cache control (when object)
-	// any path or part of a path can be set to true to 
+	// any path or part of a path can be set to true to
 	// activate caching or false to disable it.
 	// The longest matching path wins over others.
 	cache: {
@@ -78,31 +80,31 @@ The last parameter of the above code snippet is a configuration object. It just 
 		'/app/':        true,
 		'/app/nocache': false
 	},
-				
+
 	// cache will be validated against version
 	// optional, defaults to "undefined"
 	version: '1.0.0',
-				
+
 	// cache will be validated against lifetime, if > 0
 	// optional, defaults to "0"
 	// unit: seconds
 	lifetime: 60,
-				
+
 	// sets the timeout for XHR requests
 	// optional, defaults to "8" (limited to "2" up to "20")
 	// unit: seconds
-	timeout: 8, 
-				
-	// base path from where your relative 
+	timeout: 8,
+
+	// base path from where your relative
 	// dependencies get loaded
 	// optional, defaults to "/"
 	base: '[path/url to your scripts]',
-				
+
 	// optional
 	pattern: {
 		'/nucleus':   ['[path/url to Qoopido.nucleus]', '[fallback path/url to Qoopido.nucleus]'],
 		'/app':       '[path/url to your modules]',
-		// just an example, loading jQuery + bundle 
+		// just an example, loading jQuery + bundle
 		// will not work due to the nature of jQuery
 		'/jquery':    '//cdn.jsdelivr.net/jquery/2.1.4/jquery.min',
 		'/jquery+ui': '//cdn.jsdelivr.net/g/jquery@2.1.4,jquery.ui@1.11.4'
@@ -138,22 +140,22 @@ The last parameter of the above code snippet is a configuration object. It just 
 			'/nucleus/': function(dependencies) {
 				var fragments = [],
             		i = 0, dependency;
-            								
+
             	for(; (dependency = dependencies[i]); i++) {
             		fragments.push(dependency.id.replace(/^\/nucleus\//, '') + '.js');
             	}
-            								
+
             	return '//cdn.jsdelivr.net/g/qoopido.nucleus@2.0.1(' + fragments.join('+') + ')';
             },
             // handle creation of auto-bundle URL for your modules from your server
             '/app/': function(dependencies) {
             	var fragments = [],
             		i = 0, dependency;
-            								
+
             	for(; (dependency = dependencies[i]); i++) {
             		fragments.push(dependency.id.replace(/^\/js\//, '') + '.js');
             	}
-            								
+
             	return '/genie/?module[]=' + fragments.join('&module[]=');
             }
 		}
@@ -177,10 +179,10 @@ The demanded ```main``` module from the above script might look like the followi
 				modules: {
 				}
 			});
-			
+
 		return true; // just return true if there really is nothing to return
 	}
-	
+
 	provide([ 'demand', 'provide' ], definition);
 }(this));
 ```
@@ -270,7 +272,7 @@ As any parameter that is part of the path declaration is optional you gain total
 Qoopido.demand's original idea was (and still is) to not need a server-side built-process to pre-compile static bundles but to directly load any module required on demand. This decision really embraces new technologies like HTTP/2 that do not establish a new connection for each single request but instead are able to handle all requests with a single connection.
 
 While this is absolutely great HTTP/2 is not 100% supported by servers and clients yet and even if it is, requesting many assets may still slow down your perceived loading experience.
- 
+
 To handle this Qoopido.demand has a built-in plugin called ```genie``` which can be configured to create auto-bundle requests for all direct dependencies of a module. To give you a more detailed example think about a module depending on ```/nucleus/dom/element```, ```/nucleus/dom/collection``` and ```/nucleus/component/sense```.
 
 If ```genie``` is enabled for paths prefixed with```/nucleus/``` it will determine if any of the dependencies are already loaded and if there are at least two left for any auto-bundle configured they will get loaded via a single request.
@@ -279,7 +281,7 @@ So if none of the dependencies of the aforementioned example are yet loaded all 
 
 **Sidenote**
 > CDNs like jsdelivr allow to request bundles already. A very simple PHP script is part of this repository and can be found under ```/genie/index.php``` (adjust the BASE path accordingly). To be able to adopt ```genie``` for any kind of bundle URL it uses a callback function which is explained in the section **Configuration**.
- 
+
 
 ## Providing inline modules
 Beside demanding other modules you can as well provide your own, just like in the following example:
@@ -324,7 +326,7 @@ In addition to inline modules you just need some minimal boilerplate code and an
 
 This example illustrates a module named ```/app/test``` which we already know as the first dependency of the prior example. As with the inline module the ```definition``` function will receive all dependencies as arguments passed so they are in scope of the actual module.
 
-See these [gists](https://gist.github.com/search?utf8=%E2%9C%93&q=Qoopido.demand+user%3Adlueth&ref=searchresults) to find some skeletons for frequently used types of modules ;) 
+See these [gists](https://gist.github.com/search?utf8=%E2%9C%93&q=Qoopido.demand+user%3Adlueth&ref=searchresults) to find some skeletons for frequently used types of modules ;)
 
 
 ## Path resolution
@@ -336,7 +338,7 @@ Absolute URLs starting either with a protocol or ```//``` will not get altered a
 
 As always resolving relative paths against ```base``` might not be desired and you would prefer or need a relative resolution demand provides three special dependencies:
 
-Whenever you request ```demand```, ```provide``` or ```path``` as a dependency of a module your modules definition wil get passed a *localized* version of it. 
+Whenever you request ```demand```, ```provide``` or ```path``` as a dependency of a module your modules definition wil get passed a *localized* version of it.
 
 ```javascript
 (function(global) {
@@ -347,12 +349,12 @@ Whenever you request ```demand```, ```provide``` or ```path``` as a dependency o
 			demand('dependency').then(
 				function() {}
 			);
-			
+
 			provide('module', function module() {
 			})
 		};
 	}
-	
+
 	provide([ 'demand', 'provide', 'path' ], definition);
 }(this));
 ```
@@ -362,13 +364,13 @@ If you load the above Module from e.g. the directory ```app/``` and name it ```m
 
 ## Available plugins
 Beside the above mentioned handlers ```demand``` offers a variety of plugins with different aims. Currently ```demand``` provides the following loadable plugins:
- 
+
  - Cookie: store module cache states in cookies to exchange cache states with the server
  - LZString: compress/decompress localStorage content to safe space
  - SRI: adds sub-resource-integrity checks when loading modules
- 
+
 Plugins have to be loaded manually by simply demanding them. They can be configured via ```demand.configure``` just like the bundle handler mentioned above. ```cookie``` as well as ```lzstring``` use the same configuration theme while ```sri```works only slightly different:
- 
+
  ```javascript
 (function(global) {
 	'use strict';
@@ -376,14 +378,14 @@ Plugins have to be loaded manually by simply demanding them. They can be configu
 	demand.configure({
 		modules: {
 			'/demand/plugin/cookie': {
-				// enable cookie plugin for modules 
+				// enable cookie plugin for modules
 				// starting with /app/
 				'/app/': true
 			},
 			'/demand/plugin/lzstring': {
 				// enable compression for all modules ...
 				'': true,
-				// ... but disable it for modules 
+				// ... but disable it for modules
 				// starting with a certain path
 				'/app/do/not/compress': false
 			},
@@ -430,7 +432,7 @@ Demand also provides means to get information of the state of modules. Similar t
 
 	// ... that could not be loaded/resolved
 	demand.list.rejected();
-	
+
 	// .. that where successfully loaded and resolved
 	demand.list.resolved();
 ```

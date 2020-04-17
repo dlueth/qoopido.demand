@@ -1,9 +1,16 @@
 (function() {
 	'use strict';
 
-	function definition(path, abstractHandler, isObject, merge) {
+	function definition(path, abstractHandler, Task, Failure, isObject, merge) {
 		var regexMatchType = /^application\/json/,
-			settings       = { suffix: '.json' };
+			settings       = { suffix: '.json' },
+			parseJson      = new Task(function(resolve, reject, source) {
+				try {
+					resolve(JSON.parse(source));
+				} catch(error) {
+					reject(error);
+				}
+			});
 
 		demand
 			.on('postConfigure:' + path, function(options) {
@@ -30,14 +37,18 @@
 				}
 			},
 			process: function(dependency) {
-				var data = JSON.parse(dependency.source);
-
-				provide(function() { return data; });
+				parseJson(dependency.source)
+					.then(function(data) {
+						provide(function() { return data; });
+					})
+					.catch(function() {
+						dependency.dfd.reject(new Failure('error parsing', dependency.path));
+					});
 			}
 		};
 
 		return new (HandlerJson.extends(abstractHandler));
 	}
 
-	provide([ 'path', '/demand/abstract/handler', '/demand/validator/isObject', '/demand/function/merge' ], definition);
+	provide([ 'path', '/demand/abstract/handler', '/demand/task', '/demand/failure', '/demand/validator/isObject', '/demand/function/merge' ], definition);
 }());
