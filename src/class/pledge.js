@@ -66,11 +66,7 @@ var ClassPledge = (function() {
 
 				pointer.dfd.resolve(result);
 			} catch(error) {
-				if(pointer.dfd) {
-					pointer.dfd.reject(error)
-				} else {
-					throw error;
-				}
+				pointer.dfd.reject(error);
 			}
 		}
 
