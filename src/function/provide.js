@@ -57,7 +57,7 @@ provide = function provide() {
 
 		return module.dfd.pledge;
 	} else {
-		log.error(new ClassFailure(ERROR_PROVIDE_ANONYMOUS));
+		throw new Error(ERROR_PROVIDE_ANONYMOUS);
 	}
 };
 

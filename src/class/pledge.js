@@ -1,13 +1,16 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
- 	FUNCTION_EMPTY, UNDEFINED, STRING_UNDEFINED, NULL,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
+ 	ERROR_UNHANDLED_PLEDGE_REJECTION, FUNCTION_EMPTY, UNDEFINED, STRING_UNDEFINED, NULL,
 	arrayPrototypeConcat,
+	validatorIsInstanceOf, validatorIsTypeOf,
 	functionDefer, functionToArray,
 	ClassWeakmap
 */
 
 //=require constants.js
 //=require shortcuts.js
+//=require validator/isInstanceOf.js
+//=require validator/isTypeOf.js
 //=require function/defer.js
 //=require function/toArray.js
 //=require class/weakmap.js
@@ -19,11 +22,21 @@ var ClassPledge = (function() {
 		storage         = new ClassWeakmap();
 
 	function resolve() {
-		storage.get(this).handle(PLEDGE_RESOLVED, arguments);
+		var self = this,
+			args = arguments;
+
+		functionDefer(function() {
+			storage.get(self).handle(PLEDGE_RESOLVED, args);
+		});
 	}
 
 	function reject() {
-		storage.get(this).handle(PLEDGE_REJECTED, arguments);
+		var self = this,
+			args = arguments;
+
+		functionDefer(function() {
+			storage.get(self).handle(PLEDGE_REJECTED, args);
+		});
 	}
 
 	function handle(state, parameter) {
@@ -39,21 +52,25 @@ var ClassPledge = (function() {
 			try {
 				result = pointer.handler.apply(NULL, properties.value);
 
-				if(result && typeof result.then === 'function') {
+				if(validatorIsInstanceOf(result, ClassPledge)) {
 					result.then(pointer.dfd.resolve, pointer.dfd.reject);
 
 					continue;
 				}
 
-				if(typeof result === STRING_UNDEFINED) {
-					pointer.dfd[properties.state === PLEDGE_RESOLVED ? 'resolve' : 'reject'].apply(NULL, properties.value);
+				if(properties.state === PLEDGE_RESOLVED && validatorIsTypeOf(result, STRING_UNDEFINED)) {
+					pointer.dfd.resolve.apply(NULL, properties.value);
 
 					continue;
 				}
 
 				pointer.dfd.resolve(result);
 			} catch(error) {
-				pointer.dfd.reject(error);
+				if(pointer.dfd) {
+					pointer.dfd.reject(error)
+				} else {
+					throw error;
+				}
 			}
 		}
 
@@ -97,66 +114,6 @@ var ClassPledge = (function() {
 	}
 
 	ClassPledge.prototype = {
-		'catch': function(listener) {
-			return this.then(UNDEFINED, function() {
-				var dfd = ClassPledge.defer(),
-					result;
-
-				try {
-					result = listener.apply(NULL, arguments);
-
-					if(result && typeof result.then === 'function') {
-						result.then(dfd.resolve, dfd.reject);
-					} else {
-						dfd.resolve(result);
-					}
-				} catch(error) {
-					dfd.reject(error);
-				}
-
-				return dfd.pledge;
-			});
-		},
-		always: function(listener) {
-			return this.then(listener, function() {
-				var dfd = ClassPledge.defer(),
-					result;
-
-				try {
-					result = listener.apply(NULL, arguments);
-
-					if(result && typeof result.then === 'function') {
-						result.then(dfd.resolve, dfd.reject);
-					} else {
-						dfd.reject.apply(NULL, arguments);
-					}
-				} catch(error) {
-					dfd.reject(error);
-				}
-
-				return dfd.pledge;
-			});
-		},
-		then: function(resolveListener, rejectListener) {
-			var properties = storage.get(this),
-				dfd        = ClassPledge.defer();
-
-			properties[PLEDGE_RESOLVED].push({
-				handler: resolveListener || function() { return ClassPledge.resolve.apply(NULL, arguments) },
-				dfd: dfd
-			});
-
-			properties[PLEDGE_REJECTED].push({
-				handler: rejectListener || function() { return ClassPledge.reject.apply(NULL, arguments) },
-				dfd: dfd
-			});
-
-			if(properties.state !== PLEDGE_PENDING) {
-				functionDefer(properties.handle);
-			}
-
-			return dfd.pledge;
-		},
 		isPending: function() {
 			return storage.get(this).state === PLEDGE_PENDING;
 		},
@@ -165,6 +122,32 @@ var ClassPledge = (function() {
 		},
 		isRejected: function() {
 			return storage.get(this).state === PLEDGE_REJECTED;
+		},
+		then: function(resolveListener, rejectListener) {
+			var properties = storage.get(this),
+				dfd        = ClassPledge.defer();
+
+			properties[PLEDGE_RESOLVED].push({
+				handler: resolveListener || ClassPledge.resolve,
+				dfd:     dfd
+			});
+
+			properties[PLEDGE_REJECTED].push({
+				handler: rejectListener || ClassPledge.reject,
+				dfd:     dfd
+			});
+
+			if(properties.state !== PLEDGE_PENDING) {
+				functionDefer(properties.handle);
+			}
+
+			return dfd.pledge;
+		},
+		'catch': function(listener) {
+			return this.then(UNDEFINED, listener);
+		},
+		always: function(listener) {
+			return this.then(listener, listener);
 		}
 	};
 

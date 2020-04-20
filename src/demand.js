@@ -4,7 +4,7 @@
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionIdle, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
-	ClassLogger, ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
+	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
 	handlerModule, handlerBundle, handlerComponent,
  	pluginGenie
 */
@@ -37,9 +37,6 @@
 	}
 	*/
 
-	// include logger
-		//=require class/logger.js
-
 	// include inheritance
 		//=require inheritance.js
 
@@ -48,7 +45,6 @@
 		//=require function/provide.js
 
 	// process initial configuration
-		log = new ClassLogger('qoopido.demand');
 		demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
 		options && options.settings && demand.configure(options.settings);
 
@@ -89,7 +85,6 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'idle', functionIdle);
 		assignModule(MODULE_PREFIX_FUNCTION + 'uuid', functionUuid);
 		assignModule(MODULE_PREFIX_FUNCTION + 'toArray', functionToArray);
-		assignModule(MODULE_PREFIX + 'logger', ClassLogger);
 		assignModule(MODULE_PREFIX + 'task', ClassTask);
 		assignModule(MODULE_PREFIX + 'weakmap', ClassWeakmap);
 		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
