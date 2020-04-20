@@ -1,7 +1,7 @@
 (function() {
 	'use strict';
 
-	function definition(path, abstractHandler, Task, Failure, isObject, merge) {
+	function definition(path, abstractHandler, Task, Pledge, Failure, isObject, merge) {
 		var regexMatchType = /^application\/json/,
 			settings       = { suffix: '.json' },
 			parseJson      = new Task(function(resolve, reject, source) {
@@ -37,18 +37,12 @@
 				}
 			},
 			process: function(dependency) {
-				parseJson(dependency.source)
-					.then(function(data) {
-						provide(function() { return data; });
-					})
-					.catch(function() {
-						dependency.dfd.reject(new Failure('error parsing', dependency.path));
-					});
+				provide(parseJson(dependency.source));
 			}
 		};
 
 		return new (HandlerJson.extends(abstractHandler));
 	}
 
-	provide([ 'path', '/demand/abstract/handler', '/demand/task', '/demand/failure', '/demand/validator/isObject', '/demand/function/merge' ], definition);
+	provide([ 'path', '/demand/abstract/handler', '/demand/task', '/demand/pledge', '/demand/failure', '/demand/validator/isObject', '/demand/function/merge' ], definition);
 }());

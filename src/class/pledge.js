@@ -60,7 +60,7 @@ var ClassPledge = (function() {
 			properties.state = state;
 			properties.value = parameter;
 
-			if(state === PLEDGE_REJECTED && !properties.handled) {
+			if(state === PLEDGE_REJECTED && !properties[state].length) {
 				handleUncaught(parameter)
 			}
 		}
@@ -149,10 +149,6 @@ var ClassPledge = (function() {
 				handler: rejectListener || ClassPledge.reject,
 				dfd:     dfd
 			});
-
-			if(rejectListener) {
-				properties.handled = true;
-			}
 
 			if(properties.state !== PLEDGE_PENDING) {
 				functionDefer(properties.handle);
