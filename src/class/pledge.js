@@ -4,7 +4,7 @@
 	arrayPrototypeConcat,
 	validatorIsInstanceOf, validatorIsTypeOf,
 	functionDefer, functionToArray,
-	ClassWeakmap
+	ClassWeakmap, ClassFailure
 */
 
 //=require constants.js
@@ -14,6 +14,7 @@
 //=require function/defer.js
 //=require function/toArray.js
 //=require class/weakmap.js
+//=require class/failure.js
 
 var ClassPledge = (function() {
 	var PLEDGE_PENDING  = 'pending',
@@ -39,6 +40,18 @@ var ClassPledge = (function() {
 		});
 	}
 
+	function handleUncaught(values) {
+		var i = 0, value;
+
+		console.warn(ERROR_UNHANDLED_PLEDGE_REJECTION);
+
+		for(; (value = values[i]) !== undefined; i++) {
+			if(validatorIsInstanceOf(value, Error) || validatorIsInstanceOf(value, ClassFailure)) {
+				throw value;
+			}
+		}
+	}
+
 	function handle(state, parameter) {
 		var properties = storage.get(this),
 			pointer, result;
@@ -46,6 +59,10 @@ var ClassPledge = (function() {
 		if(properties.state === PLEDGE_PENDING) {
 			properties.state = state;
 			properties.value = parameter;
+
+			if(state === PLEDGE_REJECTED && !properties.handled) {
+				handleUncaught(parameter)
+			}
 		}
 
 		while(pointer = properties[properties.state].shift()) {
@@ -132,6 +149,10 @@ var ClassPledge = (function() {
 				handler: rejectListener || ClassPledge.reject,
 				dfd:     dfd
 			});
+
+			if(rejectListener) {
+				properties.handled = true;
+			}
 
 			if(properties.state !== PLEDGE_PENDING) {
 				functionDefer(properties.handle);

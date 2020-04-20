@@ -51,4 +51,5 @@ var DEMAND_ID               = 'demand',
 	ERROR_LOAD              = 'error loading',
 	ERROR_PROVIDE           = 'error providing',
 	ERROR_RESOLVE           = 'error resolving',
-	ERROR_PROVIDE_ANONYMOUS = 'unspecified anonymous provide';
+	ERROR_PROVIDE_ANONYMOUS = 'unspecified anonymous provide',
+	ERROR_UNHANDLED_PLEDGE_REJECTION = 'unhandled pledge rejection';
