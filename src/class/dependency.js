@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
+	DEMAND_ID, MODULE_PREFIX_HANDLER, ERROR_LOAD, DEMAND_ID, PROVIDE_ID, PATH_ID, EXPORTS_ID, MOCK_PREFIX, NULL, TRUE, FALSE,
 	object,
 	regexMatchInternal, regexMatchParameter,
 	validatorIsPositive,
@@ -115,7 +115,7 @@ var ClassDependency = (function() {
 		value:    NULL,
 		handler:  NULL, // set by Dependency.resolve
 	 	source:   NULL, // set by Cache or Loader
-	 	url:      NULL // optional, set by Loader
+	 	url:      NULL, // optional, set by Loader
 		*/
 	};
 
@@ -145,6 +145,13 @@ var ClassDependency = (function() {
 						break;
 					case PATH_ID:
 						value = context;
+
+						break;
+					case EXPORTS_ID:
+						value = {};
+
+						dependency.dfd.pledge
+							.then(this.get(context).dfd.resolve);
 
 						break;
 				}

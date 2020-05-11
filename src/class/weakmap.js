@@ -18,7 +18,7 @@ var ClassWeakmap = 'WeakMap' in global && !('ActiveXObject' in global) ? global.
 		}
 
 		function ClassWeakmap() {
-			this.define('id', prefix + functionUuid());
+			this.defineProperty('id', prefix + functionUuid());
 		}
 
 		ClassWeakmap.prototype = {
@@ -28,7 +28,7 @@ var ClassWeakmap = 'WeakMap' in global && !('ActiveXObject' in global) ? global.
 				if(entry) {
 					entry[1] = value;
 				} else {
-					key.define(this.id, [ key, value ]);
+					key.defineProperty(this.id, [ key, value ]);
 				}
 
 				return this;

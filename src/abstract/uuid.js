@@ -12,7 +12,7 @@
 
 function AbstractUuid() {
 	if(validatorIsTypeOf(this.uuid, STRING_UNDEFINED)) {
-		this.define('uuid', functionUuid());
+		this.defineProperty('uuid', functionUuid());
 	}
 
 	return this;

@@ -61,4 +61,6 @@ provide = function provide() {
 	}
 };
 
-global.define('provide', provide);
+provide.amd = true;
+
+global.defineProperty('provide', provide);

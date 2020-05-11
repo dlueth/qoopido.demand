@@ -34,7 +34,7 @@ var handlerModule = (function() {
 
 			suffix = (typeof suffix !== STRING_UNDEFINED) ? suffix : settings.suffix;
 
-			if(suffix) {
+			if(suffix && dependency.path.indexOf('@') !== 0) {
 				pathname = dependency.url.pathname;
 
 				dependency.url.pathname = pathname.slice(-suffix.length) !== suffix ? pathname + suffix : pathname;

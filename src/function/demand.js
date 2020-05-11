@@ -166,4 +166,4 @@ demand = (function() {
 	return demand;
 }());
 
-global.define('demand', demand);
+global.defineProperty('demand', demand);

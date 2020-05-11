@@ -5,6 +5,7 @@
 var DEMAND_ID               = 'demand',
 	PROVIDE_ID              = 'provide',
 	PATH_ID                 = 'path',
+	EXPORTS_ID              = 'exports',
 	MODULE_PREFIX           = '/' + DEMAND_ID + '/',
 	MODULE_PREFIX_ABSTRACT  = MODULE_PREFIX + 'abstract/',
 	MODULE_PREFIX_HANDLER   = MODULE_PREFIX + 'handler/',
