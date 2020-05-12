@@ -32,7 +32,7 @@
 					resolve(result);
 				}
 			} else {
-				reject();
+				resolve(true);
 			}
 		}
 
