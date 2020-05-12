@@ -26,7 +26,7 @@ var pluginGenie = (function() {
 		var i = 0, pointer, match;
 
 		for(; (pointer = pattern[i]); i++) {
-			if(path.indexOf(pointer.prefix) === 0 && (!match || pointer.weight > match.weight)) {
+			if(pointer.prefix.test(path) && (!match || pointer.weight > match.weight)) {
 				match = pointer;
 			}
 		}
@@ -66,7 +66,7 @@ var pluginGenie = (function() {
 	}
 
 	function addPattern(property, value) {
-		pattern.push({ prefix: property, weight: property.length, fn: value });
+		pattern.push({ prefix: new RegExp('^' + property), weight: property.length, fn: value });
 	}
 
 	function resolveBundles(property, value) {

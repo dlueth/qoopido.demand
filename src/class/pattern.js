@@ -1,10 +1,9 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	functionResolveUrl, functionEscapeRegex, functionIterate
+	functionResolveUrl, functionIterate
 */
 
 //=require function/resolveUrl.js
-//=require function/escapeRegex.js
 //=require function/iterate.js
 
 var ClassPattern = (function() {
@@ -13,7 +12,7 @@ var ClassPattern = (function() {
 	function setProperty(property, value) {
 		this[property] = {
 			url:   functionResolveUrl(value).replace(regexMatchTrailingSlash, '$1'),
-			match: new RegExp('^' + functionEscapeRegex(value))
+			match: new RegExp('^' + value)
 		};
 	}
 
@@ -21,7 +20,7 @@ var ClassPattern = (function() {
 		var self = this;
 
 		self.weight   = pattern.length;
-		self.match    = new RegExp('^' + functionEscapeRegex(pattern));
+		self.match    = new RegExp('^' + pattern);
 		self.location = [].concat(url);
 
 		functionIterate(self.location, setProperty, self.location);

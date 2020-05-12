@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
-	functionGetTimestamp, functionEscapeRegex, functionIterate, functionDefer, functionIdle, functionResolveId, functionToArray,
+	functionGetTimestamp, functionIterate, functionDefer, functionIdle, functionResolveId, functionToArray,
 	singletonEvent,
 	ClassDependency,
 	ClassSemver
@@ -11,7 +11,6 @@
 //=require constants.js
 //=require validator/isTypeOf.js
 //=require function/getTimestamp.js
-//=require function/escapeRegex.js
 //=require function/iterate.js
 //=require function/defer.js
 //=require function/idle.js
@@ -24,7 +23,7 @@ var singletonCache = (function() {
 	var STORAGE_PREFIX         = '[' + DEMAND_ID + ']',
 		STORAGE_SUFFIX_STATE   = '[state]',
 		STORAGE_SUFFIX_VALUE   = '[value]',
-		regexMatchState        = new RegExp('^' + functionEscapeRegex(STORAGE_PREFIX) + '\\[(.+?)\\]' + functionEscapeRegex(STORAGE_SUFFIX_STATE) + '$'),
+		regexMatchState        = new RegExp('^' + STORAGE_PREFIX + '\\[(.+?)\\]' + STORAGE_SUFFIX_STATE + '$'),
 		regexMatchProperties   = /^(.+?),(\d+),(\d*),(.+?),(\d+)$/,
 		supportsLocalStorage   = (function() { try { return 'localStorage' in global && global.localStorage; } catch(exception) { return FALSE; } }()),
 		localStorage           = supportsLocalStorage ? global.localStorage : NULL,
