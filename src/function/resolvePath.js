@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	regexMatchParameter, regexMatchBaseUrl, regexIsAbsolutePath, regexIsAbsoluteUri,
+	regexMatchParameter, regexMatchBaseUrl, regexIsRelativePath,
 	functionResolveUrl
 */
 
@@ -10,7 +10,7 @@
 function functionResolvePath(uri, context) {
 	var path = uri.replace(regexMatchParameter, '');
 
-	if(!regexIsAbsolutePath.test(path) && !regexIsAbsoluteUri.test(path)) {
+	if(regexIsRelativePath.test(path)) {
 		path = '/' + functionResolveUrl(((context && functionResolveUrl(context + '/../')) || '/') + path).replace(regexMatchBaseUrl, '');
 	}
 

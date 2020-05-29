@@ -2,7 +2,7 @@
   "name": "qoopido.demand",
   "title": "Qoopido.demand",
   "description": "Promise like module loader using XHR requests and localStorage caching to dynamically load JavaScript and CSS + dynamic dependency resolution + support for custom handlers",
-  "version": "6.1.2",
+  "version": "7.0.0",
   "homepage": "https://github.com/dlueth/qoopido.demand",
   "author": {
     "name": "Dirk Lueth",

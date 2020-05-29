@@ -19,20 +19,10 @@
 
 			handlerModule.process(self);
 
-			function resolve(module) {
-				provide(function() { return module; });
-			}
-
-			function reject() {
-				dfd.reject(new Failure('error probing', self.path));
-			}
-
-			if(probe) {
-				if((result = probe(resolve, reject))) {
-					resolve(result);
-				}
+			if(probe && (result = probe())) {
+				provide(function() { return result; });
 			} else {
-				resolve(true);
+				dfd.reject(new Failure('error probing', self.path));
 			}
 		}
 

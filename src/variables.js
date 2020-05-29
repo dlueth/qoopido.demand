@@ -8,8 +8,9 @@
 //=require function/resolveUrl.js
 
 var regexIsAbsoluteUri      = /^(http(s?):)?\/\//i,
-	regexIsAbsolutePath     = /^\/|@/,
+	regexIsRelativePath     = /^\.?\.\//,
 	regexMatchSourcemap     = /((?:\/\/|\/\*)#)\s*(sourceMappingURL)\s*=\s*(?!(?:http[s]?:)?\/\/)(.+?)\.map(?:\s+)?(\*\/)?/g,
+	regexMatchLeadingSlash  = /^\//,
 	regexMatchSuffix        = /\.\w+$/,
 	regexMatchBaseUrl       = new RegExp('^' + functionResolveUrl('/')),
 	regexMatchInternal      = new RegExp('^' + DEMAND_ID + '|' + PROVIDE_ID + '|' + PATH_ID + '|' + EXPORTS_ID + '$'),
