@@ -22,7 +22,11 @@
 			if(probe && (result = probe())) {
 				provide(function() { return result; });
 			} else {
-				dfd.reject(new Failure('error probing', self.path));
+				if(probe) {
+					dfd.reject(new Failure('error probing', self.path));
+				} else {
+					provide(function() { return true; });
+				}
 			}
 		}
 
