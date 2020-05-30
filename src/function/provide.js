@@ -35,7 +35,7 @@ provide = function provide() {
 		isPledge   = validatorIsInstanceOf(definition, ClassPledge);
 		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
 
-		if(dependencies) {
+		if(dependencies && dependencies.length) {
 			demand
 				.apply(module.path, dependencies)
 				.then(
