@@ -23,7 +23,7 @@ provide = function provide() {
 		definition   = dependencies ? arguments[uri ? 2 : 1] : arguments[uri ? 1 : 0],
 		module, isPledge, isFunction;
 
-	if(!uri && processor.current) {
+	if(processor.current) {
 		module = processor.current;
 		uri    = module.uri;
 

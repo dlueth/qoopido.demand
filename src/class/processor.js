@@ -31,7 +31,7 @@ var ClassProcessor = (function() {
 			if(properties.queue.length) {
 				current = properties.current = properties.queue.dequeue();
 
-				if(!current.pledge.isRejected()) {
+				if(current.pledge.isPending()) {
 					current.handler.process && current.handler.process(current);
 
 					return;

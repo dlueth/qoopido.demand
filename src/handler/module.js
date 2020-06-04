@@ -14,7 +14,7 @@ var handlerModule = (function() {
 	var path           = MODULE_PREFIX_HANDLER + 'module',
 		target         = document.getElementsByTagName('head')[0],
 		regexMatchType = /^(application|text)\/(x-)?javascript/,
-		settings       = { suffix: '.js' };
+		settings       = { umd: false, suffix: '.js' };
 
 	demand
 		.on(EVENT_POST_CONFIGURE + ':' + path, function(options) {
@@ -53,7 +53,11 @@ var handlerModule = (function() {
 
 				script.setAttribute(DEMAND_ID + '-id', dependency.id);
 
+				settings.umd && (global.define = provide);
+
 				target.appendChild(script);
+
+				settings.umd && (global.define = undefined);
 			}
 		}
 	};
