@@ -1,58 +1,33 @@
 /* global
-	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	functionUuid,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout
 */
 
-//=require function/uuid.js
+var ClassWeakmap = 'WeakMap' in global && !('ActiveXObject' in global) ?
+	global.WeakMap
+	:
+	(function(NativeWeakMap) {
+		var weakmap = new NativeWeakMap();
 
-var ClassWeakmap = 'WeakMap' in global && !('ActiveXObject' in global) ? global.WeakMap :
-	(function() {
-		var prefix = 'weakmap-';
-
-		function getEntry(context, key) {
-			var entry;
-
-			if((entry = key[context.id]) && entry[0] === key) {
-				return entry;
-			}
+		function WeakMap() {
+			weakmap.set(this, new NativeWeakMap());
 		}
 
-		function ClassWeakmap() {
-			this.defineProperty('id', prefix + functionUuid());
-		}
-
-		ClassWeakmap.prototype = {
+		WeakMap.prototype = {
+			get: function(key) {
+				return weakmap.get(this).get(key);
+			},
 			set: function(key, value) {
-				var entry = getEntry(this, key);
-
-				if(entry) {
-					entry[1] = value;
-				} else {
-					key.defineProperty(this.id, [ key, value ]);
-				}
+				weakmap.get(this).set(key, value);
 
 				return this;
 			},
-			get: function(key) {
-				var entry = getEntry(this, key);
-
-				if(entry) {
-					return entry[1];
-				}
+			has: function(key) {
+				return !!this.get(key);
 			},
 			delete: function(key) {
-				var entry = getEntry(this, key);
-
-				if(entry) {
-					entry.length = 0;
-
-					delete key[this.id];
-				}
-			},
-			has: function(key) {
-				return !!getEntry(this, key);
+				return weakmap.get(this).delete(key);
 			}
 		};
 
-		return ClassWeakmap;
-}());
+		return WeakMap;
+	}(global.WeakMap));
