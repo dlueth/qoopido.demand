@@ -79,7 +79,7 @@ var ClassLoader = (function() {
 
 			dependency.url.href = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
 
-			if(dependency.invalid) {
+			if(dependency.invalid || dependency.cache === false) {
 				dependency.url.search += ((regexMatchEmptySearch.test(dependency.url.search)) ? '' : '&') + functionGetTimestamp();
 			}
 
