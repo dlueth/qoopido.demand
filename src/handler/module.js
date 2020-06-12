@@ -44,7 +44,7 @@ var handlerModule = (function() {
 			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
 		},
 		process: function(dependency) {
-			var script;
+			var script, _define;
 
 			if(dependency.source) {
 				script       = document.createElement('script');
@@ -53,11 +53,16 @@ var handlerModule = (function() {
 
 				script.setAttribute(DEMAND_ID + '-id', dependency.id);
 
-				settings.umd && (global.define = provide);
+				if(settings.umd) {
+					_define       = global.define;
+					global.define = provide;
+				}
 
 				target.appendChild(script);
 
-				settings.umd && (global.define = undefined);
+				if(settings.umd) {
+					global.define = _define;
+				}
 			}
 		}
 	};
