@@ -48,7 +48,7 @@ Use the following minified code snippet in a standalone script tag before the cl
 ```javascript
 (function(url, main, settings) {
 	!function(e,n,t,r,s){r=n.getElementsByTagName(t)[0],s=n.createElement(t),e.demand={url:url,main:main,settings:settings},s.async=1,s.src=url,r.parentNode.insertBefore(s,r)}(window,document,"script");
-}('../dist/demand.js', 'app/main', { base: './', version: '1.0.0', cache: true }));
+}('../dist/demand.js', './app/main', { base: './', version: '1.0.0', cache: true }));
 ```
 
 The snippet is very similar to Google Analytics. The outer function allows you to specify an URL from which to load demand itself as well as a path to the main module and configuration object for demand. The script tag that actually loads Qoopido.demand will be injected with its async attribute set.
@@ -58,7 +58,7 @@ As an alternative to the above snippet Qoopido.demand can now also be loaded wit
 ```javascript
 (function(url, main, settings) {
 	!function(e,t,n,o,i,d,a){e.demand={url:url,main:main,settings:settings},o=t.getElementsByTagName(n)[0],i=t.createElement("iframe"),i.src="javascript:void(0)",i.name="demand-loader",i.title="",i.role="presentation",(i.frameElement||i).style.cssText="display:none;width:0;height:0;border:0;",o.parentNode.insertBefore(i,o);try{i=i.contentWindow.document}catch(e){d=t.domain,i.src='javascript:var d=document.open();d.domain="'+d+'";void(0);',i=i.contentWindow.document}i.open()._=function(){d&&(this.domain=d),a=this.createElement(n),a.src=url,this.body.appendChild(a)},i.write('<body onload="document._();" />'),i.close()}(this,document,"script");
-}('../dist/demand.js', 'app/main', { base: './', version: '1.0.0', cache: true }));
+}('../dist/demand.js', './app/main', { base: './', version: '1.0.0', cache: true }));
 ```
 Remember to adjust parameters according to the async method.
 
@@ -226,7 +226,7 @@ demand.cache.clear.all();
 After your project is set up accordingly you can load further modules like in the following example:
 
 ```javascript
-demand('app/test', '/nucleus/component/iterator')
+demand('./app/test', '/nucleus/component/iterator')
 	.then(
 		function(appTest, nucleusComponentIterator) {
 			console.log('=> success', appTest, nucleusComponentIterator);
@@ -293,7 +293,7 @@ function definition(appTest, qoopidoBase) {
 	}
 }
 
-provide('/app/main', [ 'test', '/qoopido/base' ], definition);
+provide('/app/main', [ './test', '/qoopido/base' ], definition);
 ```
 
 This is an example for an inline module. The ```provide``` call, in this case, consists of three arguments:
@@ -335,6 +335,9 @@ Path definitions in demand are totally flexible. Relative paths as well as absol
 There is only one exception to this rule: when providing a module with dependencies these dependencies will always get resolved against the modules own path, if the dependencies path is relative.
 
 Absolute URLs starting either with a protocol or ```//``` will not get altered at all.
+
+**Sidenote**
+> In the past Demand used to interpret paths as being "relative" by default. To be able to handle UMD modules natively this was changed lately. Therefore keep in mind that if you declare a relative path you will have to prefix it with any of `./` or `../`.
 
 As always resolving relative paths against ```base``` might not be desired and you would prefer or need a relative resolution demand provides three special dependencies:
 
