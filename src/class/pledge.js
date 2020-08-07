@@ -40,18 +40,6 @@ var ClassPledge = (function() {
 		});
 	}
 
-	function handleUncaught(values) {
-		var i = 0, value;
-
-		console.warn(ERROR_UNHANDLED_PLEDGE_REJECTION);
-
-		for(; (value = values[i]) !== undefined; i++) {
-			if(validatorIsInstanceOf(value, Error) || validatorIsInstanceOf(value, ClassFailure)) {
-				throw value;
-			}
-		}
-	}
-
 	function handle(state, parameter) {
 		var properties = storage.get(this),
 			pointer, result;
@@ -59,10 +47,6 @@ var ClassPledge = (function() {
 		if(properties.state === PLEDGE_PENDING) {
 			properties.state = state;
 			properties.value = parameter;
-
-			if(state === PLEDGE_REJECTED && !properties[state].length) {
-				handleUncaught(parameter)
-			}
 		}
 
 		while(pointer = properties[properties.state].shift()) {

@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	STRING_BOOLEAN, STRING_STRING, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
+	STRING_BOOLEAN, STRING_STRING, EVENT_REJECT, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf, validatorIsSemver,
 	functionIterate, functionMerge, functionDefer, functionIdle, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
@@ -48,28 +48,40 @@ demand = (function() {
 	function demand() {
 		var dependencies = functionToArray(arguments),
 			context      = this !== global ? this : NULL,
-			i = 0, uri, dfd, result;
+			pledges = [], i = 0, uri, dfd, result;
 
 		singletonEvent.emit(EVENT_PRE_RESOLVE, NULL, dependencies, context);
 
 		for(; (uri = dependencies[i]); i++) {
 			if(validatorIsTypeOf(uri, STRING_STRING)) {
-				dependencies[i] = ClassDependency.resolve(uri, context).pledge;
+				dependencies[i] = ClassDependency.resolve(uri, context);
 			} else {
-				dependencies[i] = (dfd = ClassPledge.defer()).pledge;
+				dependencies[i] = (dfd = ClassPledge.defer());
 
 				dfd.resolve(uri);
 			}
+
+			pledges.push(dependencies[i].pledge);
 		}
 
 		if(dependencies.length > 1) {
-			result = ClassPledge.all(dependencies);
+			result = ClassPledge.all(pledges);
 		} else {
-			result = dependencies[0];
+			result = pledges[0];
 		}
 
 		return result.always(function() {
-			singletonEvent.emit(EVENT_POST_RESOLVE, NULL, dependencies, context);
+			singletonEvent.emit(EVENT_POST_RESOLVE, NULL, pledges, context);
+
+			if(result.isRejected()) {
+				functionIterate(dependencies, function(_, dependency) {
+					if(dependency.pledge.isRejected()) {
+						singletonEvent.emit(EVENT_REJECT, dependency.path, dependency);
+					}
+				});
+
+				return ClassPledge.reject.apply(null, arguments);
+			}
 		});
 	}
 

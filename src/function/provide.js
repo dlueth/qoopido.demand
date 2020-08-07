@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
-	EVENT_PROVIDE, EVENT_REJECT, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
+	EVENT_PROVIDE, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
 	validatorIsTypeOf, validatorIsInstanceOf, validatorIsArray,
 	singletonEvent,
 	ClassDependency, ClassFailure, ClassPledge
@@ -51,8 +51,7 @@ provide = function provide() {
 		}
 
 		module.dfd.pledge.then(
-			function() { singletonEvent.emit(EVENT_PROVIDE, module.path, module); },
-			function() { singletonEvent.emit(EVENT_REJECT, module.path, module); }
+			function() { singletonEvent.emit(EVENT_PROVIDE, module.path, module); }
 		);
 
 		return module.dfd.pledge;
