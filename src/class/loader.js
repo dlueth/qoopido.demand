@@ -79,11 +79,11 @@ var ClassLoader = (function() {
 
 			dependency.url.href = pattern ? functionResolveUrl(pattern.process(dependency.path, location)) : dependency.path;
 
+			singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
+
 			if(dependency.invalid || dependency.cache === false) {
 				dependency.url.search += ((regexMatchEmptySearch.test(dependency.url.search)) ? '' : '&') + functionGetTimestamp();
 			}
-
-			singletonEvent.emit(EVENT_PRE_REQUEST, dependency.type, dependency);
 
 			loadXhr(dependency.url.href)
 				.then(
