@@ -1,7 +1,7 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	MODULE_PREFIX, MODULE_PREFIX_HANDLER, MODULE_PREFIX_VALIDATOR, MODULE_PREFIX_PLUGIN, MODULE_PREFIX_FUNCTION, MODULE_PREFIX_ABSTRACT, STRING_STRING, STRING_FUNCTION, TRUE,
-	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver,
+	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver, validatorIsThenable,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionIdle, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
 	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
@@ -18,24 +18,6 @@
 		options  = 'demand' in global && global.demand,
 		settings = { version: '1.0.0', cache: {}, timeout: 8000, pattern: {}, modules: {}, handler: 'module' },
 		demand, provide, queue, processor, log;
-
-	/*
-	function _log(method, message, color) {
-		typeof console !== 'undefined' && console[method]('%c' + prefix + '%c' + message.toString(), 'display:inline-block;padding:0.5em;line-height:1;font-weight:bold;color:#fff;background-color:' + color + ';border-radius:3px;', 'display:inline-block;padding:0.5em;line-height:1;');
-	}
-
-	log = {
-		info: function(message) {
-			_log('info', message, '#95ba00');
-		},
-		warning: function(message) {
-			_log('warn', message, '#f49d0c');
-		},
-		error: function(message) {
-			_log('error', message, '#af0032');
-		}
-	}
-	*/
 
 	// include inheritance
 		//=require inheritance.js
@@ -76,6 +58,7 @@
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isObject', validatorIsObject);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isInstanceOf', validatorIsInstanceOf);
 		assignModule(MODULE_PREFIX_VALIDATOR + 'isSemver', validatorIsSemver);
+		assignModule(MODULE_PREFIX_VALIDATOR + 'isThenable', validatorIsThenable);
 		assignModule(MODULE_PREFIX_FUNCTION + 'resolveUrl', functionResolveUrl);
 		assignModule(MODULE_PREFIX_FUNCTION + 'resolveSourcemaps', functionResolveSourcemaps);
 		assignModule(MODULE_PREFIX_FUNCTION + 'merge', functionMerge);

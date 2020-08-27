@@ -1,15 +1,15 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
 	EVENT_PROVIDE, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
-	validatorIsTypeOf, validatorIsInstanceOf, validatorIsArray,
+	validatorIsTypeOf, validatorIsArray, validatorIsThenable,
 	singletonEvent,
 	ClassDependency, ClassFailure, ClassPledge
 */
 
 //=require constants.js
 //=require validator/isTypeOf.js
-//=require validator/isInstanceOf.js
 //=require validator/isArray.js
+//=require validator/isThenable.js
 //=require singleton/event.js
 //=require class/dependency.js
 //=require class/failure.js
@@ -21,7 +21,7 @@ provide = function provide() {
 		context      = this !== global ? this : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
 		definition   = dependencies ? arguments[uri ? 2 : 1] : arguments[uri ? 1 : 0],
-		module, isPledge, isFunction;
+		module, isThenable, isFunction;
 
 	if(processor.current) {
 		module = processor.current;
@@ -32,18 +32,36 @@ provide = function provide() {
 
 	if(uri) {
 		module     = module || new ClassDependency(uri, context);
-		isPledge   = validatorIsInstanceOf(definition, ClassPledge);
+		isThenable = validatorIsThenable(definition);
 		isFunction = validatorIsTypeOf(definition, STRING_FUNCTION);
 
 		if(dependencies && dependencies.length) {
 			demand
 				.apply(module.path, dependencies)
 				.then(
-					function() { module.dfd.resolve(isFunction ? definition.apply(NULL, arguments) : definition); },
+					function() {
+						var value;
+
+						if(isFunction) {
+							value = definition.apply(NULL, arguments);
+
+							if(validatorIsThenable(value)) {
+								value
+									.then(
+										module.dfd.resolve,
+										function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
+									);
+							} else {
+								module.dfd.resolve(value);
+							}
+						} else {
+							module.dfd.resolve(definition);
+						}
+					},
 					function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
 				);
 		} else {
-			if(isPledge) {
+			if(isThenable) {
 				definition.then(module.dfd.resolve, module.dfd.reject);
 			} else {
 				module.dfd.resolve(isFunction ? definition() : definition);

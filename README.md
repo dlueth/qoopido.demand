@@ -328,6 +328,9 @@ This example illustrates a module named ```/app/test``` which we already know as
 
 See these [gists](https://gist.github.com/search?utf8=%E2%9C%93&q=Qoopido.demand+user%3Adlueth&ref=searchresults) to find some skeletons for frequently used types of modules ;)
 
+**Sidenote**
+> Starting with Qoopido.demand 7.1.0 a module definition may also return a `thenable` and if it does, demand will resolve/reject the module accordingly.
+
 
 ## Path resolution
 Path definitions in demand are totally flexible. Relative paths as well as absolute paths starting with a single ```/``` will, by default, be resolved against the ```base``` configuration parameter and might get altered afterwards when matching a certain pattern configured.
