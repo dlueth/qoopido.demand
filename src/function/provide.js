@@ -43,16 +43,20 @@ provide = function provide() {
 						var value;
 
 						if(isFunction) {
-							value = definition.apply(NULL, arguments);
+							try {
+								value = definition.apply(NULL, arguments);
 
-							if(validatorIsThenable(value)) {
-								value
-									.then(
-										module.dfd.resolve,
-										function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
-									);
-							} else {
-								module.dfd.resolve(value);
+								if(validatorIsThenable(value)) {
+									value
+										.then(
+											module.dfd.resolve,
+											function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
+										);
+								} else {
+									module.dfd.resolve(value);
+								}
+							} catch(error) {
+								module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments));
 							}
 						} else {
 							module.dfd.resolve(definition);
