@@ -1,7 +1,7 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_REJECT, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
-	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsInstanceOf, validatorIsSemver,
+	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsThenable, validatorIsSemver,
 	functionIterate, functionMerge, functionDefer, functionIdle, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
 	singletonEvent, singletonCache
@@ -11,7 +11,7 @@
 //=require validator/isTypeOf.js
 //=require validator/isObject.js
 //=require validator/isPositive.js
-//=require validator/isInstanceOf.js
+//=require validator/isThenable.js
 //=require validator/isSemver.js
 //=require function/iterate.js
 //=require function/merge.js
@@ -170,7 +170,7 @@ demand = (function() {
 
 			if(dependency.enqueue === true) {
 				queue.enqueue(dependency);
-			} else if(validatorIsInstanceOf(dependency.enqueue, ClassPledge)) {
+			} else if(validatorIsThenable(dependency.enqueue)) {
 				dependency.enqueue.then(function() { queue.enqueue(dependency); });
 			}
 		});

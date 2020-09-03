@@ -31,6 +31,7 @@
 		options && options.settings && demand.configure(options.settings);
 
 	// include additional components
+		//=require validator/IsInstanceOf.js
 		//=require function/hash.js
 		//=require class/queue.js
 		//=require class/processor.js

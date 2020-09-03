@@ -2,14 +2,14 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
  	ERROR_UNHANDLED_PLEDGE_REJECTION, FUNCTION_EMPTY, UNDEFINED, STRING_UNDEFINED, NULL,
 	arrayPrototypeConcat,
-	validatorIsInstanceOf, validatorIsTypeOf,
+	validatorIsThenable, validatorIsTypeOf,
 	functionDefer, functionToArray,
 	ClassWeakmap, ClassFailure
 */
 
 //=require constants.js
 //=require shortcuts.js
-//=require validator/isInstanceOf.js
+//=require validator/IsThenable.js
 //=require validator/isTypeOf.js
 //=require function/defer.js
 //=require function/toArray.js
@@ -53,7 +53,7 @@ var ClassPledge = (function() {
 			try {
 				result = pointer.handler.apply(NULL, properties.value);
 
-				if(validatorIsInstanceOf(result, ClassPledge)) {
+				if(validatorIsThenable(result)) {
 					result.then(pointer.dfd.resolve, pointer.dfd.reject);
 
 					continue;
