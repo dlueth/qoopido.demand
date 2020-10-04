@@ -148,10 +148,7 @@ var ClassDependency = (function() {
 
 						break;
 					case EXPORTS_ID:
-						value = {};
-
-						dependency.dfd.pledge
-							.then(this.get(context).dfd.resolve);
+						value = this.get(context).value = {};
 
 						break;
 				}

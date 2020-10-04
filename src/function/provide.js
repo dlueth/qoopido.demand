@@ -46,14 +46,15 @@ provide = function provide() {
 							try {
 								value = definition.apply(NULL, arguments);
 
-								if(validatorIsThenable(value)) {
+								// module.value is already set when when module used exports (e.g. UMD)
+								if(!module.value && validatorIsThenable(value)) {
 									value
 										.then(
 											module.dfd.resolve,
 											function() { module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments)); }
 										);
 								} else {
-									module.dfd.resolve(value);
+									module.dfd.resolve(module.value || value);
 								}
 							} catch(error) {
 								module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments));
