@@ -21,7 +21,7 @@ provide = function provide() {
 		context      = this !== global ? this : NULL,
 		dependencies = validatorIsArray(arguments[uri ? 1 : 0]) ? arguments[uri ? 1 : 0] : NULL,
 		definition   = dependencies ? arguments[uri ? 2 : 1] : arguments[uri ? 1 : 0],
-		module, isThenable, isFunction;
+		module, isThenable, isFunction, value;
 
 	if(processor.current) {
 		module = processor.current;
@@ -40,8 +40,6 @@ provide = function provide() {
 				.apply(module.path, dependencies)
 				.then(
 					function() {
-						var value;
-
 						if(isFunction) {
 							try {
 								value = definition.apply(NULL, arguments);
@@ -57,7 +55,7 @@ provide = function provide() {
 									module.dfd.resolve(module.value || value);
 								}
 							} catch(error) {
-								module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, arguments));
+								module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, error));
 							}
 						} else {
 							module.dfd.resolve(definition);
@@ -69,7 +67,15 @@ provide = function provide() {
 			if(isThenable) {
 				definition.then(module.dfd.resolve, module.dfd.reject);
 			} else {
-				module.dfd.resolve(isFunction ? definition() : definition);
+				if(isFunction) {
+					try {
+						module.dfd.resolve(definition());
+					} catch (error) {
+						module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, error));
+					}
+				} else {
+					module.dfd.resolve(definition);
+				}
 			}
 		}
 

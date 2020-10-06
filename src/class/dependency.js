@@ -90,9 +90,10 @@ var ClassDependency = (function() {
 		self.pledge   = self.dfd.pledge;
 		self.invalid  = false;
 
-		self.pledge.then(function() {
-			self.value = functionToArray(arguments);
-		});
+		self.pledge.then(
+			function() { self.value = functionToArray(arguments); },
+			function() { processor.current && processor.process(); }
+		);
 
 		(register !== FALSE) && registry.set(self.id, self);
 
