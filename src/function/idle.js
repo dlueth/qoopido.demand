@@ -59,9 +59,9 @@ var functionIdle = (function() {
 
 	global.addEventListener(eventName, onVisibilitychange, TRUE);
 
-	return function functionIdle(fn, delay) {
+	return function functionIdle(fn) {
 		queue.enqueue(fn);
 
-		!current && queue.length && (current = requestIdleCallback(process, { timeout: delay }));
+		!current && queue.length && (current = requestIdleCallback(process));
 	};
 }());

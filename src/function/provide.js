@@ -55,6 +55,7 @@ provide = function provide() {
 									module.dfd.resolve(module.value || value);
 								}
 							} catch(error) {
+								console.error(error);
 								module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, error));
 							}
 						} else {
@@ -71,6 +72,7 @@ provide = function provide() {
 					try {
 						module.dfd.resolve(definition());
 					} catch (error) {
+						console.error(error);
 						module.dfd.reject(new ClassFailure(ERROR_PROVIDE, module.id, error));
 					}
 				} else {
