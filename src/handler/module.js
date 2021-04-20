@@ -2,13 +2,17 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, MODULE_PREFIX_HANDLER, EVENT_POST_CONFIGURE, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, STRING_UNDEFINED, TRUE,
 	validatorIsObject,
-	functionResolveSourcemaps, functionMerge,
-	abstractHandler
+	functionResolveSourcemaps, functionMerge, functionOnAnimationFrame,
+	abstractHandler,
+	ClassPledge
 */
 
 //=require constants.js
 //=require function/resolveSourcemaps.js
+//=require function/merge.js
+//=require function/onAnimationFrame.js
 //=require abstract/handler.js
+//=require class/pledge.js
 
 var handlerModule = (function() {
 	var path           = MODULE_PREFIX_HANDLER + 'module',
@@ -42,6 +46,9 @@ var handlerModule = (function() {
 		},
 		onPostRequest: function(dependency) {
 			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
+		},
+		onPreProcess: function(dependency) {
+			dependency.enqueue = new ClassPledge(functionOnAnimationFrame.bind(null, demand.idle));
 		},
 		process: function(dependency) {
 			var script, _define;

@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	DEMAND_ID, FUNCTION_EMPTY, EVENT_POST_REQUEST, EVENT_POST_PROCESS, EVENT_CACHE_HIT, EVENT_CACHE_MISS, EVENT_CACHE_EXCEED, EVENT_CACHE_CLEAR, EVENT_PRE_CACHE, EVENT_PRE_CACHE, EVENT_POST_CACHE, STRING_STRING, NULL, FALSE, TRUE,
 	validatorIsTypeOf,
-	functionGetTimestamp, functionIterate, functionDefer, functionIdle, functionResolveId, functionToArray,
+	functionGetTimestamp, functionIterate, functionDefer, functionOnIdle, functionResolveId, functionToArray,
 	singletonEvent,
 	ClassDependency,
 	ClassSemver
@@ -13,7 +13,7 @@
 //=require function/getTimestamp.js
 //=require function/iterate.js
 //=require function/defer.js
-//=require function/idle.js
+//=require function/onIdle.js
 //=require function/resolveId.js
 //=require function/toArray.js
 //=require class/semver.js
@@ -33,13 +33,13 @@ var singletonCache = (function() {
 
 	singletonEvent
 		.on(EVENT_CACHE_MISS, function(dependency) {
-			functionIdle(function() {
+			functionOnIdle(function() {
 				cache.clear(dependency.id);
 			});
 		})
 		.on(EVENT_CACHE_EXCEED, function(dependency) {
 			demand('-!/' + DEMAND_ID + '/cache/dispose').then(function(cacheDispose) {
-				functionIdle(function() {
+				functionOnIdle(function() {
 					cacheDispose(dependency.source.length);
 
 					cache.set(dependency);
@@ -53,7 +53,7 @@ var singletonCache = (function() {
 		})
 		.after(EVENT_POST_PROCESS, function(dependency) {
 			if(storage[dependency.id]) {
-				functionIdle(function() {
+				functionOnIdle(function() {
 					cache.set(dependency);
 				}, settings.delay);
 			}
@@ -103,7 +103,7 @@ var singletonCache = (function() {
 	}
 
 	function Cache() {
-		functionIdle(this.clear.expired.bind(this.clear), settings.delay);
+		functionOnIdle(this.clear.expired.bind(this.clear), settings.delay);
 	}
 
 	Cache.prototype = {
@@ -126,7 +126,7 @@ var singletonCache = (function() {
 
 					dependency.source = getKey(id + STORAGE_SUFFIX_VALUE);
 
-					functionIdle(function() {
+					functionOnIdle(function() {
 						setState(id + STORAGE_SUFFIX_STATE, state);
 					}, settings.delay);
 

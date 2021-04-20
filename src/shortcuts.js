@@ -10,4 +10,5 @@ var arrayPrototype                 = Array.prototype,
 	objectDefineProperty           = object.defineProperty,
 	objectGetOwnPropertyNames      = object.getOwnPropertyNames,
 	objectGetOwnPropertyDescriptor = object.getOwnPropertyDescriptor,
-	linkElement                    = document.createElement('a');
+	linkElement                    = document.createElement('a'),
+	requestAnimationFrame          = global.requestAnimationFrame;

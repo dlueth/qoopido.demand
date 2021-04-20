@@ -35,7 +35,7 @@ var ClassQueue = (function() {
 		dequeue: function() {
 			var item = storage.get(this).shift();
 
-			singletonEvent.emit(EVENT_QUEUE_DEQUEUE, this.uuid, item);
+			item && singletonEvent.emit(EVENT_QUEUE_DEQUEUE, this.uuid, item);
 
 			return item;
 		},

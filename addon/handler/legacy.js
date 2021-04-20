@@ -1,7 +1,7 @@
 (function() {
 	'use strict';
 
-	function definition(path, Failure, handlerModule, isObject, merge) {
+	function definition(path, Failure, Pledge, handlerModule, isObject, merge, onAnimationFrame) {
 		var settings = { suffix: '.js' };
 
 		demand
@@ -41,14 +41,18 @@
 				handlerModule.onPreRequest(dependency, suffix || false);
 
 				if(dependencies) {
-					dependency.enqueue = demand.apply(null, dependencies);
+					dependency.enqueue = demand.apply(null, dependencies).then;
 				}
 			},
 			onPreProcess: function(dependency) {
 				var dependencies = settings[dependency.path] && settings[dependency.path].dependencies;
 
 				if(dependencies && typeof dependency.enqueue === 'boolean') {
-					dependency.enqueue = demand.apply(null, dependencies);
+					dependency.enqueue = demand
+						.apply(null, dependencies)
+						.then(function() {
+							return new Pledge(onAnimationFrame.bind(null, demand.idle));
+						});
 				}
 			},
 			process: function(dependency) {
@@ -71,5 +75,5 @@
 		return new (HandlerLegacy.extends(handlerModule));
 	}
 
-	provide([ 'path', '/demand/failure', '/demand/handler/module', '/demand/validator/isObject', '/demand/function/merge' ], definition);
+	provide([ 'path', '/demand/failure', '/demand/pledge', '/demand/handler/module', '/demand/validator/isObject', '/demand/function/merge', '/demand/function/onAnimationFrame' ], definition);
 }());

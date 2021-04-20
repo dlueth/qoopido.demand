@@ -2,7 +2,7 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	STRING_BOOLEAN, STRING_STRING, EVENT_REJECT, EVENT_PRE_RESOLVE, EVENT_POST_RESOLVE, EVENT_PRE_CONFIGURE, EVENT_POST_CONFIGURE, EVENT_CACHE_MISS, EVENT_CACHE_HIT, EVENT_PRE_REQUEST, EVENT_POST_REQUEST, EVENT_PRE_PROCESS, EVENT_POST_PROCESS, NULL, FALSE,
 	validatorIsTypeOf, validatorIsObject, validatorIsPositive, validatorIsThenable, validatorIsSemver,
-	functionIterate, functionMerge, functionDefer, functionIdle, functionToArray,
+	functionIterate, functionMerge, functionDefer, functionOnIdle, functionToArray,
 	ClassPledge, ClassDependency, ClassPattern, ClassLoader,
 	singletonEvent, singletonCache
 */
@@ -16,7 +16,7 @@
 //=require function/iterate.js
 //=require function/merge.js
 //=require function/defer.js
-//=require function/idle.js
+//=require function/onIdle.js
 //=require function/toArray.js
 //=require singleton/event.js
 //=require singleton/cache.js
@@ -85,8 +85,15 @@ demand = (function() {
 		});
 	}
 
+	Object.defineProperty(demand, 'idle', {
+		get: function() { return !!settings.idle; },
+		enumerable:   true,
+		configurable: false
+	});
+
 	demand.configure = function(options) {
 		var cache    = options.cache,
+			idle     = options.idle,
 			version  = options.version,
 			delay    = options.delay,
 			timeout  = options.timeout,
@@ -100,6 +107,10 @@ demand = (function() {
 			settings.cache[''] = { weight: 0, state: cache };
 		} else if(validatorIsObject(cache)) {
 			functionIterate(cache, updateCacheSettings, settings.cache);
+		}
+
+		if(validatorIsTypeOf(idle, STRING_BOOLEAN)) {
+			settings.idle = idle;
 		}
 
 		if(validatorIsSemver(version)) {

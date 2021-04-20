@@ -1,5 +1,5 @@
 /* global
-	global, document, setTimeout, clearTimeout,
+	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	TRUE, FALSE,
 	ClassQueue
 */
@@ -7,15 +7,14 @@
 //=require class/queue.js
 
 /**
- * idle
+ * onIdle
  *
  * delay function execution until browser is idle
  * but guarantee execution when browser window gets closed
  *
- * @param {function} function
- * @param {number}   [delay]
+ * @param {function} fn
  */
-var functionIdle = (function() {
+var functionOnIdle = (function() {
 	var eventName           = (typeof global.safari === 'object' && global.safari.pushNotification) ? 'beforeunload' : 'visibilitychange',
 		requestIdleCallback = global.requestIdleCallback || requestIdleCallbackShim,
 		cancelIdleCallback  = global.cancelIdleCallback || cancelIdleCallbackShim,
@@ -28,9 +27,9 @@ var functionIdle = (function() {
 		if(queue.length && (event.type !== 'visibilitychange' || document.visibilityState === 'hidden')) {
 			current = cancelIdleCallback(current);
 
-			do {
-				fn && fn();
-			} while(fn = queue.dequeue())
+			while((fn = queue.dequeue())) {
+				fn();
+			}
 		}
 	}
 
@@ -59,7 +58,7 @@ var functionIdle = (function() {
 
 	global.addEventListener(eventName, onVisibilitychange, TRUE);
 
-	return function functionIdle(fn) {
+	return function functionOnIdle(fn) {
 		queue.enqueue(fn);
 
 		!current && queue.length && (current = requestIdleCallback(process));

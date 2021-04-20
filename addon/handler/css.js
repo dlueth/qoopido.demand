@@ -1,7 +1,7 @@
 (function(document) {
 	'use strict';
 
-	function definition(path, abstractHandler, functionResolveSourcemaps, isObject, merge) {
+	function definition(path, Pledge, abstractHandler, resolveSourcemaps, isObject, merge, onAnimationFrame) {
 		var target              = document.getElementsByTagName('head')[0],
 			resolver            = document.createElement('a'),
 			regexMatchUrl       = /url\s*\(\s*["']?(.+?)["']?\s*\)/gi,
@@ -64,7 +64,10 @@
 					source = replaceUri(source, match, '@import "' + resolveUrl(regexIsAbsolutePath.test(match[1]) ? host + match[1] : base + match[1]).href + '"');
 				}
 
-				dependency.source = functionResolveSourcemaps(dependency.url, source);
+				dependency.source = resolveSourcemaps(dependency.url, source);
+			},
+			onPreProcess: function(dependency) {
+				dependency.enqueue = new Pledge(onAnimationFrame.bind(null, demand.idle));
 			},
 			process: function(dependency) {
 				var element = document.querySelector('[demand-id="' + dependency.id + '"]');
@@ -92,5 +95,5 @@
 		return new (HandlerCss.extends(abstractHandler));
 	}
 
-	provide([ 'path', '/demand/abstract/handler', '/demand/function/resolveSourcemaps', '/demand/validator/isObject', '/demand/function/merge' ], definition);
+	provide([ 'path', '/demand/pledge', '/demand/abstract/handler', '/demand/function/resolveSourcemaps', '/demand/validator/isObject', '/demand/function/merge', '/demand/function/onAnimationFrame' ], definition);
 }(document));
