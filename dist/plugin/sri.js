@@ -1,4 +1,4 @@
-/**! Qoopido.demand 7.2.0 | https://github.com/dlueth/qoopido.demand | (c) 2021 Dirk Lueth */
+/**! Qoopido.demand 7.2.1 | https://github.com/dlueth/qoopido.demand | (c) 2021 Dirk Lueth */
 /**
  * @preserve A JavaScript implementation of the SHA family of hashes, as
  * defined in FIPS PUB 180-4 and FIPS PUB 202, as well as the corresponding

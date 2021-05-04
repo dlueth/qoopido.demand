@@ -4,7 +4,7 @@
 	validatorIsTypeOf, validatorIsArray, validatorIsObject, validatorIsInstanceOf, validatorIsSemver, validatorIsThenable,
 	functionResolveUrl, functionResolveSourcemaps, functionMerge, functionIterate, functionDefer, functionToArray, functionFPS, functionOnIdle, functionOnAnimationFrame, functionHash, functionUuid,
 	AbstractUuid, abstractHandler,
-	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassDescriptor, ClassWeakmap, ClassTask, ClassSemver,
+	ClassDependency, ClassQueue, ClassProcessor, ClassPledge, ClassFailure, ClassWeakmap, ClassTask, ClassSemver,
 	handlerModule, handlerBundle, handlerComponent,
  	pluginGenie
 */
@@ -33,7 +33,6 @@
 	// include additional components
 		//=require validator/IsInstanceOf.js
 		//=require function/hash.js
-		//=require class/descriptor.js
 		//=require class/queue.js
 		//=require class/processor.js
 		//=require handler/module.js
@@ -74,7 +73,6 @@
 		assignModule(MODULE_PREFIX_FUNCTION + 'toArray', functionToArray);
 		assignModule(MODULE_PREFIX + 'task', ClassTask);
 		assignModule(MODULE_PREFIX + 'weakmap', ClassWeakmap);
-		assignModule(MODULE_PREFIX + 'descriptor', ClassDescriptor);
 		assignModule(MODULE_PREFIX + 'pledge', ClassPledge);
 		assignModule(MODULE_PREFIX + 'queue', ClassQueue);
 		assignModule(MODULE_PREFIX + 'failure', ClassFailure);
