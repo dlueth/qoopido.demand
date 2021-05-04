@@ -51,7 +51,7 @@
 					dependency.enqueue = demand
 						.apply(null, dependencies)
 						.then(function() {
-							return new Pledge(onAnimationFrame.bind(null, demand.idle));
+							return new Pledge(onAnimationFrame);
 						});
 				}
 			},

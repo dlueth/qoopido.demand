@@ -1,6 +1,7 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	STRING_UNDEFINED,
+	STRING_UNDEFINED, FALSE,
+	objectDefineProperty,
 	validatorIsTypeOf,
 	functionUuid,
 */
@@ -12,7 +13,7 @@
 
 function AbstractUuid() {
 	if(validatorIsTypeOf(this.uuid, STRING_UNDEFINED)) {
-		this.defineProperty('uuid', functionUuid());
+		objectDefineProperty(this, 'uuid', { value: functionUuid(), configurable: FALSE, writable: FALSE });
 	}
 
 	return this;

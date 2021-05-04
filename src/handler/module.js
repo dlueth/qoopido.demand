@@ -48,7 +48,7 @@ var handlerModule = (function() {
 			dependency.source = functionResolveSourcemaps(dependency.url, dependency.source);
 		},
 		onPreProcess: function(dependency) {
-			dependency.enqueue = new ClassPledge(functionOnAnimationFrame.bind(null, demand.idle));
+			dependency.enqueue = new ClassPledge(functionOnAnimationFrame);
 		},
 		process: function(dependency) {
 			var script, _define;

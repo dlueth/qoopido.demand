@@ -1,24 +1,18 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	TRUE,
-	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor,
-	ClassDescriptor
+	FALSE,
+	objectCreate, objectDefineProperty, objectGetOwnPropertyNames, objectGetOwnPropertyDescriptor
 */
 
 //=require constants.js
 //=require shortcuts.js
-//=require class/descriptor.js
 
 (function(strPrototype) {
-	function objectDefine(name, value, writable, configurable, enumerable) {
-		objectDefineProperty(this, name, new ClassDescriptor(value, writable, configurable, enumerable));
-	}
-
 	function functionExtends(source) {
 		var self       = this,
 			prototype  = self[strPrototype],
 			names      = objectGetOwnPropertyNames(prototype),
-			properties = { constructor:  new ClassDescriptor(self, TRUE, TRUE)},
+			properties = { constructor: { value: self } },
 			i = 0, property;
 
 		for(; (property = names[i]) && !properties[property]; i++) {
@@ -40,8 +34,5 @@
 		return self;
 	}
 
-	objectDefine.call(Object.prototype, 'defineProperty', objectDefine);
-	objectDefine.call(global.Object.prototype, 'defineProperty', objectDefine);
-	Function.prototype.defineProperty('extends', functionExtends);
-	global.Function.prototype.defineProperty('extends', functionExtends);
+	objectDefineProperty(global.Function.prototype, 'extends', { value: functionExtends, configurable: FALSE, writable: FALSE });
 }('prototype'));

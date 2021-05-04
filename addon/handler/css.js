@@ -67,7 +67,7 @@
 				dependency.source = resolveSourcemaps(dependency.url, source);
 			},
 			onPreProcess: function(dependency) {
-				dependency.enqueue = new Pledge(onAnimationFrame.bind(null, demand.idle));
+				dependency.enqueue = new Pledge(onAnimationFrame);
 			},
 			process: function(dependency) {
 				var element = document.querySelector('[demand-id="' + dependency.id + '"]');

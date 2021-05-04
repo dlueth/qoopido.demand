@@ -1,12 +1,14 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout, log,
-	EVENT_PROVIDE, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL,
+	EVENT_PROVIDE, STRING_STRING, STRING_UNDEFINED, STRING_FUNCTION, ERROR_PROVIDE, ERROR_PROVIDE_ANONYMOUS, NULL, TRUE, FALSE,
+	objectDefineProperty,
 	validatorIsTypeOf, validatorIsArray, validatorIsThenable,
 	singletonEvent,
 	ClassDependency, ClassFailure, ClassPledge
 */
 
 //=require constants.js
+//=require shortcuts.js
 //=require validator/isTypeOf.js
 //=require validator/isArray.js
 //=require validator/isThenable.js
@@ -91,6 +93,6 @@ provide = function provide() {
 	}
 };
 
-provide.amd = true;
+provide.amd = TRUE;
 
-global.defineProperty('provide', provide);
+objectDefineProperty(global, 'provide', { value: provide, configurable: FALSE, writable: FALSE });

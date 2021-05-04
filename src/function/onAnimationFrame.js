@@ -2,22 +2,18 @@
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
 	requestAnimationFrame,
 	functionFPS,
-	functionOnIdle,
 	ClassQueue
 */
 
 //=require shortcuts.js
 //=require function/fps.js
-//=require function/onIdle.js
 //=require class/queue.js
 
 /**
  * onAnimationFrame
  *
- * call callback via RequestAnimationFrame optionally
- * after a requestIdleCallback has fired
+ * call callback via RequestAnimationFrame
  *
- * @param {boolean} idle
  * @param {function} fn
  */
 var functionOnAnimationFrame = (function() {
@@ -25,7 +21,7 @@ var functionOnAnimationFrame = (function() {
 		budget = (1000 / 60) * (0.2 * (Math.min(60, functionFPS()) / 60)),
 		duration = 0, current, start;
 
-	function process(idle) {
+	function process() {
 		start = performance.now();
 
 		current();
@@ -34,33 +30,23 @@ var functionOnAnimationFrame = (function() {
 		current   = current = queue.dequeue();
 
 		if(duration < budget) {
-			current && process(idle);
+			current && process();
 		} else {
 			duration = 0;
 
-			if(current) {
-				if(idle) {
-					functionOnIdle(handle.bind(null, idle));
-				} else {
-					handle(idle);
-				}
-			}
+			current && handle();
 		}
 	}
 
-	function handle(idle) {
-		requestAnimationFrame(idle ? process.bind(null, idle) : process);
+	function handle() {
+		requestAnimationFrame(process);
 	}
 
-	return function functionOnAnimationFrame(idle, fn) {
+	return function functionOnAnimationFrame(fn) {
 		queue.enqueue(fn);
 
 		if(!current && (current = queue.dequeue())) {
-			if(idle) {
-				functionOnIdle(handle.bind(null, idle));
-			} else {
-				handle(idle);
-			}
+			handle();
 		}
 	};
 }());

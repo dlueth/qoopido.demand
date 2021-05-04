@@ -33,6 +33,7 @@
 	// include additional components
 		//=require validator/IsInstanceOf.js
 		//=require function/hash.js
+		//=require class/descriptor.js
 		//=require class/queue.js
 		//=require class/processor.js
 		//=require handler/module.js
