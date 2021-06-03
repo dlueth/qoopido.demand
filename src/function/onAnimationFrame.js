@@ -18,11 +18,11 @@
  */
 var functionOnAnimationFrame = (function() {
 	var queue  = new ClassQueue(),
-		budget = (1000 / 60) * (0.2 * (Math.min(60, functionFPS()) / 60)),
-		duration = 0, current, start;
+		duration = 0, start, budget, current;
 
 	function process() {
-		start = performance.now();
+		start  = performance.now();
+		budget = (1000 / 60) * (0.2 * (Math.min(60, functionFPS()) / 60));
 
 		current();
 
