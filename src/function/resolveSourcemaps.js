@@ -1,6 +1,6 @@
 /* global
 	global, document, demand, provide, queue, processor, settings, setTimeout, clearTimeout,
-	regexMatchSourcemap, regexMatchSuffix, regexIsAbsoluteUri, regexMatchLeadingSlash
+	regexMatchSourcemap, regexIsAbsoluteUri, regexMatchLeadingSlash
 */
 
 //=require variables.js
@@ -13,7 +13,7 @@ function functionResolveSourcemaps(url, source) {
 		if(regexIsAbsoluteUri.test(match[3])) {
 			replacement = url.protocol + '//' + url.host + match[3];
 		} else {
-			url.pathname += (regexMatchSuffix.test(url.pathname) ? '/../' : '/') + match[3].replace(regexMatchLeadingSlash, '');
+			url.pathname += '/' + match[3].replace(regexMatchLeadingSlash, '');
 
 			replacement = url.protocol + '//' + url.host + url.pathname;
 		}
