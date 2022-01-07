@@ -27,7 +27,7 @@
 		//=require function/provide.js
 
 	// process initial configuration
-		demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.href) + '/../').slice(0, -1)} });
+		demand.configure({ cache: TRUE, base: '/', pattern: { '/demand': functionResolveUrl(((options && options.url) || location.pathname) + '/../').slice(0, -1)} });
 		options && options.settings && demand.configure(options.settings);
 
 	// include additional components
